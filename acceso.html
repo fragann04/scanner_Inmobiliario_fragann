@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Acceder — Scanner REO</title>
+<meta name="robots" content="noindex">
+<style>
+  :root { --azul:#1a3c6b; --azul2:#2456a0; --dorado:#b7950b; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Segoe UI',Arial,sans-serif; background:#f4f7fb; min-height:100vh;
+         display:flex; align-items:center; justify-content:center; padding:20px; }
+  .caja { background:#fff; border-radius:14px; box-shadow:0 6px 26px rgba(0,0,0,.14);
+          padding:34px 30px; max-width:420px; width:100%; }
+  h1 { color:var(--azul); font-size:21px; text-align:center; margin-bottom:6px; }
+  .sub { text-align:center; color:#666; font-size:13px; margin-bottom:20px; }
+  label { display:block; font-size:11px; font-weight:bold; color:#555;
+          text-transform:uppercase; letter-spacing:.4px; margin:14px 0 4px; }
+  input { width:100%; padding:12px; font-size:16px; border:1.5px solid #ccd6e6;
+          border-radius:8px; }
+  input:focus { outline:none; border-color:var(--azul2); }
+  button { width:100%; margin-top:18px; padding:13px; font-size:16px; font-weight:bold;
+           color:#fff; background:var(--dorado); border:none; border-radius:8px;
+           cursor:pointer; }
+  button:hover { filter:brightness(1.08); }
+  #msg { font-size:13px; text-align:center; margin-top:12px; min-height:18px; }
+  .err { color:#c0392b; } .ok { color:#1a7a1a; }
+  .beta { background:#eef4ff; border:1px solid #b9cdf0; border-radius:8px;
+          padding:10px 12px; font-size:12px; color:#33507a; margin-top:16px; }
+  .pie { text-align:center; font-size:12px; color:#888; margin-top:18px; }
+  .pie a { color:var(--azul); }
+</style>
+</head>
+<body>
+<div class="caja">
+  <h1>👤 Acceder al Scanner REO</h1>
+  <div class="sub">Tu clave se valida en cada acceso.</div>
+
+  <label for="email">Tu email</label>
+  <input id="email" type="email" placeholder="tu@email.com" autocomplete="email">
+
+  <label for="clave">Tu clave de acceso</label>
+  <input id="clave" type="password" placeholder="La que elegiste al registrarte"
+         autocomplete="current-password">
+
+  <button id="entrar">Entrar a explorar</button>
+  <div id="msg"></div>
+
+  <div class="beta" id="beta-info" style="display:none"></div>
+
+  <div class="pie">
+    ¿Aún sin cuenta? <a href="index.html#alta">Apúntate a la beta gratuita</a><br>
+    ¿Olvidaste tu clave o tu enlace? Vuelve a
+    <a href="index.html#alta">registrarte con tu mismo email</a> y te
+    reenviamos el correo de acceso.
+  </div>
+</div>
+
+<script>
+const SALT = "REO2026";
+
+function slugify(s) {
+  return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+          .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+async function sha256(txt) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(txt));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+// 1) Si llega con enlace personal (#t=...), guardar la cuenta en este navegador
+function cargarToken() {
+  const m = location.hash.match(/t=([A-Za-z0-9_-]+)/);
+  if (!m) return;
+  try {
+    const pad = "=".repeat((4 - m[1].length % 4) % 4);
+    const bin = atob(m[1].replace(/-/g, "+").replace(/_/g, "/") + pad);
+    // atob devuelve Latin-1: decodificar como UTF-8 (tildes, ñ…)
+    const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+    const cuenta = JSON.parse(new TextDecoder("utf-8").decode(bytes));
+    if (cuenta.e && cuenta.p && cuenta.h) {
+      const cuentas = JSON.parse(localStorage.getItem("reo_cuentas") || "{}");
+      cuentas[cuenta.e] = cuenta;
+      localStorage.setItem("reo_cuentas", JSON.stringify(cuentas));
+      document.getElementById("email").value = cuenta.e;
+      const b = document.getElementById("beta-info");
+      b.style.display = "block";
+      b.innerHTML = "✅ Cuenta vinculada a este navegador.<br>Tu beta gratuita " +
+                    "incluye la provincia de <b>" + cuenta.p + "</b>. " +
+                    "Escribe tu clave para entrar.";
+      history.replaceState(null, "", location.pathname); // limpiar el token de la URL
+    }
+  } catch (e) { /* token inválido: se ignora */ }
+}
+cargarToken();
+window.addEventListener("hashchange", cargarToken);  // por si llega el enlace
+                                                     // estando ya en la página
+
+// 2) Validación en cada acceso: email + clave contra el hash de la cuenta
+async function entrar() {
+  const msg = document.getElementById("msg");
+  const email = document.getElementById("email").value.trim().toLowerCase();
+  const clave = document.getElementById("clave").value;
+  if (!email || !clave) {
+    msg.className = "err"; msg.textContent = "Escribe tu email y tu clave."; return;
+  }
+  const cuentas = JSON.parse(localStorage.getItem("reo_cuentas") || "{}");
+  const cuenta = cuentas[email];
+  if (!cuenta) {
+    msg.className = "err";
+    msg.innerHTML = "Este navegador no tiene vinculada esa cuenta.<br>" +
+      "Abre el <b>enlace personal</b> de tu email de bienvenida (una vez) " +
+      "y quedará vinculada aquí.";
+    return;
+  }
+  msg.className = "ok"; msg.textContent = "Comprobando…";
+  const h = await sha256(email + "|" + clave + "|" + SALT);
+  if (h !== cuenta.h) {
+    msg.className = "err";
+    msg.textContent = "Clave incorrecta. Revisa tu email de bienvenida.";
+    return;
+  }
+  // sesión de acceso (se revalida en cada entrada a la página de acceso)
+  sessionStorage.setItem("reo_session", JSON.stringify(
+    { e: email, p: cuenta.p, slug: slugify(cuenta.p), t: Date.now() }));
+  msg.textContent = "✓ Acceso correcto. Abriendo " + cuenta.p + "…";
+  location.href = "explorador-" + slugify(cuenta.p) + ".html";
+}
+document.getElementById("entrar").addEventListener("click", entrar);
+document.getElementById("clave").addEventListener("keydown",
+  e => { if (e.key === "Enter") entrar(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Scanner REO — Explora oportunidades inmobiliarias por provincia</title>
+<meta name="description" content="Pisos de banco, cartera Sareb y subastas BOE de toda España con la rentabilidad ya calculada. Elige tu provincia y explora gratis.">
+<style>
+  :root { --azul:#1a3c6b; --azul2:#2456a0; --dorado:#b7950b; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Segoe UI',Arial,sans-serif; color:#222; background:#f4f7fb; }
+  header { background:linear-gradient(135deg,var(--azul),var(--azul2)); color:#fff;
+    padding:40px 20px 30px; text-align:center; }
+  header h1 { font-size:clamp(22px,4vw,34px); margin-bottom:10px; }
+  header p { opacity:.9; font-size:15px; max-width:640px; margin:0 auto; }
+  .wrap { max-width:1000px; margin:0 auto; padding:26px 20px 60px; }
+  .buscador { display:block; width:100%; max-width:460px; margin:0 auto 26px;
+    padding:13px 16px; font-size:16px; border:1px solid #ccd6e6; border-radius:10px; }
+  h2 { color:var(--azul); font-size:16px; margin:22px 4px 12px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+    gap:12px; }
+  a.card { display:flex; flex-direction:column; justify-content:space-between;
+    background:#fff; border:1px solid #e4e9f2; border-radius:12px; padding:16px;
+    text-decoration:none; color:inherit; box-shadow:0 1px 3px rgba(0,0,0,.06);
+    transition:transform .1s, box-shadow .1s; min-height:92px; }
+  a.card:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(0,0,0,.13);
+    border-color:var(--dorado); }
+  .card .prov { font-size:16px; font-weight:bold; color:var(--azul); }
+  .card .n { font-size:13px; color:#1a7a1a; font-weight:bold; margin-top:6px; }
+  .card .go { font-size:12px; color:var(--dorado); font-weight:bold; margin-top:8px; }
+  .card.soon { opacity:.72; cursor:default; pointer-events:none; }
+  .card.soon .prov { color:#555; }
+  .card .soon-t { font-size:12px; color:#999; margin-top:6px; }
+  .nota { text-align:center; font-size:12px; color:#777; margin:24px auto 0; max-width:640px; }
+  footer { text-align:center; font-size:12px; color:#999; padding:24px; }
+  footer a { color:var(--azul); }
+</style>
+</head>
+<body>
+<header>
+  <h1>🏠 Scanner REO — Explora por provincia</h1>
+  <p>Pisos de banco, cartera Sareb y subastas BOE con la rentabilidad ya
+     calculada. <b>Beta gratuita</b>: tu cuenta incluye <b>una provincia</b> —
+     <a href="acceso.html" style="color:#fff"><b>accede con tu clave</b></a> o
+     <a href="index.html#alta" style="color:#fff"><b>regístrate</b></a>.</p>
+</header>
+<div class="wrap">
+  <input id="buscador" class="buscador" placeholder="🔎 Busca tu provincia…"
+         autocomplete="off">
+  <div id="disponibles-wrap">
+    <h2>✅ Disponibles ahora (4)</h2>
+    <div class="grid" id="disponibles"><a class="card" data-prov="a-coruna" href="explorador-a-coruna.html"><div class="prov">A Coruña</div><div class="n">62 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="alicante" href="explorador-alicante.html"><div class="prov">Alicante</div><div class="n">25 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="barcelona" href="explorador-barcelona.html"><div class="prov">Barcelona</div><div class="n">909 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="girona" href="explorador-girona.html"><div class="prov">Girona</div><div class="n">424 inmuebles</div><div class="go">Explorar →</div></a></div>
+  </div>
+  <h2>🕓 Próximamente — se activan por demanda</h2>
+  <div class="grid" id="proximamente"><a class="card soon" data-prov="albacete"><div class="prov">Albacete</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="almeria"><div class="prov">Almería</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="asturias"><div class="prov">Asturias</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="badajoz"><div class="prov">Badajoz</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="baleares"><div class="prov">Baleares</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="bizkaia"><div class="prov">Bizkaia</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="burgos"><div class="prov">Burgos</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="cantabria"><div class="prov">Cantabria</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="castellon"><div class="prov">Castellón</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="ceuta"><div class="prov">Ceuta</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="ciudad-real"><div class="prov">Ciudad Real</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="cuenca"><div class="prov">Cuenca</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="caceres"><div class="prov">Cáceres</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="cadiz"><div class="prov">Cádiz</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="cordoba"><div class="prov">Córdoba</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="gipuzkoa"><div class="prov">Gipuzkoa</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="granada"><div class="prov">Granada</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="guadalajara"><div class="prov">Guadalajara</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="huelva"><div class="prov">Huelva</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="huesca"><div class="prov">Huesca</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="jaen"><div class="prov">Jaén</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="la-rioja"><div class="prov">La Rioja</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="las-palmas"><div class="prov">Las Palmas</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="leon"><div class="prov">León</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="lleida"><div class="prov">Lleida</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="lugo"><div class="prov">Lugo</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="madrid"><div class="prov">Madrid</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="melilla"><div class="prov">Melilla</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="murcia"><div class="prov">Murcia</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="malaga"><div class="prov">Málaga</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="navarra"><div class="prov">Navarra</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="ourense"><div class="prov">Ourense</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="palencia"><div class="prov">Palencia</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="pontevedra"><div class="prov">Pontevedra</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="salamanca"><div class="prov">Salamanca</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="santa-cruz-de-tenerife"><div class="prov">Santa Cruz de Tenerife</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="segovia"><div class="prov">Segovia</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="sevilla"><div class="prov">Sevilla</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="soria"><div class="prov">Soria</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="tarragona"><div class="prov">Tarragona</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="teruel"><div class="prov">Teruel</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="toledo"><div class="prov">Toledo</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="valencia"><div class="prov">Valencia</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="valladolid"><div class="prov">Valladolid</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="zamora"><div class="prov">Zamora</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="zaragoza"><div class="prov">Zaragoza</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="alava"><div class="prov">Álava</div><div class="soon-t">Aún sin datos</div></a>
+<a class="card soon" data-prov="avila"><div class="prov">Ávila</div><div class="soon-t">Aún sin datos</div></a></div>
+  <div class="nota">Actualizado el 09/07/2026. Los datos proceden de fuentes públicas
+    y las rentabilidades son estimaciones — no constituyen asesoramiento
+    financiero, inmobiliario ni legal.</div>
+</div>
+<footer>Scanner REO · <a href="index.html">Inicio</a> ·
+  Contacto: <a href="mailto:norelysfraga@gmail.com">norelysfraga@gmail.com</a></footer>
+<script>
+const b = document.getElementById("buscador");
+b.addEventListener("input", () => {
+  const q = b.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  document.querySelectorAll("a.card").forEach(c => {
+    const t = c.dataset.prov;
+    c.style.display = t.includes(q) ? "" : "none";
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Scanner REO — Explorador interactivo · 09/07/2026</title>
+<style>
+  :root { --azul: #1a3c6b; --verde: #1a7a1a; --rojo: #c0392b; }
+  * { box-sizing: border-box; }
+  body { font-family: Arial, sans-serif; font-size: 13px; color: #222;
+         margin: 0; padding: 0 0 40px; background: #f5f5f5; }
+  header { background: var(--azul); color: #fff; padding: 14px 20px; }
+  header h1 { font-size: 18px; margin: 0 0 2px; }
+  header .sub { font-size: 12px; opacity: .85; }
+
+  #filtros { position: sticky; top: 0; z-index: 10; background: #fff;
+             padding: 12px 20px; box-shadow: 0 2px 6px rgba(0,0,0,.12);
+             display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: flex-end; }
+  .campo { display: flex; flex-direction: column; gap: 3px; }
+  .campo label { font-size: 10px; font-weight: bold; color: #555;
+                 text-transform: uppercase; letter-spacing: .4px; }
+  .campo input[type=number], .campo input[type=text], .campo select {
+      padding: 5px 7px; border: 1px solid #ccc; border-radius: 4px;
+      font-size: 12px; width: 110px; }
+  .campo input[type=text] { width: 150px; }
+  .checks { display: flex; flex-wrap: wrap; gap: 4px; max-width: 340px; }
+  .chip { font-size: 11px; padding: 3px 8px; border-radius: 12px;
+          border: 1px solid #bbb; background: #f2f2f2; cursor: pointer;
+          user-select: none; }
+  .chip.on { background: var(--azul); color: #fff; border-color: var(--azul); }
+  #resumen { font-size: 12px; color: #333; padding: 10px 20px; }
+  #resumen b { color: var(--azul); }
+  button#limpiar { padding: 6px 12px; border: 1px solid var(--azul);
+      background: #fff; color: var(--azul); border-radius: 4px; cursor: pointer;
+      font-size: 12px; }
+  button#limpiar:hover { background: #eef2fa; }
+
+  table { border-collapse: collapse; width: calc(100% - 40px); margin: 0 20px;
+          background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+  th { background: var(--azul); color: #fff; padding: 7px 8px; text-align: left;
+       font-size: 11px; white-space: nowrap; cursor: pointer; position: sticky;
+       top: 0; }
+  th .flecha { opacity: .6; font-size: 9px; }
+  td { padding: 6px 8px; border-bottom: 1px solid #eee; vertical-align: top; }
+  tr:hover td { background: #f0f4ff; }
+  .num { text-align: right; white-space: nowrap; }
+  .pos { color: var(--verde); font-weight: bold; }
+  .neg { color: var(--rojo); }
+  .nd  { color: #999; font-style: italic; }
+  .tag { color: #fff; border-radius: 3px; padding: 1px 5px; font-size: 10px;
+         display: inline-block; }
+  a { color: var(--azul); }
+  .dir { color: #555; font-size: 11px; }
+  #vacio { text-align: center; padding: 40px; color: #888; display: none; }
+
+  #toggle-filtros { display: none; }
+  .campo.solo-movil { display: none; }
+
+  /* ── Móvil: tabla → tarjetas, filtros plegables, controles táctiles ── */
+  @media (max-width: 820px) {
+    body { font-size: 14px; }
+    header { padding: 12px 14px; }
+    #toggle-filtros { display: block; width: calc(100% - 28px); margin: 10px 14px 0;
+        padding: 10px; font-size: 14px; border: 1px solid var(--azul);
+        background: #fff; color: var(--azul); border-radius: 6px; }
+    #filtros { display: none; position: static; }
+    #filtros.abierto { display: flex; }
+    .campo { width: 100%; }
+    .campo input[type=number], .campo input[type=text], .campo select {
+        width: 100% !important; font-size: 16px; padding: 9px; }
+    .checks { max-width: none; }
+    .chip { font-size: 13px; padding: 7px 12px; }
+    button#limpiar { width: 100%; padding: 10px; font-size: 14px; }
+    .campo.solo-movil { display: flex; }
+
+    table { display: block; width: auto; margin: 0 10px; background: none;
+            box-shadow: none; }
+    thead { display: none; }
+    tbody { display: block; }
+    tr { display: block; background: #fff; margin: 0 0 10px; padding: 10px 14px;
+         border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+    tr:hover td { background: none; }
+    td { display: flex; justify-content: space-between; align-items: baseline;
+         gap: 12px; border: none; padding: 4px 0; text-align: right; }
+    td::before { content: attr(data-label); font-size: 10px; font-weight: bold;
+         color: #777; text-transform: uppercase; letter-spacing: .4px;
+         text-align: left; flex-shrink: 0; }
+    td:first-child { text-align: left; }
+    a { padding: 4px 0; display: inline-block; }
+  }
+</style>
+</head>
+<body>
+<script>
+(function () {
+  if (location.protocol === "file:") return;
+  try {
+    var s = JSON.parse(sessionStorage.getItem("reo_session") || "null");
+    if (s && s.slug === "alicante") return;
+  } catch (e) {}
+  location.replace("acceso.html");
+})();
+</script>
+
+<header>
+  <h1>Scanner REO — Explorador interactivo</h1>
+  <div class="sub">Vallès Occidental · Informe del 09/07/2026 · usa los filtros y haz clic en las cabeceras para ordenar</div>
+</header>
+
+<button id="toggle-filtros">☰ Mostrar filtros</button>
+
+<div id="filtros">
+  <div class="campo solo-movil"><label>Ordenar por</label>
+    <select id="f-orden">
+      <option value="coc:1" selected>Cash-on-cash (mejor primero)</option>
+      <option value="capital:0">Capital entrada (menor primero)</option>
+      <option value="precio:0">Precio (menor primero)</option>
+      <option value="cf:1">Cashflow/año (mejor primero)</option>
+      <option value="dto:1">Dto. tasación (mayor primero)</option>
+      <option value="m2:1">m² (mayor primero)</option>
+      <option value="localidad:0">Localidad (A-Z)</option>
+    </select>
+  </div>
+  <div class="campo"><label>Municipio</label><div class="checks" id="f-muni"></div></div>
+  <div class="campo"><label>Fuente</label><div class="checks" id="f-fuente"></div></div>
+  <div class="campo"><label>Precio máx €</label><input type="number" id="f-precio" step="10000" min="0" placeholder="sin límite"></div>
+  <div class="campo"><label>Capital entrada máx €</label><input type="number" id="f-capital" step="5000" min="0" placeholder="sin límite"></div>
+  <div class="campo"><label>CoC mín %</label><input type="number" id="f-coc" step="1" placeholder="p.ej. 10"></div>
+  <div class="campo"><label>m² mín</label><input type="number" id="f-m2" step="10" min="0" placeholder="0"></div>
+  <div class="campo"><label>Habitaciones mín</label>
+    <select id="f-hab">
+      <option value="0">Todas</option><option value="1">1+</option>
+      <option value="2">2+</option><option value="3">3+</option><option value="4">4+</option>
+    </select>
+  </div>
+  <div class="campo"><label>Dirección contiene</label><input type="text" id="f-txt" placeholder="calle, zona…"></div>
+  <div class="campo"><label>&nbsp;</label><button id="limpiar">Limpiar filtros</button></div>
+</div>
+
+<noscript>
+  <div style="background:#fff3cd;border:1px solid #e0c068;border-radius:6px;
+              margin:10px 20px;padding:10px 14px;font-size:12px;color:#7a5c00">
+    Estás viendo la <b>versión estática</b> (este visor bloquea los filtros
+    interactivos). La tabla completa está abajo ordenada por cash-on-cash.
+    Para filtrar y ordenar, <b>descarga el archivo y ábrelo con tu navegador</b>.
+  </div>
+</noscript>
+
+<div id="resumen">Mostrando <b>25</b> de 25 inmuebles · <b>0</b> con cash-on-cash ≥ 10% ★</div>
+
+<table>
+  <thead><tr id="cabecera"><th>Localidad / Dirección</th><th>Fuente</th><th class="num">Precio</th><th class="num">Capital entrada</th><th class="num">m²</th><th class="num">Hab</th><th class="num">Rent. bruta</th><th class="num">Rent. neta</th><th class="num">Cash-on-cash</th><th class="num">Cashflow/año</th><th class="num">Dto. tasación</th><th>Info</th></tr></thead>
+  <tbody id="cuerpo"><tr><td data-label="Localidad / Dirección"><b>Altea</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d35400'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/altea/aire-acondicionado-calefaccion-terraza-ascensor-piscina/188830684/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">395.000 €</td><td data-label="Capital entrada" class="num"><b>99.925 €</b></td><td data-label="m²" class="num">3</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">4,0%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-6,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-6.646 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Alicante Alacant</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d35400'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/alicante-alacant/aire-acondicionado-parking-ascensor/189886421/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">235.000 €</td><td data-label="Capital entrada" class="num"><b>65.525 €</b></td><td data-label="m²" class="num">156</td><td data-label="Hab" class="num">4</td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">3,7%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-6,8%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-4.464 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Mutxamel</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-piso/alicante-alacanti-mutxamel/60454099' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">184.900 €</td><td data-label="Capital entrada" class="num"><b>54.754 €</b></td><td data-label="m²" class="num">22</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">3,5%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-6,9%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.781 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Rojales</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-casa/alicante-vegabajadelsegura-rojales/60521619' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">110.000 €</td><td data-label="Capital entrada" class="num"><b>38.650 €</b></td><td data-label="m²" class="num">65</td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">3,0%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-7,1%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.760 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Murodealcoy</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-piso/alicante-condadodecocentaina-murodealcoy/60769139' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">79.000 €</td><td data-label="Capital entrada" class="num"><b>31.985 €</b></td><td data-label="m²" class="num">45</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">2,5%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-7,3%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.337 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Aspe</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-casa/alicante-mediovinalopo-aspe/60473235' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">75.000 €</td><td data-label="Capital entrada" class="num"><b>31.125 €</b></td><td data-label="m²" class="num">100</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">2,5%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-7,3%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.283 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Muradala</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-casa/alicante-vegabajadelsegura-muradala/60516947' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">65.900 €</td><td data-label="Capital entrada" class="num"><b>29.168 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">2,2%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-7,4%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.159 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Catral</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-piso/alicante-lamanchuelas-catral/60578560' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">60.000 €</td><td data-label="Capital entrada" class="num"><b>27.900 €</b></td><td data-label="m²" class="num">110</td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">2,1%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-7,4%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.078 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Novelda</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-casa/alicante-mediovinalopo-novelda/60494495' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">54.000 €</td><td data-label="Capital entrada" class="num"><b>26.610 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">1,8%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-7,5%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.996 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Sax</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-casa/alicante-altovinalopo-sax/60486617' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">39.000 €</td><td data-label="Capital entrada" class="num"><b>23.385 €</b></td><td data-label="m²" class="num">160</td><td data-label="Hab" class="num">4</td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">1,1%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-7,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.792 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Torrevieja</b><br><span class='dir'>DOCTOR GREGORIO MARAÑON , 70, Torrevieja</span></td><td data-label="Fuente"><span class='tag' style='background:#117a65'>ALTAMIRA</span><br><a href='https://www.altamirainmuebles.com/venta-de-piso/alicante/torrevieja/segunda-mano/9206_0144_PE0001/375619/1' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">36.000 €</td><td data-label="Capital entrada" class="num"><b>22.740 €</b></td><td data-label="m²" class="num">118</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">0,9%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-7,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.751 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Muro De Alcoy</b><br><span class='dir'>DOCTOR GREGORIO MARAÑON , 70, Torrevieja</span></td><td data-label="Fuente"><span class='tag' style='background:#117a65'>ALTAMIRA</span><br><a href='https://www.altamirainmuebles.com/venta-de-casa/alicante/muro-de-alcoy/segunda-mano/2302_0799_PE0001/375502/1' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">36.000 €</td><td data-label="Capital entrada" class="num"><b>22.740 €</b></td><td data-label="m²" class="num">118</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">0,9%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-7,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.751 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Crevillente</b><br><span class='dir'>DOCTOR GREGORIO MARAÑON , 70, Torrevieja</span></td><td data-label="Fuente"><span class='tag' style='background:#117a65'>ALTAMIRA</span><br><a href='https://www.altamirainmuebles.com/venta-de-chalet/alicante/crevillente/segunda-mano/9212_0154_PE0001/374404/1' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">36.000 €</td><td data-label="Capital entrada" class="num"><b>22.740 €</b></td><td data-label="m²" class="num">118</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">0,9%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-7,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.751 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Finestrat</b><br><span class='dir'>DOCTOR GREGORIO MARAÑON , 70, Torrevieja</span></td><td data-label="Fuente"><span class='tag' style='background:#117a65'>ALTAMIRA</span><br><a href='https://www.altamirainmuebles.com/venta-de-piso/alicante/finestrat/segunda-mano/2302_0671_PE0001/374106/1' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">36.000 €</td><td data-label="Capital entrada" class="num"><b>22.740 €</b></td><td data-label="m²" class="num">118</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">0,9%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-7,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.751 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Pilar De La Horadada</b><br><span class='dir'>DOCTOR GREGORIO MARAÑON , 70, Torrevieja</span></td><td data-label="Fuente"><span class='tag' style='background:#117a65'>ALTAMIRA</span><br><a href='https://www.altamirainmuebles.com/venta-de-estudio/alicante/pilar-de-la-horadada/segunda-mano/9185_0028_PE0001/373058/1' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">36.000 €</td><td data-label="Capital entrada" class="num"><b>22.740 €</b></td><td data-label="m²" class="num">118</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">0,9%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-7,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.751 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Benidorm</b><br><span class='dir'>DOCTOR GREGORIO MARAÑON , 70, Torrevieja</span></td><td data-label="Fuente"><span class='tag' style='background:#117a65'>ALTAMIRA</span><br><a href='https://www.altamirainmuebles.com/venta-de-piso/alicante/benidorm/segunda-mano/9212_0123_PE0001/371999/1' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">36.000 €</td><td data-label="Capital entrada" class="num"><b>22.740 €</b></td><td data-label="m²" class="num">118</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">0,9%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-7,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.751 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Elda</b><br><span class='dir'>DOCTOR GREGORIO MARAÑON , 70, Torrevieja</span></td><td data-label="Fuente"><span class='tag' style='background:#117a65'>ALTAMIRA</span><br><a href='https://www.altamirainmuebles.com/venta-de-piso/alicante/elda/segunda-mano/9186_0032_PE0001/371900/1' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">36.000 €</td><td data-label="Capital entrada" class="num"><b>22.740 €</b></td><td data-label="m²" class="num">118</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">0,9%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-7,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.751 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Sax</b><br><span class='dir'>DOCTOR GREGORIO MARAÑON , 70, Torrevieja</span></td><td data-label="Fuente"><span class='tag' style='background:#117a65'>ALTAMIRA</span><br><a href='https://www.altamirainmuebles.com/venta-de-piso/alicante/sax/segunda-mano/9212_0112_PE0001/371729/1' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">36.000 €</td><td data-label="Capital entrada" class="num"><b>22.740 €</b></td><td data-label="m²" class="num">118</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">0,9%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-7,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.751 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Monover</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-piso/alicante-mediovinalopo-monover/60767147' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">33.000 €</td><td data-label="Capital entrada" class="num"><b>22.095 €</b></td><td data-label="m²" class="num">8</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">0,7%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-7,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.710 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Catral</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-piso/alicante-lamanchuelas-catral/60585109' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">33.100 €</td><td data-label="Capital entrada" class="num"><b>22.116 €</b></td><td data-label="m²" class="num">44</td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">0,7%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-7,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.711 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Villena</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-casa/alicante-altovinalopo-villena/60495829' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">29.900 €</td><td data-label="Capital entrada" class="num"><b>21.428 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">0,4%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-7,8%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.668 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Alcoi</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-piso/alicante-hoyadealcoy-alcoi/60746154' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">27.000 €</td><td data-label="Capital entrada" class="num"><b>20.805 €</b></td><td data-label="m²" class="num">107</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">0,1%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-7,8%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.628 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Dolores</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-piso/alicante-vegabajadelsegura-dolores/60582873' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">19.500 €</td><td data-label="Capital entrada" class="num"><b>19.192 €</b></td><td data-label="m²" class="num">108</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">-0,8%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-8,0%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.526 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Cocentaina</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-casa/alicante-condadodecocentaina-cocentaina/60526585' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">12.000 €</td><td data-label="Capital entrada" class="num"><b>17.580 €</b></td><td data-label="m²" class="num">191</td><td data-label="Hab" class="num">4</td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">-2,4%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-8,1%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.424 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Petrer</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-piso/alicante-mediovinalopo-petrer/60471264' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">9.800 €</td><td data-label="Capital entrada" class="num"><b>17.107 €</b></td><td data-label="m²" class="num">41</td><td data-label="Hab" class="num">1</td><td data-label="Rent. bruta" class="num">6,0%</td><td data-label="Rent. neta" class="num">-3,0%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-8,2%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.394 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr></tbody>
+</table>
+<div id="vacio">Ningún inmueble cumple los filtros actuales.</div>
+
+<script>
+const DATA = [{"localidad": "Altea", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/altea/aire-acondicionado-calefaccion-terraza-ascensor-piscina/188830684/d", "precio": 395000.0, "capital": 99925.0, "m2": 3.0, "hab": 3, "rb": 6.0, "rn": 4.0, "coc": -6.7, "cf": -6646.08, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Alicante Alacant", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/alicante-alacant/aire-acondicionado-parking-ascensor/189886421/d", "precio": 235000.0, "capital": 65525.0, "m2": 156.0, "hab": 4, "rb": 6.0, "rn": 3.7, "coc": -6.8, "cf": -4464.38, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Mutxamel", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-piso/alicante-alacanti-mutxamel/60454099", "precio": 184900.0, "capital": 54753.5, "m2": 22.0, "hab": 3, "rb": 6.0, "rn": 3.5, "coc": -6.9, "cf": -3781.23, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Rojales", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-casa/alicante-vegabajadelsegura-rojales/60521619", "precio": 110000.0, "capital": 38650.0, "m2": 65.0, "hab": null, "rb": 6.0, "rn": 3.0, "coc": -7.1, "cf": -2759.92, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Murodealcoy", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-piso/alicante-condadodecocentaina-murodealcoy/60769139", "precio": 79000.0, "capital": 31985.0, "m2": 45.0, "hab": 3, "rb": 6.0, "rn": 2.5, "coc": -7.3, "cf": -2337.22, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Aspe", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-casa/alicante-mediovinalopo-aspe/60473235", "precio": 75000.0, "capital": 31125.0, "m2": 100.0, "hab": 3, "rb": 6.0, "rn": 2.5, "coc": -7.3, "cf": -2282.67, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Muradala", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-casa/alicante-vegabajadelsegura-muradala/60516947", "precio": 65900.0, "capital": 29168.5, "m2": null, "hab": 2, "rb": 6.0, "rn": 2.2, "coc": -7.4, "cf": -2158.59, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Catral", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-piso/alicante-lamanchuelas-catral/60578560", "precio": 60000.0, "capital": 27900.0, "m2": 110.0, "hab": null, "rb": 6.0, "rn": 2.1, "coc": -7.4, "cf": -2078.14, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Novelda", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-casa/alicante-mediovinalopo-novelda/60494495", "precio": 54000.0, "capital": 26610.0, "m2": null, "hab": null, "rb": 6.0, "rn": 1.8, "coc": -7.5, "cf": -1996.33, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Sax", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-casa/alicante-altovinalopo-sax/60486617", "precio": 39000.0, "capital": 23385.0, "m2": 160.0, "hab": 4, "rb": 6.0, "rn": 1.1, "coc": -7.7, "cf": -1791.79, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Torrevieja", "direccion": "DOCTOR GREGORIO MARAÑON , 70, Torrevieja", "origen": "ALTAMIRA", "tipo_subasta": "CESION_REMATE", "url": "https://www.altamirainmuebles.com/venta-de-piso/alicante/torrevieja/segunda-mano/9206_0144_PE0001/375619/1", "precio": 36000.0, "capital": 22740.0, "m2": 118.0, "hab": 3, "rb": 6.0, "rn": 0.9, "coc": -7.7, "cf": -1750.88, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Muro De Alcoy", "direccion": "DOCTOR GREGORIO MARAÑON , 70, Torrevieja", "origen": "ALTAMIRA", "tipo_subasta": "CESION_REMATE", "url": "https://www.altamirainmuebles.com/venta-de-casa/alicante/muro-de-alcoy/segunda-mano/2302_0799_PE0001/375502/1", "precio": 36000.0, "capital": 22740.0, "m2": 118.0, "hab": 3, "rb": 6.0, "rn": 0.9, "coc": -7.7, "cf": -1750.88, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Crevillente", "direccion": "DOCTOR GREGORIO MARAÑON , 70, Torrevieja", "origen": "ALTAMIRA", "tipo_subasta": "CESION_REMATE", "url": "https://www.altamirainmuebles.com/venta-de-chalet/alicante/crevillente/segunda-mano/9212_0154_PE0001/374404/1", "precio": 36000.0, "capital": 22740.0, "m2": 118.0, "hab": 3, "rb": 6.0, "rn": 0.9, "coc": -7.7, "cf": -1750.88, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Finestrat", "direccion": "DOCTOR GREGORIO MARAÑON , 70, Torrevieja", "origen": "ALTAMIRA", "tipo_subasta": "CESION_REMATE", "url": "https://www.altamirainmuebles.com/venta-de-piso/alicante/finestrat/segunda-mano/2302_0671_PE0001/374106/1", "precio": 36000.0, "capital": 22740.0, "m2": 118.0, "hab": 3, "rb": 6.0, "rn": 0.9, "coc": -7.7, "cf": -1750.88, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Pilar De La Horadada", "direccion": "DOCTOR GREGORIO MARAÑON , 70, Torrevieja", "origen": "ALTAMIRA", "tipo_subasta": "CESION_REMATE", "url": "https://www.altamirainmuebles.com/venta-de-estudio/alicante/pilar-de-la-horadada/segunda-mano/9185_0028_PE0001/373058/1", "precio": 36000.0, "capital": 22740.0, "m2": 118.0, "hab": 3, "rb": 6.0, "rn": 0.9, "coc": -7.7, "cf": -1750.88, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Benidorm", "direccion": "DOCTOR GREGORIO MARAÑON , 70, Torrevieja", "origen": "ALTAMIRA", "tipo_subasta": "CESION_REMATE", "url": "https://www.altamirainmuebles.com/venta-de-piso/alicante/benidorm/segunda-mano/9212_0123_PE0001/371999/1", "precio": 36000.0, "capital": 22740.0, "m2": 118.0, "hab": 3, "rb": 6.0, "rn": 0.9, "coc": -7.7, "cf": -1750.88, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Elda", "direccion": "DOCTOR GREGORIO MARAÑON , 70, Torrevieja", "origen": "ALTAMIRA", "tipo_subasta": "CESION_REMATE", "url": "https://www.altamirainmuebles.com/venta-de-piso/alicante/elda/segunda-mano/9186_0032_PE0001/371900/1", "precio": 36000.0, "capital": 22740.0, "m2": 118.0, "hab": 3, "rb": 6.0, "rn": 0.9, "coc": -7.7, "cf": -1750.88, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Sax", "direccion": "DOCTOR GREGORIO MARAÑON , 70, Torrevieja", "origen": "ALTAMIRA", "tipo_subasta": "CESION_REMATE", "url": "https://www.altamirainmuebles.com/venta-de-piso/alicante/sax/segunda-mano/9212_0112_PE0001/371729/1", "precio": 36000.0, "capital": 22740.0, "m2": 118.0, "hab": 3, "rb": 6.0, "rn": 0.9, "coc": -7.7, "cf": -1750.88, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Monover", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-piso/alicante-mediovinalopo-monover/60767147", "precio": 33000.0, "capital": 22095.0, "m2": 8.0, "hab": 3, "rb": 6.0, "rn": 0.7, "coc": -7.7, "cf": -1709.98, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Catral", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-piso/alicante-lamanchuelas-catral/60585109", "precio": 33100.0, "capital": 22116.5, "m2": 44.0, "hab": null, "rb": 6.0, "rn": 0.7, "coc": -7.7, "cf": -1711.34, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Villena", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-casa/alicante-altovinalopo-villena/60495829", "precio": 29900.0, "capital": 21428.5, "m2": null, "hab": 3, "rb": 6.0, "rn": 0.4, "coc": -7.8, "cf": -1667.71, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Alcoi", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-piso/alicante-hoyadealcoy-alcoi/60746154", "precio": 27000.0, "capital": 20805.0, "m2": 107.0, "hab": 3, "rb": 6.0, "rn": 0.1, "coc": -7.8, "cf": -1628.16, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Dolores", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-piso/alicante-vegabajadelsegura-dolores/60582873", "precio": 19500.0, "capital": 19192.5, "m2": 108.0, "hab": 3, "rb": 6.0, "rn": -0.8, "coc": -8.0, "cf": -1525.9, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Cocentaina", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-casa/alicante-condadodecocentaina-cocentaina/60526585", "precio": 12000.0, "capital": 17580.0, "m2": 191.0, "hab": 4, "rb": 6.0, "rn": -2.4, "coc": -8.1, "cf": -1423.63, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Petrer", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-piso/alicante-mediovinalopo-petrer/60471264", "precio": 9800.0, "capital": 17107.0, "m2": 41.0, "hab": 1, "rb": 6.0, "rn": -3.0, "coc": -8.2, "cf": -1393.63, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}];
+
+const COLORES_FUENTE = {
+  "SOLVIA": "#e67e22", "ALISEDA": "#6c3483", "ALTAMIRA": "#117a65",
+  "FOTOCASA": "#d35400", "SERVIHABITAT": "#0077b6", "JA": "#1a3c6b",
+  "AT": "#c0392b", "SAREB": "#b7950b", "HIPOGES": "#148f77", "OTRO": "#7f8c8d",
+};
+const NOMBRE_FUENTE = {
+  "JA": "BOE judicial", "AT": "BOE AEAT", "OTRO": "BOE otros",
+  "SAREB": "Sareb (vía Hipoges)", "HIPOGES": "Hipoges",
+};
+
+const COLS = [
+  { id: "localidad", label: "Localidad / Dirección", num: false,
+    val: r => r.localidad || "",
+    html: r => `<b>${esc(r.localidad)}</b><br><span class="dir">${esc(r.direccion || "—")}</span>` },
+  { id: "origen", label: "Fuente", num: false, val: r => r.origen,
+    html: r => {
+      const c = COLORES_FUENTE[r.origen] || "#7f8c8d";
+      const n = NOMBRE_FUENTE[r.origen] || r.origen;
+      let extra = "";
+      if (r.tipo_subasta === "SUBASTA") extra = "<br><span class='nd'>subasta</span>";
+      if (r.tipo_subasta === "CESION_REMATE") extra = "<br><span class='nd'>cesión remate</span>";
+      return `<span class="tag" style="background:${c}">${esc(n)}</span>${extra}` +
+             `<br><a href="${esc(r.url)}" target="_blank">ver anuncio ↗</a>`; } },
+  { id: "precio", label: "Precio", num: true, val: r => r.precio,
+    html: r => eur(r.precio) },
+  { id: "capital", label: "Capital entrada", num: true, val: r => r.capital,
+    html: r => `<b>${eur(r.capital)}</b>` },
+  { id: "m2", label: "m²", num: true, val: r => r.m2,
+    html: r => r.m2 ? fmt(r.m2, 0) : "<span class='nd'>—</span>" },
+  { id: "hab", label: "Hab", num: true, val: r => r.hab,
+    html: r => r.hab ?? "<span class='nd'>—</span>" },
+  { id: "rb", label: "Rent. bruta", num: true, val: r => r.rb,
+    html: r => pct(r.rb) },
+  { id: "rn", label: "Rent. neta", num: true, val: r => r.rn,
+    html: r => pct(r.rn) },
+  { id: "coc", label: "Cash-on-cash", num: true, val: r => r.coc,
+    html: r => `<span class="${r.coc >= 0 ? "pos" : "neg"}">${pct(r.coc)}${r.coc >= 10 ? " ★" : ""}</span>` },
+  { id: "cf", label: "Cashflow/año", num: true, val: r => r.cf,
+    html: r => `<span class="${r.cf >= 0 ? "pos" : "neg"}">${r.cf >= 0 ? "+" : ""}${eur(r.cf)}</span>` },
+  { id: "dto", label: "Dto. tasación", num: true, val: r => r.dto,
+    html: r => r.dto === null ? "<span class='nd'>~ N/D</span>" : pct(r.dto) },
+  { id: "info", label: "Info", num: false, val: r => "",
+    html: r => {
+      let out = [];
+      if (r.tensionada) out.push("<span class='tag' style='background:#8e44ad'>Tensionada</span>");
+      if (r.cargas > 0) out.push(`<span class='tag' style='background:#e67e22'>Cargas ${eur(r.cargas)}</span>`);
+      if (r.posesion) out.push(`<span class='dir'>${esc(r.posesion)}</span>`);
+      if (r.cierre) out.push(`<span class='dir'>cierra ${esc(r.cierre)}</span>`);
+      return out.join("<br>") || "<span class='nd'>—</span>"; } },
+];
+
+let orden = { col: "coc", desc: true };
+let muniOn = new Set(), fuenteOn = new Set();
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+const fmt = (v, d) => v.toLocaleString("es-ES", { minimumFractionDigits: d, maximumFractionDigits: d });
+const eur = v => fmt(Math.round(v), 0) + " €";
+const pct = v => fmt(v, 1) + "%";
+
+const _chipSyncs = [];  // para re-pintar chips al restaurar parámetros guardados
+
+function chips(contId, valores, activo) {
+  // Comportamiento intuitivo:
+  //  - con todo activado, un clic AÍSLA esa opción (solo esa);
+  //  - clic sobre la única activa → se reactivan todas;
+  //  - en estado mixto, el clic alterna esa opción.
+  const cont = document.getElementById(contId);
+  const els = new Map();
+  const sync = () => els.forEach((el, v) =>
+    el.classList.toggle("on", activo.has(v)));
+  _chipSyncs.push(sync);
+  valores.forEach(v => {
+    const el = document.createElement("span");
+    el.className = "chip on";
+    el.textContent = NOMBRE_FUENTE[v] || v;
+    el.title = "Clic: ver solo esta · otro clic: ver todas";
+    activo.add(v);
+    els.set(v, el);
+    el.onclick = () => {
+      if (activo.size === valores.length) {
+        activo.clear(); activo.add(v);            // aislar
+      } else if (activo.size === 1 && activo.has(v)) {
+        valores.forEach(x => activo.add(x));      // restaurar todas
+      } else {
+        activo.has(v) ? activo.delete(v) : activo.add(v);
+        if (activo.size === 0) valores.forEach(x => activo.add(x));
+      }
+      sync(); pintar();
+    };
+    cont.appendChild(el);
+  });
+}
+
+function filtrar() {
+  const pMax = parseFloat(document.getElementById("f-precio").value) || Infinity;
+  const cMax = parseFloat(document.getElementById("f-capital").value) || Infinity;
+  const cocMin = document.getElementById("f-coc").value === "" ? -Infinity : parseFloat(document.getElementById("f-coc").value);
+  const m2Min = parseFloat(document.getElementById("f-m2").value) || 0;
+  const habMin = parseInt(document.getElementById("f-hab").value);
+  const txt = document.getElementById("f-txt").value.trim().toLowerCase();
+
+  return DATA.filter(r =>
+    muniOn.has(r.localidad) && fuenteOn.has(r.origen) &&
+    r.precio <= pMax && r.capital <= cMax && r.coc >= cocMin &&
+    (m2Min === 0 || (r.m2 || 0) >= m2Min) &&
+    (habMin === 0 || (r.hab || 0) >= habMin) &&
+    (!txt || (r.direccion || "").toLowerCase().includes(txt) || r.localidad.toLowerCase().includes(txt))
+  );
+}
+
+// ── Parámetros de búsqueda persistentes ─────────────────────────────────────
+// Cada usuario define SUS parámetros una vez; se guardan en su navegador y
+// cada acceso muestra su búsqueda ya aplicada (sin depender del email diario).
+const CLAVE_FILTROS = (() => {
+  let quien = "local";
+  try {
+    const s = JSON.parse(sessionStorage.getItem("reo_session") || "null");
+    if (s && s.e) quien = s.e;
+  } catch (e) {}
+  return "reo_filtros:" + quien + ":" + (document.title.match(/Explorador/) ? location.pathname : "");
+})();
+
+const _CAMPOS = ["f-precio", "f-capital", "f-coc", "f-m2", "f-hab", "f-txt"];
+
+function guardarFiltros() {
+  try {
+    localStorage.setItem(CLAVE_FILTROS, JSON.stringify({
+      campos: Object.fromEntries(_CAMPOS.map(id => [id, document.getElementById(id).value])),
+      muni: [...muniOn], fuente: [...fuenteOn], orden,
+    }));
+  } catch (e) {}
+}
+
+function restaurarFiltros() {
+  try {
+    const f = JSON.parse(localStorage.getItem(CLAVE_FILTROS) || "null");
+    if (!f) return false;
+    _CAMPOS.forEach(id => {
+      if (f.campos && f.campos[id] !== undefined)
+        document.getElementById(id).value = f.campos[id];
+    });
+    if (Array.isArray(f.muni) && f.muni.length) {
+      const validas = f.muni.filter(v => muniOn.has(v) ||
+        DATA.some(r => r.localidad === v));
+      if (validas.length) { muniOn.clear(); validas.forEach(v => muniOn.add(v)); }
+    }
+    if (Array.isArray(f.fuente) && f.fuente.length) {
+      const validas = f.fuente.filter(v => fuenteOn.has(v) ||
+        DATA.some(r => r.origen === v));
+      if (validas.length) { fuenteOn.clear(); validas.forEach(v => fuenteOn.add(v)); }
+    }
+    if (f.orden && f.orden.col) orden = f.orden;
+    _chipSyncs.forEach(s => s());
+    return true;
+  } catch (e) { return false; }
+}
+
+function pintar() {
+  guardarFiltros();
+  const col = COLS.find(c => c.id === orden.col);
+  const rows = filtrar().sort((a, b) => {
+    let va = col.val(a), vb = col.val(b);
+    if (va === null || va === undefined) va = -Infinity;
+    if (vb === null || vb === undefined) vb = -Infinity;
+    if (typeof va === "string") return orden.desc ? vb.localeCompare(va) : va.localeCompare(vb);
+    return orden.desc ? vb - va : va - vb;
+  });
+
+  document.getElementById("cabecera").innerHTML = COLS.map(c =>
+    `<th data-c="${c.id}" ${c.num ? 'class="num"' : ""}>${c.label} ` +
+    (orden.col === c.id ? `<span class="flecha">${orden.desc ? "▼" : "▲"}</span>` : "") + "</th>"
+  ).join("");
+  document.querySelectorAll("#cabecera th").forEach(th =>
+    th.onclick = () => {
+      const c = th.dataset.c;
+      orden = { col: c, desc: orden.col === c ? !orden.desc : true };
+      pintar();
+    });
+
+  document.getElementById("cuerpo").innerHTML = rows.map(r =>
+    "<tr>" + COLS.map(c =>
+      `<td data-label="${esc(c.label)}"${c.num ? ' class="num"' : ""}>${c.html(r)}</td>`
+    ).join("") + "</tr>"
+  ).join("");
+
+  document.getElementById("vacio").style.display = rows.length ? "none" : "block";
+  const destacados = rows.filter(r => r.coc >= 10).length;
+  document.getElementById("resumen").innerHTML =
+    `Mostrando <b>${rows.length}</b> de ${DATA.length} inmuebles · ` +
+    `<b>${destacados}</b> con cash-on-cash ≥ 10% ★ · ` +
+    `<span style="color:#888">💾 tus parámetros se guardan solos para tu próxima visita</span>`;
+}
+
+// init
+chips("f-muni", [...new Set(DATA.map(r => r.localidad))].sort(), muniOn);
+chips("f-fuente", [...new Set(DATA.map(r => r.origen))].sort(), fuenteOn);
+["f-precio", "f-capital", "f-coc", "f-m2", "f-hab", "f-txt"].forEach(id =>
+  document.getElementById(id).addEventListener("input", pintar));
+
+// filtros plegables (móvil) + selector de orden (la tabla-tarjeta no tiene cabeceras)
+document.getElementById("toggle-filtros").onclick = () => {
+  const f = document.getElementById("filtros");
+  const abierto = f.classList.toggle("abierto");
+  document.getElementById("toggle-filtros").textContent =
+    abierto ? "✕ Ocultar filtros" : "☰ Mostrar filtros";
+};
+document.getElementById("f-orden").addEventListener("change", e => {
+  const [col, desc] = e.target.value.split(":");
+  orden = { col, desc: desc === "1" };
+  pintar();
+});
+document.getElementById("limpiar").onclick = () => {
+  ["f-precio", "f-capital", "f-coc", "f-m2", "f-txt"].forEach(id => document.getElementById(id).value = "");
+  document.getElementById("f-hab").value = "0";
+  document.querySelectorAll(".chip").forEach(el => el.classList.add("on"));
+  muniOn = new Set(DATA.map(r => r.localidad));
+  fuenteOn = new Set(DATA.map(r => r.origen));
+  try { localStorage.removeItem(CLAVE_FILTROS); } catch (e) {}
+  pintar();
+};
+restaurarFiltros();  // parámetros del usuario aplicados desde el primer segundo
+pintar();
+</script>
+
+</body>
+</html>

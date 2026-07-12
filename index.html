@@ -13,7 +13,13 @@
   .wrap { max-width:960px; margin:0 auto; padding:0 20px; }
 
   header.hero { background:linear-gradient(135deg,var(--azul) 0%,var(--azul2) 100%);
-    color:#fff; padding:56px 0 48px; text-align:center; }
+    color:#fff; padding:56px 0 48px; text-align:center; position:relative; }
+  .topbar { position:absolute; top:14px; right:16px; }
+  a.acceso { display:inline-flex; align-items:center; gap:7px; color:#fff;
+    text-decoration:none; font-size:13px; font-weight:bold;
+    border:1.5px solid rgba(255,255,255,.55); border-radius:22px;
+    padding:8px 16px; transition:background .15s; }
+  a.acceso:hover { background:rgba(255,255,255,.16); border-color:#fff; }
   .hero h1 { font-size:clamp(26px,4.5vw,40px); line-height:1.2; margin-bottom:14px; }
   .hero p.sub { font-size:clamp(15px,2.2vw,19px); opacity:.92; max-width:700px; margin:0 auto 26px; }
   .cta { display:inline-block; background:var(--dorado); color:#fff; text-decoration:none;
@@ -87,14 +93,19 @@
 <body>
 
 <header class="hero">
+  <div class="topbar">
+    <a class="acceso" href="explorar.html" title="¿Ya estás registrada? Entra directa al explorador">
+      👤 Acceder</a>
+  </div>
   <div class="wrap">
     <h1>Pisos de banco, cartera Sareb y subastas,<br>con la rentabilidad ya calculada</h1>
     <p class="sub">Un radar automático rastrea cada mañana el BOE, los portales de los
       bancos y de Sareb, calcula el capital de entrada y el cash-on-cash de cada
       inmueble, y te manda al email solo lo nuevo de <b>tu provincia</b>.
       Tú solo eliges.</p>
-    <a class="cta" href="#alta">Elegir mi provincia — beta gratuita</a>
-    <div class="mini">Sin tarjeta · Todas las provincias de España · Baja cuando quieras respondiendo BAJA</div>
+    <a class="cta" href="#alta">🔎 Crear mi acceso gratis — beta de 1 provincia</a>
+    <div class="mini">Sin tarjeta · Eliges tu provincia y tu clave · Entras cuando quieras con
+      <a href="acceso.html" style="color:#fff;text-decoration:underline">👤 Acceder</a></div>
   </div>
 </header>
 
@@ -206,7 +217,8 @@
       <input type="text" id="nombre" name="nombre" required placeholder="Tu nombre">
       <label for="email">Email donde recibir el informe</label>
       <input type="email" id="email" name="email" required placeholder="tu@email.com">
-      <label for="provincia">Provincia donde quieres invertir</label>
+      <label for="provincia">Provincia donde quieres invertir
+        <span style="font-weight:normal;text-transform:none">(la beta incluye 1 provincia)</span></label>
       <select id="provincia" name="provincia" required>
         <option value="" disabled selected>Elige tu provincia…</option>
         <option>Barcelona (✓ ya activa)</option>
@@ -229,15 +241,20 @@
         <option>Zamora</option><option>Zaragoza</option>
         <option>Ceuta</option><option>Melilla</option>
       </select>
+      <label for="clave">Crea tu clave de acceso</label>
+      <input type="password" id="clave" name="clave" required minlength="6"
+             placeholder="Mínimo 6 caracteres — la usarás para entrar cada vez"
+             autocomplete="new-password">
       <div class="consent">
         <input type="checkbox" id="consent" required>
         <label for="consent" style="all:unset;font-size:12px;color:#555">
           Acepto recibir el informe del Scanner REO en mi email y entiendo
           que puedo darme de baja en cualquier momento respondiendo BAJA.</label>
       </div>
-      <button type="submit">Suscribirme gratis</button>
-      <div class="form-mini">Recibirás un email con un <b>código de verificación</b>
-        para confirmar tu acceso. Tus datos solo se usan para enviarte el informe.
+      <button type="submit">Crear mi acceso gratis</button>
+      <div class="form-mini">Recibirás un email para <b>confirmar tu cuenta</b> y
+        después tu <b>enlace personal de acceso</b>: entrarás con tu email y tu
+        clave cada vez. Tus datos solo se usan para tu acceso y tu informe.
         No se comparten con terceros.</div>
     </form>
   </div>
