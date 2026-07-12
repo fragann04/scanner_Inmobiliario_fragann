@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>¡Solicitud recibida! — Scanner REO</title>
+<title>¡Acceso creado! — Scanner REO</title>
+<meta name="robots" content="noindex">
 <style>
   body { font-family:'Segoe UI',Arial,sans-serif; background:#f4f7fb; margin:0;
          display:flex; min-height:100vh; align-items:center; justify-content:center; }
@@ -12,25 +13,28 @@
   .check { font-size:52px; }
   h1 { color:#1a3c6b; font-size:22px; margin:10px 0 6px; }
   p  { color:#555; font-size:14px; line-height:1.6; }
-  ol { text-align:left; color:#555; font-size:14px; line-height:1.7; }
-  a.volver { display:inline-block; margin-top:18px; color:#1a3c6b; font-size:13px; }
+  a.entrar { display:inline-block; margin:18px 0 6px; background:#b7950b; color:#fff;
+    text-decoration:none; font-size:17px; font-weight:bold; padding:14px 34px;
+    border-radius:8px; box-shadow:0 3px 10px rgba(0,0,0,.2); }
+  a.entrar:hover { filter:brightness(1.08); }
+  .mini { font-size:12px; color:#888; margin-top:14px; line-height:1.5; }
+  a { color:#1a3c6b; }
 </style>
 </head>
 <body>
 <div class="caja">
   <div class="check">✅</div>
-  <h1>¡Solicitud recibida!</h1>
-  <p>Tu alta en la beta del Scanner REO está en marcha. Qué pasa ahora:</p>
-  <ol>
-    <li>En breve recibirás un email con tu <b>código de verificación</b> —
-        respóndelo con el código para confirmar tu acceso.</li>
-    <li>Al confirmar, te llega tu <b>clave del explorador</b> 🔑.</li>
-    <li>Y desde entonces, el <b>informe diario</b> de tu provincia con las
-        oportunidades y su rentabilidad calculada.</li>
-  </ol>
-  <p style="font-size:12px;color:#888">Si no ves el email, revisa la carpeta
-     de spam/promociones y añade norelysfraga@gmail.com a tus contactos.</p>
-  <a class="volver" href="index.html">← Volver al Scanner REO</a>
+  <h1>¡Tu acceso está ACTIVO!</h1>
+  <p>Tu cuenta ha quedado creada en este navegador con la provincia y la
+     clave que elegiste. <b>Ya puedes entrar a explorar</b> — sin esperar
+     ningún correo.</p>
+  <a class="entrar" href="acceso.html">🔎 Entrar a explorar ahora</a>
+  <p class="mini">A partir de ahora entra siempre desde
+    <a href="acceso.html">la página de acceso</a> con tu email y tu clave
+    (se validan en cada entrada).<br><br>
+    📬 Además te llegará un email para confirmar que quieres recibir el
+    <b>informe diario</b> con las novedades — es opcional: la web funciona
+    igual sin él. Si no lo ves, revisa spam/promociones.</p>
 </div>
 </body>
 </html>

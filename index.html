@@ -208,7 +208,7 @@
 <section id="alta">
   <div class="wrap">
     <h2>Apúntate a la beta gratuita</h2>
-    <form action="https://formsubmit.co/norelysfraga@gmail.com" method="POST">
+    <form id="form-alta" action="https://formsubmit.co/norelysfraga@gmail.com" method="POST">
       <input type="hidden" name="_subject" value="🆕 Nueva suscripción Scanner REO">
       <input type="hidden" name="_template" value="table">
       <input type="hidden" name="_next" value="https://fragann04.github.io/scanner_Inmobiliario_fragann/gracias.html">
@@ -310,5 +310,26 @@
   </div>
 </footer>
 
+<script>
+// ACCESO INMEDIATO: al enviar el registro, la cuenta se crea AQUÍ MISMO
+// (en este navegador) — no hay que esperar ningún correo para entrar.
+const SALT = "REO2026";
+document.getElementById("form-alta").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  const email = document.getElementById("email").value.trim().toLowerCase();
+  const clave = document.getElementById("clave").value;
+  const prov = document.getElementById("provincia").value.replace(/\(.*?\)/g, "").trim();
+  try {
+    const buf = await crypto.subtle.digest("SHA-256",
+      new TextEncoder().encode(email + "|" + clave + "|" + SALT));
+    const h = [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+    const cuentas = JSON.parse(localStorage.getItem("reo_cuentas") || "{}");
+    cuentas[email] = { e: email, p: prov, h: h };
+    localStorage.setItem("reo_cuentas", JSON.stringify(cuentas));
+    localStorage.setItem("reo_ultimo", email);
+  } catch (err) { /* si el navegador no soporta WebCrypto, seguimos igual */ }
+  this.submit();  // envía el aviso de alta (para el informe diario por email)
+});
+</script>
 </body>
 </html>

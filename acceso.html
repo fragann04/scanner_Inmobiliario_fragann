@@ -97,6 +97,13 @@ cargarToken();
 window.addEventListener("hashchange", cargarToken);  // por si llega el enlace
                                                      // estando ya en la página
 
+// Prefijar el email de la última cuenta usada/creada en este navegador
+(function () {
+  const ult = localStorage.getItem("reo_ultimo");
+  const campo = document.getElementById("email");
+  if (ult && !campo.value) campo.value = ult;
+})();
+
 // 2) Validación en cada acceso: email + clave contra el hash de la cuenta
 async function entrar() {
   const msg = document.getElementById("msg");
@@ -122,10 +129,24 @@ async function entrar() {
     return;
   }
   // sesión de acceso (se revalida en cada entrada a la página de acceso)
+  const slug = slugify(cuenta.p);
   sessionStorage.setItem("reo_session", JSON.stringify(
-    { e: email, p: cuenta.p, slug: slugify(cuenta.p), t: Date.now() }));
+    { e: email, p: cuenta.p, slug: slug, t: Date.now() }));
+  localStorage.setItem("reo_ultimo", email);
   msg.textContent = "✓ Acceso correcto. Abriendo " + cuenta.p + "…";
-  location.href = "explorador-" + slugify(cuenta.p) + ".html";
+  const destino = "explorador-" + slug + ".html";
+  // ¿su provincia ya tiene datos publicados?
+  try {
+    const r = await fetch(destino, { method: "HEAD" });
+    if (!r.ok) throw new Error("sin datos");
+    location.href = destino;
+  } catch (e2) {
+    if (location.protocol === "file:") { location.href = destino; return; }
+    msg.className = "ok";
+    msg.innerHTML = "✓ Acceso correcto.<br><b>" + cuenta.p + " se está activando</b> — " +
+      "el radar de tu provincia entra en marcha en breve y te avisaremos por email. " +
+      "Gracias por la paciencia 🙏";
+  }
 }
 document.getElementById("entrar").addEventListener("click", entrar);
 document.getElementById("clave").addEventListener("keydown",
