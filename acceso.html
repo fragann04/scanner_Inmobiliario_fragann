@@ -56,6 +56,7 @@
   </div>
 </div>
 
+<script src="config.js"></script>
 <script>
 const SALT = "REO2026";
 
@@ -86,9 +87,14 @@ function cargarToken() {
       document.getElementById("email").value = cuenta.e;
       const b = document.getElementById("beta-info");
       b.style.display = "block";
-      b.innerHTML = "✅ Cuenta vinculada a este navegador.<br>Tu beta gratuita " +
-                    "incluye la provincia de <b>" + cuenta.p + "</b>. " +
-                    "Escribe tu clave para entrar.";
+      const provsTok = Array.isArray(cuenta.p) ? cuenta.p : [cuenta.p];
+      const cfgTok = window.REO_CONFIG || {};
+      b.innerHTML = "✅ Cuenta vinculada a este navegador.<br>" +
+        (cfgTok.betaAbierta
+          ? "Durante la <b>beta abierta</b> puedes explorar <b>todas las " +
+            "provincias disponibles</b>. "
+          : "Tu cuenta incluye: <b>" + provsTok.join(", ") + "</b>. ") +
+        "Escribe tu clave para entrar.";
       history.replaceState(null, "", location.pathname); // limpiar el token de la URL
     }
   } catch (e) { /* token inválido: se ignora */ }
@@ -129,12 +135,20 @@ async function entrar() {
     return;
   }
   // sesión de acceso (se revalida en cada entrada a la página de acceso)
-  const slug = slugify(cuenta.p);
+  const provs = Array.isArray(cuenta.p) ? cuenta.p : [cuenta.p];
+  const slugs = provs.map(slugify);
   sessionStorage.setItem("reo_session", JSON.stringify(
-    { e: email, p: cuenta.p, slug: slug, t: Date.now() }));
+    { e: email, p: provs[0], provs: provs, slug: slugs[0], slugs: slugs,
+      t: Date.now() }));
   localStorage.setItem("reo_ultimo", email);
-  msg.textContent = "✓ Acceso correcto. Abriendo " + cuenta.p + "…";
-  const destino = "explorador-" + slug + ".html";
+  const cfg = window.REO_CONFIG || {};
+  if (cfg.betaAbierta || provs.length > 1) {
+    msg.textContent = "✓ Acceso correcto. Elige la provincia que quieras explorar…";
+    location.href = "explorar.html";
+    return;
+  }
+  msg.textContent = "✓ Acceso correcto. Abriendo " + provs[0] + "…";
+  const destino = "explorador-" + slugs[0] + ".html";
   // ¿su provincia ya tiene datos publicados?
   try {
     const r = await fetch(destino, { method: "HEAD" });
@@ -143,7 +157,7 @@ async function entrar() {
   } catch (e2) {
     if (location.protocol === "file:") { location.href = destino; return; }
     msg.className = "ok";
-    msg.innerHTML = "✓ Acceso correcto.<br><b>" + cuenta.p + " se está activando</b> — " +
+    msg.innerHTML = "✓ Acceso correcto.<br><b>" + provs[0] + " se está activando</b> — " +
       "el radar de tu provincia entra en marcha en breve y te avisaremos por email. " +
       "Gracias por la paciencia 🙏";
   }

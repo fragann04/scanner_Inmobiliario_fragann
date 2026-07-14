@@ -91,14 +91,19 @@
 </style>
 </head>
 <body>
+<script src="config.js"></script>
 <script>
 (function () {
   if (location.protocol === "file:") return;
-  try {
-    var s = JSON.parse(sessionStorage.getItem("reo_session") || "null");
-    if (s && s.slug === "barcelona") return;
-  } catch (e) {}
-  location.replace("acceso.html");
+  var PROV = "barcelona";
+  var cfg = window.REO_CONFIG || {};
+  var s = null;
+  try { s = JSON.parse(sessionStorage.getItem("reo_session") || "null"); } catch (e) {}
+  if (!s) { location.replace("acceso.html"); return; }
+  if (cfg.betaAbierta) return;
+  var slugs = s.slugs || (s.slug ? [s.slug] : []);
+  if (slugs.indexOf(PROV) !== -1) return;
+  location.replace("ampliar.html?p=" + PROV);
 })();
 </script>
 
