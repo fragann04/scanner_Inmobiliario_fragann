@@ -101,10 +101,51 @@
   try { s = JSON.parse(sessionStorage.getItem("reo_session") || "null"); } catch (e) {}
   if (!s) { location.replace("acceso.html"); return; }
   if (cfg.betaAbierta) return;
+  if ((cfg.adminEmails || []).indexOf(s.e) !== -1) return;
   var slugs = s.slugs || (s.slug ? [s.slug] : []);
   if (slugs.indexOf(PROV) !== -1) return;
   location.replace("ampliar.html?p=" + PROV);
 })();
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  var cfg = window.REO_CONFIG || {};
+  var activas = cfg.provinciasActivas || [];
+  var head = document.querySelector("header");
+  if (!head || !activas.length) return;
+  var actual = (location.pathname.split("/").pop() || "")
+                 .replace(/^explorador-/, "").replace(/\.html$/, "");
+  var s = null;
+  try { s = JSON.parse(sessionStorage.getItem("reo_session") || "null"); } catch (e) {}
+  var esAdmin = !!(s && s.e && (cfg.adminEmails || []).indexOf(s.e) !== -1);
+  var mias = (s && (s.slugs || (s.slug ? [s.slug] : []))) || [];
+  var lista = (cfg.betaAbierta || esAdmin)
+    ? activas
+    : activas.filter(function (p) { return mias.indexOf(p.slug) !== -1; });
+  var sel = document.createElement("select");
+  sel.id = "selector-provincia";
+  sel.setAttribute("aria-label", "Cambiar de provincia");
+  sel.style.cssText = "display:block;margin-top:8px;padding:6px 10px;" +
+    "font-size:13px;border:none;border-radius:6px;max-width:250px;cursor:pointer";
+  lista.forEach(function (p) {
+    var o = document.createElement("option");
+    o.value = p.slug;
+    o.textContent = "\ud83d\udccd " + p.nombre;
+    if (p.slug === actual) o.selected = true;
+    sel.appendChild(o);
+  });
+  if (!cfg.betaAbierta && !esAdmin) {
+    var o = document.createElement("option");
+    o.value = "__ampliar__";
+    o.textContent = "\u2795 A\u00f1adir otra provincia\u2026";
+    sel.appendChild(o);
+  }
+  sel.addEventListener("change", function () {
+    if (sel.value === "__ampliar__") location.href = "ampliar.html";
+    else location.href = "explorador-" + sel.value + ".html";
+  });
+  head.appendChild(sel);
+});
 </script>
 
 <header>

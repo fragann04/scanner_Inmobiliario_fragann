@@ -142,7 +142,8 @@ async function entrar() {
       t: Date.now() }));
   localStorage.setItem("reo_ultimo", email);
   const cfg = window.REO_CONFIG || {};
-  if (cfg.betaAbierta || provs.length > 1) {
+  const esAdmin = (cfg.adminEmails || []).indexOf(email) !== -1;
+  if (cfg.betaAbierta || esAdmin || provs.length > 1) {
     msg.textContent = "✓ Acceso correcto. Elige la provincia que quieras explorar…";
     location.href = "explorar.html";
     return;
