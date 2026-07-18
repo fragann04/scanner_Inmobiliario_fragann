@@ -65,3 +65,31 @@ Motivo: en agosto los barcos que salen de Barcelona operan solo por el Mediterr�
 Para 2 adultos + 2 menores en **cabina interior cuádruple**, la mejor relación precio/destino es el **MSC Splendida del 15-nov-2026** (18 noches, llega a Buenos Aires): con la política de niños gratis/reducidos de MSC, el total familiar estimado ronda los **1.800–2.500 €** + tasas, frente a ~2.800–3.200 € del Costa Diadema. Los precios cambian a diario: verifica en los enlaces de arriba seleccionando 4 pasajeros (2 adultos + niños de 13 y 11 años).
 
 > Nota: precios orientativos captados el 18-jul-2026 vía buscadores públicos; las webs de reserva calculan el precio final exacto según ocupación de 4 personas y promociones vigentes.
+
+---
+
+## Anexo: Cruceros Barcelona → Mediterráneo (10–25 ago 2026) en páginas para latinoamericanos
+
+Aclaración del solicitante: la búsqueda es de cruceros por el **Mediterráneo** saliendo de Barcelona en esas fechas, reservables desde portales orientados a **Latinoamérica**.
+
+### Webs oficiales de navieras (versión Latinoamérica)
+| Naviera / País | Enlace |
+|---|---|
+| MSC Latinoamérica (es) — Barcelona | https://www.msccruceros.com/cruceros/destinos/mediterraneo/espana/barcelona |
+| MSC Argentina | https://www.msccruceros.com.ar/ |
+| Costa Cruceros (es internacional/LatAm) | https://www.costacruceros.com/cruceros.html |
+| Royal Caribbean (español) | https://www.royalcaribbean.com/esp/es/ |
+
+### Agencias online con atención en Latinoamérica
+| Portal | Enlace | Nota |
+|---|---|---|
+| Cruceros.co (Colombia) | https://www.cruceros.co/pd-455-barcelona | Salidas desde Barcelona |
+| Crucero.com.ar (Argentina) | https://www.crucero.com.ar/pd-455-barcelona | Misma red, precios en AR |
+| SoloCruceros | https://www.solocruceros.com/cruceros-desde-barcelona | Teléfonos AR/CO/MX |
+| CrucerosMediterraneo | https://www.crucerosmediterraneo.com/cruceros-desde-barcelona | Atención AR/CO/MX |
+| Taoticket — MSC Barcelona agosto | https://www.taoticket.com/en_US/port-cruise/c/msc-cruises/barcelona/august | 27 salidas MSC en agosto 2026 |
+
+### Precios orientativos (agosto 2026, cabina interior)
+- Mediterráneo 7 noches desde Barcelona: desde ~539 € p.p. (adultos) en MSC/Costa; minicruceros de 3-4 noches desde ~209 €.
+- MSC y Costa: menores compartiendo camarote con 2 adultos viajan gratis o casi gratis (solo tasas) — clave para 2 adultos + niños de 13 y 11.
+- Cómo cotizar: filtrar puerto de salida "Barcelona", fechas 10–25 ago 2026, 4 pasajeros (2 adultos + 2 menores con edades), categoría "interior".
