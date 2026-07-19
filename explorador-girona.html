@@ -844,19 +844,31 @@ function pintar() {
     `<span style="color:#888">💾 tus parámetros se guardan solos para tu próxima visita</span>`;
 }
 
-// Unificar municipios duplicados por mayúsculas/minúsculas (p.ej.
-// "Jerez De La Frontera" y "Jerez de la Frontera" pasan a ser uno solo)
+// Saneado de municipios: valores basura del scraper (p.ej. "-4%") se agrupan
+// como "(Sin municipio)" y se unifican duplicados por mayúsculas o por artículo
+// ("Línea de la Concepción (La)" = "La Línea de la Concepción")
 (function () {
+  const basura = /^[-+]?\d+([.,]\d+)?\s*%?$/;
+  DATA.forEach(r => {
+    const v = String(r.localidad == null ? "" : r.localidad).trim();
+    if (!v || basura.test(v)) r.localidad = "(Sin municipio)";
+  });
+  const clave = n => {
+    let s = n.toLowerCase().trim();
+    const m = s.match(/^(.*) \((el|la|los|las)\)$/);
+    if (m) s = m[2] + " " + m[1];
+    return s;
+  };
   const grupos = {};
   DATA.forEach(r => {
-    const k = r.localidad.toLowerCase();
+    const k = clave(r.localidad);
     (grupos[k] = grupos[k] || {})[r.localidad] =
       (grupos[k][r.localidad] || 0) + 1;
   });
   const canon = {};
   for (const k in grupos)
     canon[k] = Object.entries(grupos[k]).sort((a, b) => b[1] - a[1])[0][0];
-  DATA.forEach(r => r.localidad = canon[r.localidad.toLowerCase()]);
+  DATA.forEach(r => r.localidad = canon[clave(r.localidad)]);
 })();
 
 // init
