@@ -111,6 +111,26 @@ window.addEventListener("hashchange", cargarToken);  // por si llega el enlace
 })();
 
 // 2) Validación en cada acceso: email + clave contra el hash de la cuenta
+// Busca la cuenta por email: 1º en este navegador (rápido), 2º en el
+// servidor (archivo publicado cuentas/<hash>.json) → login desde CUALQUIER
+// navegador/dispositivo sin necesidad del enlace personal.
+async function buscarCuenta(email) {
+  const cuentas = JSON.parse(localStorage.getItem("reo_cuentas") || "{}");
+  if (cuentas[email]) return cuentas[email];
+  try {
+    const idFile = await sha256(email);
+    const r = await fetch("cuentas/" + idFile + ".json", { cache: "no-store" });
+    if (r.ok) {
+      const d = await r.json();
+      const cuenta = { e: email, p: d.p, h: d.h };
+      cuentas[email] = cuenta;
+      localStorage.setItem("reo_cuentas", JSON.stringify(cuentas));
+      return cuenta;
+    }
+  } catch (e) { /* sin conexión o cuenta inexistente */ }
+  return null;
+}
+
 async function entrar() {
   const msg = document.getElementById("msg");
   const email = document.getElementById("email").value.trim().toLowerCase();
@@ -118,16 +138,15 @@ async function entrar() {
   if (!email || !clave) {
     msg.className = "err"; msg.textContent = "Escribe tu email y tu clave."; return;
   }
-  const cuentas = JSON.parse(localStorage.getItem("reo_cuentas") || "{}");
-  const cuenta = cuentas[email];
+  msg.className = "ok"; msg.textContent = "Comprobando…";
+  const cuenta = await buscarCuenta(email);
   if (!cuenta) {
     msg.className = "err";
-    msg.innerHTML = "Este navegador no tiene vinculada esa cuenta.<br>" +
-      "Abre el <b>enlace personal</b> de tu email de bienvenida (una vez) " +
-      "y quedará vinculada aquí.";
+    msg.innerHTML = "No encontramos una cuenta con ese email.<br>" +
+      "¿Es el email con el que te registraste? Si aún no tienes cuenta, " +
+      "<a href='index.html#alta'>apúntate a la beta gratuita</a>.";
     return;
   }
-  msg.className = "ok"; msg.textContent = "Comprobando…";
   const h = await sha256(email + "|" + clave + "|" + SALT);
   if (h !== cuenta.h) {
     msg.className = "err";
