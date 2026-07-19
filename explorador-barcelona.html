@@ -1304,6 +1304,21 @@ function pintar() {
     `<span style="color:#888">💾 tus parámetros se guardan solos para tu próxima visita</span>`;
 }
 
+// Unificar municipios duplicados por mayúsculas/minúsculas (p.ej.
+// "Jerez De La Frontera" y "Jerez de la Frontera" pasan a ser uno solo)
+(function () {
+  const grupos = {};
+  DATA.forEach(r => {
+    const k = r.localidad.toLowerCase();
+    (grupos[k] = grupos[k] || {})[r.localidad] =
+      (grupos[k][r.localidad] || 0) + 1;
+  });
+  const canon = {};
+  for (const k in grupos)
+    canon[k] = Object.entries(grupos[k]).sort((a, b) => b[1] - a[1])[0][0];
+  DATA.forEach(r => r.localidad = canon[r.localidad.toLowerCase()]);
+})();
+
 // init
 chips("f-muni", [...new Set(DATA.map(r => r.localidad))].sort(), muniOn);
 chips("f-fuente", [...new Set(DATA.map(r => r.origen))].sort(), fuenteOn);
