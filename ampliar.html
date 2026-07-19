@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ampliar provincias — Scanner REO</title>
+<meta name="robots" content="noindex">
+<style>
+  :root { --azul:#1a3c6b; --azul2:#2456a0; --dorado:#b7950b; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Segoe UI',Arial,sans-serif; background:#f4f7fb; min-height:100vh;
+         display:flex; align-items:center; justify-content:center; padding:20px; }
+  .caja { background:#fff; border-radius:14px; box-shadow:0 6px 26px rgba(0,0,0,.14);
+          padding:34px 30px; max-width:460px; width:100%; }
+  h1 { color:var(--azul); font-size:21px; text-align:center; margin-bottom:6px; }
+  .sub { text-align:center; color:#666; font-size:13px; margin-bottom:18px; }
+  .destacado { background:#fff8e6; border:1px solid #e6d28a; border-radius:8px;
+               padding:12px 14px; font-size:13px; color:#6b5900; margin-bottom:16px;
+               text-align:center; display:none; }
+  .precio { background:#eef4ff; border:1px solid #b9cdf0; border-radius:8px;
+            padding:12px 14px; font-size:13px; color:#33507a; margin-bottom:16px; }
+  .precio b { color:var(--azul); }
+  label { display:block; font-size:11px; font-weight:bold; color:#555;
+          text-transform:uppercase; letter-spacing:.4px; margin:14px 0 4px; }
+  input, select { width:100%; padding:12px; font-size:16px; border:1.5px solid #ccd6e6;
+          border-radius:8px; background:#fff; }
+  input:focus, select:focus { outline:none; border-color:var(--azul2); }
+  button { width:100%; margin-top:18px; padding:13px; font-size:16px; font-weight:bold;
+           color:#fff; background:var(--dorado); border:none; border-radius:8px;
+           cursor:pointer; }
+  button:hover { filter:brightness(1.08); }
+  .mini { font-size:12px; color:#777; margin-top:14px; line-height:1.5; }
+  .pie { text-align:center; font-size:12px; color:#888; margin-top:18px; }
+  .pie a { color:var(--azul); }
+</style>
+</head>
+<body>
+<div class="caja">
+  <h1>🚀 Amplía tu Scanner REO</h1>
+  <div class="sub">Tu cuenta incluye <b>una provincia gratis</b>.
+    Añade las que quieras por un pequeño pago mensual.</div>
+
+  <div class="destacado" id="destacado"></div>
+
+  <div class="precio">💶 <b>9 €/mes por provincia adicional</b> — precio de
+    lanzamiento para suscriptores de la beta. Sin permanencia: la das de baja
+    cuando quieras respondiendo BAJA.</div>
+
+  <form action="https://formsubmit.co/norelysfraga@gmail.com" method="POST">
+    <input type="hidden" name="_subject" value="💶 Solicitud de ampliación Scanner REO">
+    <input type="hidden" name="_template" value="table">
+    <input type="hidden" name="_next" value="https://www.scannerinmobiliario.com/gracias.html">
+    <input type="hidden" name="_honey" style="display:none">
+    <input type="hidden" name="tipo" value="ampliacion de provincia">
+
+    <label for="email">Email de tu cuenta</label>
+    <input id="email" type="email" name="email" required placeholder="tu@email.com"
+           autocomplete="email">
+
+    <label for="provincia">Provincia que quieres añadir</label>
+    <select id="provincia" name="provincia_nueva" required>
+      <option value="" disabled selected>Elige la provincia…</option>
+      <option>A Coruña</option><option>Álava</option><option>Albacete</option>
+      <option>Alicante</option><option>Almería</option><option>Asturias</option>
+      <option>Ávila</option><option>Badajoz</option><option>Baleares</option>
+      <option>Barcelona</option><option>Bizkaia</option><option>Burgos</option>
+      <option>Cáceres</option><option>Cádiz</option><option>Cantabria</option>
+      <option>Castellón</option><option>Ceuta</option><option>Ciudad Real</option>
+      <option>Córdoba</option><option>Cuenca</option><option>Gipuzkoa</option>
+      <option>Girona</option><option>Granada</option><option>Guadalajara</option>
+      <option>Huelva</option><option>Huesca</option><option>Jaén</option>
+      <option>La Rioja</option><option>Las Palmas</option><option>León</option>
+      <option>Lleida</option><option>Lugo</option><option>Madrid</option>
+      <option>Málaga</option><option>Melilla</option><option>Murcia</option>
+      <option>Navarra</option><option>Ourense</option><option>Palencia</option>
+      <option>Pontevedra</option><option>Salamanca</option>
+      <option>Santa Cruz de Tenerife</option><option>Segovia</option>
+      <option>Sevilla</option><option>Soria</option><option>Tarragona</option>
+      <option>Teruel</option><option>Toledo</option><option>Valencia</option>
+      <option>Valladolid</option><option>Zamora</option><option>Zaragoza</option>
+    </select>
+
+    <button type="submit">Solicitar ampliación</button>
+
+    <div class="mini">Al enviar la solicitud recibirás por email las
+      <b>instrucciones de pago</b>. En cuanto se confirme, te llegará tu
+      <b>nuevo enlace personal</b> con la provincia añadida (normalmente en
+      menos de 24&nbsp;h). No se cobra nada automáticamente.</div>
+  </form>
+
+  <div class="pie">
+    <a href="explorar.html">← Volver al mapa de provincias</a> ·
+    <a href="acceso.html">Acceder con mi clave</a>
+  </div>
+</div>
+
+<script>
+function slugify(s) {
+  return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+          .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+// Si llega desde un explorador bloqueado (?p=slug), preseleccionar la provincia
+(function () {
+  const m = location.search.match(/[?&]p=([a-z0-9-]+)/);
+  if (!m) return;
+  const sel = document.getElementById("provincia");
+  for (const op of sel.options) {
+    if (slugify(op.textContent) === m[1]) {
+      op.selected = true;
+      const d = document.getElementById("destacado");
+      d.style.display = "block";
+      d.innerHTML = "🔒 <b>" + op.textContent + "</b> no está incluida en tu " +
+                    "cuenta todavía. Solicítala aquí y la desbloqueamos.";
+      break;
+    }
+  }
+})();
+// Prefijar el email de la última cuenta usada en este navegador
+(function () {
+  const ult = localStorage.getItem("reo_ultimo");
+  const campo = document.getElementById("email");
+  if (ult && !campo.value) campo.value = ult;
+})();
+</script>
+</body>
+</html>
