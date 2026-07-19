@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Generador de enlaces — Scanner REO (privado)</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+  :root { --azul:#1a3c6b; --azul2:#2456a0; --dorado:#b7950b; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Segoe UI',Arial,sans-serif; background:#f4f7fb; min-height:100vh;
+         display:flex; align-items:center; justify-content:center; padding:20px; }
+  .caja { background:#fff; border-radius:14px; box-shadow:0 6px 26px rgba(0,0,0,.14);
+          padding:34px 30px; max-width:520px; width:100%; }
+  h1 { color:var(--azul); font-size:20px; text-align:center; margin-bottom:6px; }
+  .sub { text-align:center; color:#666; font-size:13px; margin-bottom:8px; }
+  .aviso { background:#fdecea; border:1px solid #e8b4ae; border-radius:8px;
+           padding:10px 12px; font-size:12px; color:#7a2019; margin-bottom:14px; }
+  label { display:block; font-size:11px; font-weight:bold; color:#555;
+          text-transform:uppercase; letter-spacing:.4px; margin:14px 0 4px; }
+  input, select { width:100%; padding:11px; font-size:15px; border:1.5px solid #ccd6e6;
+          border-radius:8px; background:#fff; }
+  select[multiple] { height:150px; }
+  input:focus, select:focus { outline:none; border-color:var(--azul2); }
+  .hint { font-size:11px; color:#888; margin-top:3px; }
+  button { width:100%; margin-top:16px; padding:12px; font-size:15px; font-weight:bold;
+           color:#fff; background:var(--dorado); border:none; border-radius:8px;
+           cursor:pointer; }
+  button.sec { background:var(--azul2); }
+  button:hover { filter:brightness(1.08); }
+  #salida { display:none; margin-top:18px; }
+  #enlace { width:100%; font-size:12px; padding:10px; border:1.5px solid #b9cdf0;
+            border-radius:8px; background:#eef4ff; color:#1a3c6b; word-break:break-all; }
+  #msg { font-size:13px; text-align:center; margin-top:10px; min-height:18px; }
+  .ok { color:#1a7a1a; } .err { color:#c0392b; }
+  .pie { text-align:center; font-size:12px; color:#888; margin-top:16px; }
+  .pie a { color:var(--azul); }
+</style>
+</head>
+<body>
+<div class="caja">
+  <h1>🔑 Generador de enlaces personales</h1>
+  <div class="sub">Herramienta privada del administrador del Scanner REO.</div>
+  <div class="aviso">⚠️ No compartas la dirección de esta página. Envía a cada
+    cliente únicamente <b>su enlace generado</b>, nunca este generador.</div>
+
+  <label for="email">Email del cliente (o el tuyo)</label>
+  <input id="email" type="email" placeholder="cliente@email.com" autocomplete="off">
+
+  <label for="clave">Su clave de acceso</label>
+  <input id="clave" type="text" placeholder="La clave que eligió al registrarse"
+         autocomplete="off">
+  <div class="hint">La que puso en el formulario de alta (te llega en el email
+    de la suscripción). El enlace solo funcionará con esa clave.</div>
+
+  <label for="provincias">Provincias incluidas</label>
+  <select id="provincias" multiple>
+    <option>A Coruña</option><option>Álava</option><option>Albacete</option>
+    <option>Alicante</option><option>Almería</option><option>Asturias</option>
+    <option>Ávila</option><option>Badajoz</option><option>Baleares</option>
+    <option selected>Barcelona</option><option>Bizkaia</option><option>Burgos</option>
+    <option>Cáceres</option><option>Cádiz</option><option>Cantabria</option>
+    <option>Castellón</option><option>Ceuta</option><option>Ciudad Real</option>
+    <option>Córdoba</option><option>Cuenca</option><option>Gipuzkoa</option>
+    <option>Girona</option><option>Granada</option><option>Guadalajara</option>
+    <option>Huelva</option><option>Huesca</option><option>Jaén</option>
+    <option>La Rioja</option><option>Las Palmas</option><option>León</option>
+    <option>Lleida</option><option>Lugo</option><option>Madrid</option>
+    <option>Málaga</option><option>Melilla</option><option>Murcia</option>
+    <option>Navarra</option><option>Ourense</option><option>Palencia</option>
+    <option>Pontevedra</option><option>Salamanca</option>
+    <option>Santa Cruz de Tenerife</option><option>Segovia</option>
+    <option>Sevilla</option><option>Soria</option><option>Tarragona</option>
+    <option>Teruel</option><option>Toledo</option><option>Valencia</option>
+    <option>Valladolid</option><option>Zamora</option><option>Zaragoza</option>
+  </select>
+  <div class="hint">Mantén pulsada la tecla Ctrl (⌘ en Mac) para elegir varias.
+    En modo de pago, el cliente solo entrará a las que marques aquí.</div>
+
+  <button id="generar">Generar enlace personal</button>
+
+  <div id="salida">
+    <label for="enlace">Enlace personal para enviar por email</label>
+    <textarea id="enlace" rows="4" readonly></textarea>
+    <button class="sec" id="copiar">📋 Copiar enlace</button>
+    <button class="sec" id="vincular">✅ Vincular esta cuenta en ESTE navegador ahora</button>
+  </div>
+
+  <div id="msg"></div>
+  <div class="pie"><a href="acceso.html">Ir a la página de acceso</a></div>
+</div>
+
+<script>
+const SALT = "REO2026";
+
+async function sha256(txt) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(txt));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+function b64url(txt) {
+  const bytes = new TextEncoder().encode(txt);
+  let bin = "";
+  bytes.forEach(b => bin += String.fromCharCode(b));
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+let cuentaActual = null;
+
+document.getElementById("generar").addEventListener("click", async () => {
+  const msg = document.getElementById("msg");
+  const email = document.getElementById("email").value.trim().toLowerCase();
+  const clave = document.getElementById("clave").value;
+  const provs = [...document.getElementById("provincias").selectedOptions]
+                  .map(o => o.textContent);
+  if (!email || !clave || !provs.length) {
+    msg.className = "err";
+    msg.textContent = "Rellena email, clave y al menos una provincia.";
+    return;
+  }
+  const h = await sha256(email + "|" + clave + "|" + SALT);
+  cuentaActual = { e: email, p: provs.length === 1 ? provs[0] : provs, h: h };
+  const token = b64url(JSON.stringify(cuentaActual));
+  const enlace = location.origin + location.pathname.replace(/[^/]*$/, "") +
+                 "acceso.html#t=" + token;
+  document.getElementById("enlace").value = enlace;
+  document.getElementById("salida").style.display = "block";
+  msg.className = "ok";
+  msg.textContent = "✓ Enlace generado para " + email +
+                    " (" + provs.join(", ") + ").";
+});
+
+document.getElementById("copiar").addEventListener("click", () => {
+  const t = document.getElementById("enlace");
+  t.select();
+  navigator.clipboard.writeText(t.value).then(() => {
+    const msg = document.getElementById("msg");
+    msg.className = "ok"; msg.textContent = "📋 Enlace copiado al portapapeles.";
+  });
+});
+
+document.getElementById("vincular").addEventListener("click", () => {
+  if (!cuentaActual) return;
+  const cuentas = JSON.parse(localStorage.getItem("reo_cuentas") || "{}");
+  cuentas[cuentaActual.e] = cuentaActual;
+  localStorage.setItem("reo_cuentas", JSON.stringify(cuentas));
+  localStorage.setItem("reo_ultimo", cuentaActual.e);
+  const msg = document.getElementById("msg");
+  msg.className = "ok";
+  msg.innerHTML = "✅ Cuenta vinculada en este navegador. " +
+                  "<a href='acceso.html'>Ve a acceso</a> y entra con tu clave.";
+});
+</script>
+</body>
+</html>
