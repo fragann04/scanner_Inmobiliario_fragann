@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Scanner REO — Explorador interactivo · 26/07/2026</title>
+<style>
+  :root { --azul: #0f6b48; --verde: #1a9d57; --rojo: #c0392b; }
+  * { box-sizing: border-box; }
+  body { font-family: Arial, sans-serif; font-size: 13px; color: #222;
+         margin: 0; padding: 0 0 40px; background: #f5f5f5; }
+  header { background: linear-gradient(135deg, var(--azul), #1a9160);
+           color: #fff; padding: 16px 20px; box-shadow: 0 2px 10px rgba(0,0,0,.15); }
+  header h1 { font-size: 18px; margin: 0 0 2px; }
+  header .sub { font-size: 12px; opacity: .85; }
+
+  #filtros { position: sticky; top: 0; z-index: 10; background: #fff;
+             padding: 12px 20px; box-shadow: 0 2px 6px rgba(0,0,0,.12);
+             display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: flex-end; }
+  .campo { display: flex; flex-direction: column; gap: 3px; }
+  .campo label { font-size: 10px; font-weight: bold; color: #555;
+                 text-transform: uppercase; letter-spacing: .4px; }
+  .campo input[type=number], .campo input[type=text], .campo select {
+      padding: 5px 7px; border: 1px solid #ccc; border-radius: 4px;
+      font-size: 12px; width: 110px; }
+  .campo input[type=text] { width: 150px; }
+  .checks { display: flex; flex-wrap: wrap; gap: 4px; max-width: 340px; }
+  .chip { font-size: 11px; padding: 3px 8px; border-radius: 12px;
+          border: 1px solid #bbb; background: #f2f2f2; cursor: pointer;
+          user-select: none; }
+  .chip.on { background: var(--azul); color: #fff; border-color: var(--azul); }
+  #resumen { font-size: 12px; color: #333; padding: 10px 20px; }
+  #resumen b { color: var(--azul); }
+  button#limpiar { padding: 6px 12px; border: 1px solid var(--azul);
+      background: #fff; color: var(--azul); border-radius: 4px; cursor: pointer;
+      font-size: 12px; }
+  button#limpiar:hover { background: #e9f6ef; }
+  button#aplicar { padding: 6px 16px; border: none; background: var(--azul);
+      color: #fff; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+  button#aplicar:hover { background: #0d7d52; }
+  /* cuando hay cambios sin aplicar, el botón brilla para llamar la atención
+     (sin moverse: solo el resplandor cambia) */
+  button#aplicar.pendiente { background: #c99530; animation: brillo 1.2s ease-in-out infinite; }
+  @keyframes brillo { 0%,100% { box-shadow: 0 0 0 0 rgba(183,149,11,.5); }
+                      50% { box-shadow: 0 0 0 5px rgba(183,149,11,.15); } }
+
+  table { border-collapse: collapse; width: calc(100% - 40px); margin: 0 20px;
+          background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+  th { background: var(--azul); color: #fff; padding: 7px 8px; text-align: left;
+       font-size: 11px; white-space: nowrap; cursor: pointer; position: sticky;
+       top: 0; }
+  th .flecha { opacity: .6; font-size: 9px; }
+  td { padding: 6px 8px; border-bottom: 1px solid #eee; vertical-align: top; }
+  tr:hover td { background: #edf7f1; }
+  .num { text-align: right; white-space: nowrap; }
+  .pos { color: var(--verde); font-weight: bold; }
+  .neg { color: var(--rojo); }
+  .nd  { color: #999; font-style: italic; }
+  .tag { color: #fff; border-radius: 3px; padding: 1px 5px; font-size: 10px;
+         display: inline-block; }
+  a { color: var(--azul); }
+  .dir { color: #555; font-size: 11px; }
+  #vacio { text-align: center; padding: 40px; color: #888; display: none; }
+  .info-i { color: #cfe0ff; font-size: 10px; cursor: help; vertical-align: super; }
+  th:hover .info-i { color: #fff; }
+
+  /* Panel "cómo se calcula" */
+  #comocalc { margin: 8px 20px 0; background: #fff; border: 1px solid #e4e9f2;
+              border-radius: 8px; padding: 0 14px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  #comocalc summary { cursor: pointer; font-weight: bold; color: var(--azul);
+              padding: 11px 0; font-size: 13px; list-style: none; }
+  #comocalc summary::-webkit-details-marker { display: none; }
+  #comocalc summary::before { content: "ⓘ "; }
+  #comocalc[open] summary { border-bottom: 1px solid #eee; }
+  #comocalc .cuerpo { font-size: 12.5px; color: #333; line-height: 1.7; padding: 12px 2px 16px; }
+  #comocalc b { color: var(--azul); }
+  #comocalc .form { background: #f3f8f5; border-radius: 5px; padding: 1px 7px;
+              font-family: ui-monospace, Consolas, monospace; font-size: 11.5px; color: #244; }
+  #comocalc .aviso { margin-top: 10px; font-size: 11.5px; color: #7a5c00;
+              background: #fff8e6; border: 1px solid #e6d38a; border-radius: 6px; padding: 8px 10px; }
+
+  #toggle-filtros { display: none; }
+  .campo.solo-movil { display: none; }
+
+  /* ── Desplegable de municipios (con buscador) ── */
+  details.dd { position: relative; }
+  details.dd summary { list-style: none; cursor: pointer; user-select: none;
+      padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px;
+      font-size: 12px; background: #fff; min-width: 160px; }
+  details.dd summary::-webkit-details-marker { display: none; }
+  details.dd summary::after { content: "  ▾"; color: #777; }
+  details.dd[open] summary { border-color: var(--azul); }
+  details.dd .panel { position: absolute; z-index: 40; top: calc(100% + 4px);
+      left: 0; background: #fff; border: 1px solid #ccc; border-radius: 6px;
+      box-shadow: 0 8px 22px rgba(0,0,0,.2); padding: 10px;
+      width: min(340px, calc(100vw - 48px)); max-height: 320px; overflow: auto; }
+  details.dd .panel input { width: 100%; margin-bottom: 8px; padding: 7px 9px;
+      border: 1px solid #ccc; border-radius: 4px; font-size: 12px; }
+  details.dd .panel .checks { max-width: none; }
+
+  /* ── Móvil: tabla → tarjetas, filtros plegables, controles táctiles ── */
+  @media (max-width: 820px) {
+    body { font-size: 14px; }
+    header { padding: 12px 14px; }
+    #toggle-filtros { display: block; width: calc(100% - 28px); margin: 10px 14px 0;
+        padding: 10px; font-size: 14px; border: 1px solid var(--azul);
+        background: #fff; color: var(--azul); border-radius: 6px; }
+    #filtros { display: none; position: static; }
+    #filtros.abierto { display: flex; }
+    .campo { width: 100%; }
+    .campo input[type=number], .campo input[type=text], .campo select {
+        width: 100% !important; font-size: 16px; padding: 9px; }
+    .checks { max-width: none; }
+    .chip { font-size: 13px; padding: 7px 12px; }
+    button#limpiar { width: 100%; padding: 10px; font-size: 14px; }
+    .campo.solo-movil { display: flex; }
+
+    table { display: block; width: auto; margin: 0 10px; background: none;
+            box-shadow: none; }
+    thead { display: none; }
+    tbody { display: block; }
+    tr { display: block; background: #fff; margin: 0 0 10px; padding: 10px 14px;
+         border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+    tr:hover td { background: none; }
+    td { display: flex; justify-content: space-between; align-items: baseline;
+         gap: 12px; border: none; padding: 4px 0; text-align: right; }
+    td::before { content: attr(data-label); font-size: 10px; font-weight: bold;
+         color: #777; text-transform: uppercase; letter-spacing: .4px;
+         text-align: left; flex-shrink: 0; }
+    td:first-child { text-align: left; }
+    a { padding: 4px 0; display: inline-block; }
+  }
+</style>
+</head>
+<body>
+<script src="config.js"></script>
+<script>
+(function () {
+  if (location.protocol === "file:") return;
+  var PROV = "gipuzkoa";
+  var cfg = window.REO_CONFIG || {};
+  var s = null;
+  try { s = JSON.parse(sessionStorage.getItem("reo_session") || "null"); } catch (e) {}
+  if (!s) { location.replace("acceso.html"); return; }
+  if (cfg.betaAbierta) return;
+  if ((cfg.adminEmails || []).indexOf(s.e) !== -1) return;
+  var slugs = s.slugs || (s.slug ? [s.slug] : []);
+  if (slugs.indexOf(PROV) !== -1) return;
+  location.replace("ampliar.html?p=" + PROV);
+})();
+</script>
+
+<header>
+  <h1>Scanner REO — Explorador interactivo · Gipuzkoa</h1>
+  <div class="sub">Gipuzkoa · Informe del 26/07/2026 · usa los filtros y haz clic en las cabeceras para ordenar</div>
+</header>
+
+<button id="toggle-filtros">☰ Mostrar filtros</button>
+
+<div id="filtros">
+  <div class="campo solo-movil"><label>Ordenar por</label>
+    <select id="f-orden">
+      <option value="coc:1" selected>Cash-on-cash (mejor primero)</option>
+      <option value="capital:0">Capital entrada (menor primero)</option>
+      <option value="precio:0">Precio (menor primero)</option>
+      <option value="cf:1">Cashflow/año (mejor primero)</option>
+      <option value="dto:1">Dto. tasación (mayor primero)</option>
+      <option value="m2:1">m² (mayor primero)</option>
+      <option value="localidad:0">Localidad (A-Z)</option>
+    </select>
+  </div>
+  <div class="campo"><label>Municipio</label>
+    <details class="dd" id="dd-muni">
+      <summary id="muni-summary">Todos</summary>
+      <div class="panel">
+        <input id="muni-buscar" type="text" placeholder="🔎 Buscar municipio…" autocomplete="off">
+        <div class="checks" id="f-muni"></div>
+      </div>
+    </details>
+  </div>
+  <div class="campo"><label>Fuente</label><div class="checks" id="f-fuente"></div></div>
+  <div class="campo"><label title="Muestra solo inmuebles cuyo precio sea IGUAL O MENOR que este. Vacío = sin límite.">Precio máx € <span class="info-i" title="Muestra solo inmuebles con precio igual o menor. Vacío = sin límite.">ⓘ</span></label><input type="number" id="f-precio" step="10000" min="0" placeholder="sin límite"></div>
+  <div class="campo"><label title="Dinero de tu bolsillo (entrada + impuestos + notaría + reforma). Muestra los que necesiten ESE capital o menos.">Capital entrada máx € <span class="info-i" title="Dinero de tu bolsillo (entrada + impuestos + notaría + reforma). Muestra los que necesiten ese capital o menos. Vacío = sin límite.">ⓘ</span></label><input type="number" id="f-capital" step="5000" min="0" placeholder="sin límite"></div>
+  <div class="campo"><label title="Cash-on-cash: lo que rinde al año TU dinero (cashflow ÷ capital de entrada). Escribe el mínimo % que quieras. OJO: en algunas provincias todos salen negativos con los supuestos actuales, así que un mínimo positivo puede dejar la lista vacía.">Rentab. mín % <span class="info-i" title="Cash-on-cash: lo que rinde al año tu dinero (cashflow ÷ capital de entrada). Escribe el mínimo. En algunas provincias todos salen negativos, así que un mínimo positivo puede dejar la lista vacía.">ⓘ</span></label><input type="number" id="f-coc" step="1" placeholder="cualquiera"></div>
+  <div class="campo"><label title="Superficie mínima en metros cuadrados. 0 o vacío = sin mínimo.">m² mín <span class="info-i" title="Superficie mínima en metros cuadrados. 0 o vacío = sin mínimo.">ⓘ</span></label><input type="number" id="f-m2" step="10" min="0" placeholder="sin mínimo"></div>
+  <div class="campo"><label title="Número mínimo de habitaciones. 'Cualquiera' no filtra.">Habitaciones mín <span class="info-i" title="Número mínimo de habitaciones. 'Cualquiera' no filtra.">ⓘ</span></label>
+    <select id="f-hab">
+      <option value="0">Cualquiera</option>
+      <option value="1">1 o más</option>
+      <option value="2">2 o más</option>
+      <option value="3">3 o más</option>
+      <option value="4">4 o más</option>
+      <option value="5">5 o más</option>
+    </select>
+  </div>
+  <div class="campo"><label>Dirección contiene</label><input type="text" id="f-txt" placeholder="calle, zona…"></div>
+  <div class="campo"><label>&nbsp;</label><button id="aplicar">🔎 Aplicar filtros</button></div>
+  <div class="campo"><label>&nbsp;</label><button id="limpiar">Limpiar filtros</button></div>
+</div>
+
+<noscript>
+  <div style="background:#fff3cd;border:1px solid #e0c068;border-radius:6px;
+              margin:10px 20px;padding:10px 14px;font-size:12px;color:#7a5c00">
+    Estás viendo la <b>versión estática</b> (este visor bloquea los filtros
+    interactivos). La tabla completa está abajo ordenada por cash-on-cash.
+    Para filtrar y ordenar, <b>descarga el archivo y ábrelo con tu navegador</b>.
+  </div>
+</noscript>
+
+<div id="resumen">Mostrando <b>18</b> de 18 inmuebles · <b>0</b> con cash-on-cash ≥ 10% ★</div>
+
+<details id="comocalc">
+  <summary>Cómo se calculan estos números (pasa el ratón por cada columna para el detalle)</summary>
+  <div class="cuerpo">
+    Partimos del <b>precio</b> publicado y de supuestos de inversor para alquiler
+    (buy-to-let). Todo son <b>estimaciones</b> para comparar oportunidades rápido.
+    <br><br>
+    <b>Capital de entrada</b> = <span class="form">20% del precio (entrada) + ITP de tu comunidad + 1,5% notaría/registro + 15.000 € reforma + cargas</span>.
+    El 80% restante se financia con hipoteca.<br>
+    <b>Renta anual estimada</b> = <span class="form">valor × yield de tu provincia</span> (~5–7,6% según provincia).<br>
+    <b>Rent. bruta</b> = <span class="form">renta ÷ precio</span> (antes de gastos).<br>
+    <b>Gastos anuales</b> = <span class="form">IBI 0,5% + comunidad 960 € + seguro 300 € + 10% vacíos/averías</span>.<br>
+    <b>Rent. neta</b> = <span class="form">(renta − gastos) ÷ inversión total</span> (sin hipoteca).<br>
+    <b>Hipoteca</b>: 80% del precio, 20 años, 3,5% anual.<br>
+    <b>Cashflow/año</b> = <span class="form">renta − gastos − cuota anual de hipoteca</span> (lo que te queda al año).<br>
+    <b>Cash-on-cash</b> = <span class="form">cashflow ÷ capital de entrada</span> — lo que rinde TU dinero. ★ = ≥ 10%.<br>
+    <b>Dto. tasación</b> = <span class="form">(tasación − precio) ÷ tasación</span>. "~ N/D" = sin tasación publicada.
+    <div class="aviso">⚠ Cifras orientativas: la renta se estima por yield de provincia (~5–7,6%), no por el alquiler real de cada piso.
+      Verifica siempre cada caso antes de invertir. No es asesoramiento financiero.</div>
+  </div>
+</details>
+
+<table>
+  <thead><tr id="cabecera"><th>Localidad / Dirección</th><th>Fuente</th><th class="num">Precio</th><th class="num">Capital entrada</th><th class="num">m²</th><th class="num">Hab</th><th class="num">Rent. bruta</th><th class="num">Rent. neta</th><th class="num">Cash-on-cash</th><th class="num">Cashflow/año</th><th class="num">Dto. tasación</th><th>Info</th></tr></thead>
+  <tbody id="cuerpo"><tr><td data-label="Localidad / Dirección"><b>Beasain</b><br><span class='dir'>Barrio Arriaran Auzoa Caserío Iturritza</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/chalet-independiente-beasain-3-dormitorios-219202-265918' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">70.000 €</td><td data-label="Capital entrada" class="num"><b>34.950 €</b></td><td data-label="m²" class="num">550</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">6,9%</td><td data-label="Rent. neta" class="num">3,0%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,4%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.187 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Soraluzeplacenciadelasarmas</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-piso/gipuzkoa-bajodebadebabarrena-soraluzeplacenciadelasarmas/60789214' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">71.690 €</td><td data-label="Capital entrada" class="num"><b>35.432 €</b></td><td data-label="m²" class="num">75</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">6,7%</td><td data-label="Rent. neta" class="num">2,9%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,6%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.290 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Arrasatemondragon</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-piso/gipuzkoa-altodebadebagoiena-arrasatemondragon/60492436' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">78.000 €</td><td data-label="Capital entrada" class="num"><b>37.230 €</b></td><td data-label="m²" class="num">203</td><td data-label="Hab" class="num">4</td><td data-label="Rent. bruta" class="num">6,2%</td><td data-label="Rent. neta" class="num">2,7%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,5%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.673 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Donostiasansebastian</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-piso/gipuzkoa-sansebastiandonostialdea-donostiasansebastian/60483543' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">650.000 €</td><td data-label="Capital entrada" class="num"><b>200.250 €</b></td><td data-label="m²" class="num">128</td><td data-label="Hab" class="num">4</td><td data-label="Rent. bruta" class="num">5,2%</td><td data-label="Rent. neta" class="num">3,6%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-5,1%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-10.279 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Donostia San Sebastian</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d35400'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/donostia-san-sebastian/calefaccion-terraza-trastero/190280096/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">535.000 €</td><td data-label="Capital entrada" class="num"><b>167.475 €</b></td><td data-label="m²" class="num">94</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">5,2%</td><td data-label="Rent. neta" class="num">3,5%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-5,2%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-8.684 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Donostia</b><br><span class='dir'>Plaza TERESA DE CALCUTA 1 1</span></td><td data-label="Fuente"><span class='tag' style='background:#0f6b48'>BOE judicial</span><br><a href='https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-263845' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">270.000 €</td><td data-label="Capital entrada" class="num"><b>91.950 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">5,2%</td><td data-label="Rent. neta" class="num">3,3%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-5,4%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-5.007 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='dir'>No consta</span><br><span class='dir'>cierra 2026-07-27</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Errenteria</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-piso/gipuzkoa-sansebastiandonostialdea-errenteria/60782549' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">275.000 €</td><td data-label="Capital entrada" class="num"><b>93.375 €</b></td><td data-label="m²" class="num">70</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,2%</td><td data-label="Rent. neta" class="num">3,3%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-5,4%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-5.076 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Donostia-san Sebastián</b><br><span class='dir'>Ps de Mons</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-donostia-san-sebastian-1-dormitorio-164669-202478' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">224.500 €</td><td data-label="Capital entrada" class="num"><b>78.982 €</b></td><td data-label="m²" class="num">90</td><td data-label="Hab" class="num">1</td><td data-label="Rent. bruta" class="num">5,2%</td><td data-label="Rent. neta" class="num">3,1%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-5,5%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-4.375 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Eibar</b><br><span class='dir'>C/ Pagaegi Kalea                                               </span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-eibar-3-dormitorios-199527-243728' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">191.200 €</td><td data-label="Capital entrada" class="num"><b>69.492 €</b></td><td data-label="m²" class="num">101</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,2%</td><td data-label="Rent. neta" class="num">3,0%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-5,6%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.913 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Mendaro</b><br><span class='dir'>C/ Andoneikua Etorbidea</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/chalet-adosado-mendaro-4-dormitorios-167932-206033' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">187.000 €</td><td data-label="Capital entrada" class="num"><b>68.295 €</b></td><td data-label="m²" class="num">250</td><td data-label="Hab" class="num">4</td><td data-label="Rent. bruta" class="num">5,2%</td><td data-label="Rent. neta" class="num">3,0%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-5,6%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.855 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Irun</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-piso/gipuzkoa-bajobidasoabidasoaldea-irun/60794407' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">186.664 €</td><td data-label="Capital entrada" class="num"><b>68.199 €</b></td><td data-label="m²" class="num">69</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,2%</td><td data-label="Rent. neta" class="num">3,0%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-5,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.850 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Legazpia</b><br><span class='dir'>BARRIO SAN MARTIN Nº 5-PLANTA BAJA 1 DERECHA</span></td><td data-label="Fuente"><span class='tag' style='background:#0f6b48'>BOE judicial</span><br><a href='https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-263973' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">181.800 €</td><td data-label="Capital entrada" class="num"><b>66.813 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">5,2%</td><td data-label="Rent. neta" class="num">3,0%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-5,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.783 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='dir'>No consta</span><br><span class='dir'>cierra 2026-08-05</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Antzuola</b><br><span class='dir'>Av Lizarragako Hiribidea</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-antzuola-2-dormitorios-175437-213880' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">179.000 €</td><td data-label="Capital entrada" class="num"><b>66.015 €</b></td><td data-label="m²" class="num">120</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">5,2%</td><td data-label="Rent. neta" class="num">3,0%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-5,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.744 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Eibar</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d35400'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/eibar/calefaccion-ascensor-amueblado/190284464/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">180.000 €</td><td data-label="Capital entrada" class="num"><b>66.300 €</b></td><td data-label="m²" class="num">62</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">5,2%</td><td data-label="Rent. neta" class="num">3,0%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-5,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.758 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Soraluzeplacenciadelasarmas</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-piso/gipuzkoa-bajodebadebabarrena-soraluzeplacenciadelasarmas/60517223' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">159.000 €</td><td data-label="Capital entrada" class="num"><b>60.315 €</b></td><td data-label="m²" class="num">337</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,2%</td><td data-label="Rent. neta" class="num">2,9%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-5,8%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.466 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Pasaia</b><br><span class='dir'>Av Ulia Etorbidea</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-pasaia-1-dormitorio-113180-144142' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">149.000 €</td><td data-label="Capital entrada" class="num"><b>57.465 €</b></td><td data-label="m²" class="num">71</td><td data-label="Hab" class="num">1</td><td data-label="Rent. bruta" class="num">5,2%</td><td data-label="Rent. neta" class="num">2,8%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-5,8%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.328 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Errenteria</b><br><span class='dir'>Iztieta Pasalekua nº1-4ºD</span></td><td data-label="Fuente"><span class='tag' style='background:#0f6b48'>BOE judicial</span><br><a href='https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-261357' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">145.800 €</td><td data-label="Capital entrada" class="num"><b>56.553 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">5,2%</td><td data-label="Rent. neta" class="num">2,8%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-5,8%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.283 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='dir'>No consta</span><br><span class='dir'>cierra 2026-08-03</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Urretxu</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-piso/gipuzkoa-goyerrigoierri-urretxu/60714069' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">10.000 €</td><td data-label="Capital entrada" class="num"><b>17.850 €</b></td><td data-label="m²" class="num">57</td><td data-label="Hab" class="num">1</td><td data-label="Rent. bruta" class="num">5,2%</td><td data-label="Rent. neta" class="num">-3,3%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-7,8%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.399 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr></tbody>
+</table>
+<div id="vacio">Ningún inmueble cumple los filtros actuales.</div>
+
+<script>
+const DATA = [{"localidad": "Beasain", "direccion": "Barrio Arriaran Auzoa Caserío Iturritza", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/chalet-independiente-beasain-3-dormitorios-219202-265918", "precio": 70000.0, "capital": 34950.0, "m2": 550.0, "hab": 3, "rb": 6.9, "rn": 3.0, "coc": -3.4, "cf": -1187.33, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Soraluzeplacenciadelasarmas", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-piso/gipuzkoa-bajodebadebabarrena-soraluzeplacenciadelasarmas/60789214", "precio": 71690.0, "capital": 35431.65, "m2": 75.0, "hab": 2, "rb": 6.7, "rn": 2.9, "coc": -3.6, "cf": -1289.87, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Arrasatemondragon", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-piso/gipuzkoa-altodebadebagoiena-arrasatemondragon/60492436", "precio": 78000.0, "capital": 37230.0, "m2": 203.0, "hab": 4, "rb": 6.2, "rn": 2.7, "coc": -4.5, "cf": -1672.74, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Donostiasansebastian", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-piso/gipuzkoa-sansebastiandonostialdea-donostiasansebastian/60483543", "precio": 650000.0, "capital": 200250.0, "m2": 128.0, "hab": 4, "rb": 5.2, "rn": 3.6, "coc": -5.1, "cf": -10279.49, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Donostia San Sebastian", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/donostia-san-sebastian/calefaccion-terraza-trastero/190280096/d", "precio": 535000.0, "capital": 167475.0, "m2": 94.0, "hab": 2, "rb": 5.2, "rn": 3.5, "coc": -5.2, "cf": -8683.73, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Donostia", "direccion": "Plaza TERESA DE CALCUTA 1 1", "origen": "JA", "tipo_subasta": "JUDICIAL EN VÍA DE APREMIO", "url": "https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-263845", "precio": 270000.0, "capital": 91950.0, "m2": null, "hab": null, "rb": 5.2, "rn": 3.3, "coc": -5.4, "cf": -5006.56, "dto": null, "tensionada": false, "cargas": 0, "posesion": "No consta", "cierre": "2026-07-27"}, {"localidad": "Errenteria", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-piso/gipuzkoa-sansebastiandonostialdea-errenteria/60782549", "precio": 275000.0, "capital": 93375.0, "m2": 70.0, "hab": 3, "rb": 5.2, "rn": 3.3, "coc": -5.4, "cf": -5075.94, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Donostia-san Sebastián", "direccion": "Ps de Mons", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-donostia-san-sebastian-1-dormitorio-164669-202478", "precio": 224500.0, "capital": 78982.5, "m2": 90.22, "hab": 1, "rb": 5.2, "rn": 3.1, "coc": -5.5, "cf": -4375.19, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Eibar", "direccion": "C/ Pagaegi Kalea                                               ", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-eibar-3-dormitorios-199527-243728", "precio": 191200.0, "capital": 69492.0, "m2": 100.8, "hab": 3, "rb": 5.2, "rn": 3.0, "coc": -5.6, "cf": -3913.12, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Mendaro", "direccion": "C/ Andoneikua Etorbidea", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/chalet-adosado-mendaro-4-dormitorios-167932-206033", "precio": 187000.0, "capital": 68295.0, "m2": 250.0, "hab": 4, "rb": 5.2, "rn": 3.0, "coc": -5.6, "cf": -3854.84, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Irun", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-piso/gipuzkoa-bajobidasoabidasoaldea-irun/60794407", "precio": 186664.0, "capital": 68199.24, "m2": 69.0, "hab": 3, "rb": 5.2, "rn": 3.0, "coc": -5.7, "cf": -3850.17, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Legazpia", "direccion": "BARRIO SAN MARTIN Nº 5-PLANTA BAJA 1 DERECHA", "origen": "JA", "tipo_subasta": "JUDICIAL EN VÍA DE APREMIO", "url": "https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-263973", "precio": 181800.0, "capital": 66813.0, "m2": null, "hab": null, "rb": 5.2, "rn": 3.0, "coc": -5.7, "cf": -3782.68, "dto": null, "tensionada": false, "cargas": 0, "posesion": "No consta", "cierre": "2026-08-05"}, {"localidad": "Antzuola", "direccion": "Av Lizarragako Hiribidea", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-antzuola-2-dormitorios-175437-213880", "precio": 179000.0, "capital": 66015.0, "m2": 119.81, "hab": 2, "rb": 5.2, "rn": 3.0, "coc": -5.7, "cf": -3743.83, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Eibar", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/eibar/calefaccion-ascensor-amueblado/190284464/d", "precio": 180000.0, "capital": 66300.0, "m2": 62.0, "hab": 2, "rb": 5.2, "rn": 3.0, "coc": -5.7, "cf": -3757.7, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Soraluzeplacenciadelasarmas", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-piso/gipuzkoa-bajodebadebabarrena-soraluzeplacenciadelasarmas/60517223", "precio": 159000.0, "capital": 60315.0, "m2": 337.0, "hab": 3, "rb": 5.2, "rn": 2.9, "coc": -5.8, "cf": -3466.31, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Pasaia", "direccion": "Av Ulia Etorbidea", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-pasaia-1-dormitorio-113180-144142", "precio": 149000.0, "capital": 57465.0, "m2": 71.0, "hab": 1, "rb": 5.2, "rn": 2.8, "coc": -5.8, "cf": -3327.54, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Errenteria", "direccion": "Iztieta Pasalekua nº1-4ºD", "origen": "JA", "tipo_subasta": "JUDICIAL EN VÍA DE APREMIO", "url": "https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-261357", "precio": 145800.0, "capital": 56553.0, "m2": null, "hab": null, "rb": 5.2, "rn": 2.8, "coc": -5.8, "cf": -3283.14, "dto": null, "tensionada": false, "cargas": 0, "posesion": "No consta", "cierre": "2026-08-03"}, {"localidad": "Urretxu", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-piso/gipuzkoa-goyerrigoierri-urretxu/60714069", "precio": 10000.0, "capital": 17850.0, "m2": 57.0, "hab": 1, "rb": 5.2, "rn": -3.3, "coc": -7.8, "cf": -1398.76, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}];
+
+const COLORES_FUENTE = {
+  "SOLVIA": "#e67e22", "ALISEDA": "#6c3483", "ALTAMIRA": "#117a65",
+  "FOTOCASA": "#d35400", "SERVIHABITAT": "#0077b6", "JA": "#0f6b48",
+  "AT": "#c0392b", "SAREB": "#c99530", "HIPOGES": "#148f77",
+  "PISOS.COM": "#2e86c1", "BUILDINGCENTER": "#8e6f00", "OTRO": "#7f8c8d",
+};
+const NOMBRE_FUENTE = {
+  "JA": "BOE judicial", "AT": "BOE AEAT", "OTRO": "BOE otros",
+  "SAREB": "Sareb (vía Hipoges)", "HIPOGES": "Hipoges",
+};
+
+const COLS = [
+  { id: "localidad", label: "Localidad / Dirección", num: false,
+    val: r => r.localidad || "",
+    html: r => `<b>${esc(r.localidad)}</b><br><span class="dir">${esc(r.direccion || "—")}</span>` },
+  { id: "origen", label: "Fuente", num: false, val: r => r.origen,
+    html: r => {
+      const c = COLORES_FUENTE[r.origen] || "#7f8c8d";
+      const n = NOMBRE_FUENTE[r.origen] || r.origen;
+      let extra = "";
+      if (r.tipo_subasta === "SUBASTA") extra = "<br><span class='nd'>subasta</span>";
+      if (r.tipo_subasta === "CESION_REMATE") extra = "<br><span class='nd'>cesión remate</span>";
+      return `<span class="tag" style="background:${c}">${esc(n)}</span>${extra}` +
+             `<br><a href="${esc(r.url)}" target="_blank">ver anuncio ↗</a>`; } },
+  { id: "precio", label: "Precio", num: true, val: r => r.precio,
+    tip: "Precio de venta o salida de subasta publicado por la fuente.",
+    html: r => eur(r.precio) },
+  { id: "capital", label: "Capital entrada", num: true, val: r => r.capital,
+    tip: "El dinero de tu bolsillo: entrada (20% del precio) + impuesto de compra (ITP de tu comunidad) + notaría y registro (1,5%) + reforma estimada (15.000 €) + cargas. El 80% restante se supone financiado con hipoteca.",
+    html: r => `<b>${eur(r.capital)}</b>` },
+  { id: "m2", label: "m²", num: true, val: r => r.m2,
+    tip: "Superficie construida en metros cuadrados (según la fuente).",
+    html: r => r.m2 ? fmt(r.m2, 0) : "<span class='nd'>—</span>" },
+  { id: "hab", label: "Hab", num: true, val: r => r.hab,
+    tip: "Número de habitaciones (según la fuente).",
+    html: r => r.hab ?? "<span class='nd'>—</span>" },
+  { id: "rb", label: "Rent. bruta", num: true, val: r => r.rb,
+    tip: "Renta anual estimada ÷ precio. La renta se estima como valor × yield de tu provincia (~5–7,6% según provincia). Es la rentabilidad ANTES de gastos e hipoteca.",
+    html: r => pct(r.rb) },
+  { id: "rn", label: "Rent. neta", num: true, val: r => r.rn,
+    tip: "(Renta anual − gastos anuales) ÷ inversión total. Gastos = IBI (0,5%) + comunidad (960 €) + seguro (300 €) + 10% para vacíos y averías. Rentabilidad DESPUÉS de gastos, pero sin contar la hipoteca.",
+    html: r => pct(r.rn) },
+  { id: "coc", label: "Cash-on-cash", num: true, val: r => r.coc,
+    tip: "Cashflow anual ÷ capital de entrada. Lo que rinde TU dinero real ya con la hipoteca puesta. Es la métrica que decide: ★ marca los ≥ 10%.",
+    html: r => `<span class="${r.coc >= 0 ? "pos" : "neg"}">${pct(r.coc)}${r.coc >= 10 ? " ★" : ""}</span>` },
+  { id: "cf", label: "Cashflow/año", num: true, val: r => r.cf,
+    tip: "Renta anual − gastos anuales − cuota de hipoteca (año). Lo que te queda en el bolsillo cada año tras pagarlo todo. En verde si es positivo. Hipoteca: 80% a 20 años al 3,5%.",
+    html: r => `<span class="${r.cf >= 0 ? "pos" : "neg"}">${r.cf >= 0 ? "+" : ""}${eur(r.cf)}</span>` },
+  { id: "dto", label: "Dto. tasación", num: true, val: r => r.dto,
+    tip: "Cuánto más barato es el precio respecto a la tasación: (tasación − precio) ÷ tasación. '~ N/D' = la fuente no publica tasación.",
+    html: r => r.dto === null ? "<span class='nd'>~ N/D</span>" : pct(r.dto) },
+  { id: "info", label: "Info", num: false, val: r => "",
+    html: r => {
+      let out = [];
+      if (r.tensionada) out.push("<span class='tag' style='background:#8e44ad'>Tensionada</span>");
+      if (r.cargas > 0) out.push(`<span class='tag' style='background:#e67e22'>Cargas ${eur(r.cargas)}</span>`);
+      if (r.posesion) out.push(`<span class='dir'>${esc(r.posesion)}</span>`);
+      if (r.cierre) out.push(`<span class='dir'>cierra ${esc(r.cierre)}</span>`);
+      return out.join("<br>") || "<span class='nd'>—</span>"; } },
+];
+
+let orden = { col: "coc", desc: true };
+let muniOn = new Set(), fuenteOn = new Set();
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+const fmt = (v, d) => v.toLocaleString("es-ES", { minimumFractionDigits: d, maximumFractionDigits: d });
+const eur = v => fmt(Math.round(v), 0) + " €";
+const pct = v => fmt(v, 1) + "%";
+
+const _chipSyncs = [];  // para re-pintar chips al restaurar parámetros guardados
+
+function chips(contId, valores, activo) {
+  // Comportamiento intuitivo:
+  //  - con todo activado, un clic AÍSLA esa opción (solo esa);
+  //  - clic sobre la única activa → se reactivan todas;
+  //  - en estado mixto, el clic alterna esa opción.
+  const cont = document.getElementById(contId);
+  const els = new Map();
+  const sync = () => els.forEach((el, v) =>
+    el.classList.toggle("on", activo.has(v)));
+  _chipSyncs.push(sync);
+  valores.forEach(v => {
+    const el = document.createElement("span");
+    el.className = "chip on";
+    el.textContent = NOMBRE_FUENTE[v] || v;
+    el.title = "Clic: ver solo esta · otro clic: ver todas";
+    activo.add(v);
+    els.set(v, el);
+    el.onclick = () => {
+      if (activo.size === valores.length) {
+        activo.clear(); activo.add(v);            // aislar
+      } else if (activo.size === 1 && activo.has(v)) {
+        valores.forEach(x => activo.add(x));      // restaurar todas
+      } else {
+        activo.has(v) ? activo.delete(v) : activo.add(v);
+        if (activo.size === 0) valores.forEach(x => activo.add(x));
+      }
+      sync();
+      if (typeof actualizarMuniSummary === "function") actualizarMuniSummary();
+      marcarPendiente();   // el cambio se aplica al pulsar "Aplicar filtros"
+    };
+    cont.appendChild(el);
+  });
+}
+
+// Estado de filtros APLICADO. La tabla solo cambia cuando se pulsa "Aplicar
+// filtros" (o Enter), que copia aquí lo que hay en los controles. Así los
+// controles son un "borrador" y la búsqueda se formaliza al aplicar.
+let aplicados = {
+  pMax: Infinity, cMax: Infinity, cocMin: -Infinity, m2Min: 0, habMin: 0,
+  txt: "", muni: null, fuente: null,
+};
+
+function aplicar() {
+  const gv = id => document.getElementById(id).value;
+  aplicados = {
+    pMax: parseFloat(gv("f-precio")) || Infinity,
+    cMax: parseFloat(gv("f-capital")) || Infinity,
+    cocMin: gv("f-coc") === "" ? -Infinity : parseFloat(gv("f-coc")),
+    m2Min: parseFloat(gv("f-m2")) || 0,
+    habMin: parseInt(gv("f-hab")) || 0,
+    txt: gv("f-txt").trim().toLowerCase(),
+    muni: new Set(muniOn),
+    fuente: new Set(fuenteOn),
+  };
+  const btn = document.getElementById("aplicar");
+  if (btn) { btn.classList.remove("pendiente"); btn.textContent = "🔎 Aplicar filtros"; }
+  pintar();
+}
+
+function marcarPendiente() {
+  const btn = document.getElementById("aplicar");
+  if (btn) { btn.classList.add("pendiente"); btn.textContent = "🔎 Aplicar filtros (pulsa aquí)"; }
+}
+
+function filtrar() {
+  const a = aplicados;
+  return DATA.filter(r =>
+    (!a.muni || a.muni.has(r.localidad)) && (!a.fuente || a.fuente.has(r.origen)) &&
+    r.precio <= a.pMax && r.capital <= a.cMax && r.coc >= a.cocMin &&
+    (a.m2Min === 0 || (r.m2 || 0) >= a.m2Min) &&
+    (a.habMin === 0 || (r.hab || 0) >= a.habMin) &&
+    (!a.txt || (r.direccion || "").toLowerCase().includes(a.txt) || r.localidad.toLowerCase().includes(a.txt))
+  );
+}
+
+// ── Parámetros de búsqueda persistentes ─────────────────────────────────────
+// Cada usuario define SUS parámetros una vez; se guardan en su navegador y
+// cada acceso muestra su búsqueda ya aplicada (sin depender del email diario).
+const CLAVE_FILTROS = (() => {
+  let quien = "local";
+  try {
+    const s = JSON.parse(sessionStorage.getItem("reo_session") || "null");
+    if (s && s.e) quien = s.e;
+  } catch (e) {}
+  return "reo_filtros:" + quien + ":" + (document.title.match(/Explorador/) ? location.pathname : "");
+})();
+
+const _CAMPOS = ["f-precio", "f-capital", "f-coc", "f-m2", "f-hab", "f-txt"];
+
+function guardarFiltros() {
+  try {
+    localStorage.setItem(CLAVE_FILTROS, JSON.stringify({
+      campos: Object.fromEntries(_CAMPOS.map(id => [id, document.getElementById(id).value])),
+      muni: [...muniOn], fuente: [...fuenteOn], orden,
+    }));
+  } catch (e) {}
+}
+
+function restaurarFiltros() {
+  try {
+    const f = JSON.parse(localStorage.getItem(CLAVE_FILTROS) || "null");
+    if (!f) return false;
+    _CAMPOS.forEach(id => {
+      if (f.campos && f.campos[id] !== undefined)
+        document.getElementById(id).value = f.campos[id];
+    });
+    if (Array.isArray(f.muni) && f.muni.length) {
+      const validas = f.muni.filter(v => muniOn.has(v) ||
+        DATA.some(r => r.localidad === v));
+      if (validas.length) { muniOn.clear(); validas.forEach(v => muniOn.add(v)); }
+    }
+    if (Array.isArray(f.fuente) && f.fuente.length) {
+      const validas = f.fuente.filter(v => fuenteOn.has(v) ||
+        DATA.some(r => r.origen === v));
+      if (validas.length) { fuenteOn.clear(); validas.forEach(v => fuenteOn.add(v)); }
+    }
+    if (f.orden && f.orden.col) orden = f.orden;
+    _chipSyncs.forEach(s => s());
+    return true;
+  } catch (e) { return false; }
+}
+
+function pintar() {
+  guardarFiltros();
+  const col = COLS.find(c => c.id === orden.col);
+  const rows = filtrar().sort((a, b) => {
+    let va = col.val(a), vb = col.val(b);
+    if (va === null || va === undefined) va = -Infinity;
+    if (vb === null || vb === undefined) vb = -Infinity;
+    if (typeof va === "string") return orden.desc ? vb.localeCompare(va) : va.localeCompare(vb);
+    return orden.desc ? vb - va : va - vb;
+  });
+
+  document.getElementById("cabecera").innerHTML = COLS.map(c =>
+    `<th data-c="${c.id}" ${c.num ? 'class="num"' : ""}` +
+    (c.tip ? ` title="${esc(c.tip)}"` : "") + `>${c.label}` +
+    (c.tip ? ` <span class="info-i" title="${esc(c.tip)}">ⓘ</span>` : "") + " " +
+    (orden.col === c.id ? `<span class="flecha">${orden.desc ? "▼" : "▲"}</span>` : "") + "</th>"
+  ).join("");
+  document.querySelectorAll("#cabecera th").forEach(th =>
+    th.onclick = () => {
+      const c = th.dataset.c;
+      orden = { col: c, desc: orden.col === c ? !orden.desc : true };
+      pintar();
+    });
+
+  // Tope de filas dibujadas: en provincias grandes (Barcelona 3.986, Madrid…)
+  // dibujar miles de filas en cada acción congela el navegador (y hace que
+  // "limpiar"/filtros parezcan no responder). Se dibujan las TOPE mejores; el
+  // conteo real se mantiene y se avisa de que se afine para ver el resto.
+  const TOPE = 400;
+  const visibles = rows.length > TOPE ? rows.slice(0, TOPE) : rows;
+  document.getElementById("cuerpo").innerHTML = visibles.map(r =>
+    "<tr>" + COLS.map(c =>
+      `<td data-label="${esc(c.label)}"${c.num ? ' class="num"' : ""}>${c.html(r)}</td>`
+    ).join("") + "</tr>"
+  ).join("");
+
+  document.getElementById("vacio").style.display = rows.length ? "none" : "block";
+  const destacados = rows.filter(r => r.coc >= 10).length;
+  const aviso = rows.length > TOPE
+    ? ` · <span style="color:#c0392b">en pantalla los ${TOPE} de mejor rentabilidad — afina los filtros para acotar</span>`
+    : "";
+  document.getElementById("resumen").innerHTML =
+    `<b>${rows.length}</b> de ${DATA.length} inmuebles cumplen tus filtros${aviso} · ` +
+    `<b>${destacados}</b> con cash-on-cash ≥ 10% ★ · ` +
+    `<span style="color:#888">💾 tus parámetros se guardan solos para tu próxima visita</span>`;
+}
+
+// init
+chips("f-muni", [...new Set(DATA.map(r => r.localidad))].sort(), muniOn);
+chips("f-fuente", [...new Set(DATA.map(r => r.origen))].sort(), fuenteOn);
+// Los controles NO aplican al instante: al cambiar, marcan "pendiente".
+// Se formaliza al pulsar "Aplicar filtros" o con Enter.
+["f-precio", "f-capital", "f-coc", "f-m2", "f-hab", "f-txt"].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener("input", marcarPendiente);
+  el.addEventListener("change", marcarPendiente);
+  el.addEventListener("keydown", e => { if (e.key === "Enter") aplicar(); });
+});
+document.getElementById("aplicar").addEventListener("click", aplicar);
+
+// desplegable de municipios: resumen dinámico, buscador y cierre al clicar fuera
+function actualizarMuniSummary() {
+  const total = new Set(DATA.map(r => r.localidad)).size;
+  const el = document.getElementById("muni-summary");
+  if (el) el.textContent = muniOn.size >= total ? "Todos" :
+    (muniOn.size === 1 ? [...muniOn][0] : muniOn.size + " seleccionados");
+}
+const _pintarOriginal = pintar;
+pintar = function () { _pintarOriginal(); actualizarMuniSummary(); };
+document.getElementById("muni-buscar").addEventListener("input", function () {
+  const q = this.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  document.querySelectorAll("#f-muni .chip").forEach(ch => {
+    const t = ch.textContent.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    ch.style.display = t.includes(q) ? "" : "none";
+  });
+});
+document.addEventListener("click", e => {
+  const dd = document.getElementById("dd-muni");
+  if (dd && dd.open && !dd.contains(e.target)) dd.open = false;
+});
+
+// filtros plegables (móvil) + selector de orden (la tabla-tarjeta no tiene cabeceras)
+document.getElementById("toggle-filtros").onclick = () => {
+  const f = document.getElementById("filtros");
+  const abierto = f.classList.toggle("abierto");
+  document.getElementById("toggle-filtros").textContent =
+    abierto ? "✕ Ocultar filtros" : "☰ Mostrar filtros";
+};
+document.getElementById("f-orden").addEventListener("change", e => {
+  const [col, desc] = e.target.value.split(":");
+  orden = { col, desc: desc === "1" };
+  pintar();
+});
+document.getElementById("limpiar").onclick = () => {
+  ["f-precio", "f-capital", "f-coc", "f-m2", "f-txt"].forEach(id => document.getElementById(id).value = "");
+  document.getElementById("f-hab").value = "0";
+  document.querySelectorAll(".chip").forEach(el => el.classList.add("on"));
+  muniOn = new Set(DATA.map(r => r.localidad));
+  fuenteOn = new Set(DATA.map(r => r.origen));
+  if (typeof actualizarMuniSummary === "function") actualizarMuniSummary();
+  try { localStorage.removeItem(CLAVE_FILTROS); } catch (e) {}
+  aplicar();   // limpiar sí re-renderiza al momento
+};
+restaurarFiltros();  // parámetros guardados del usuario cargados en los controles
+aplicar();           // ...y aplicados desde el primer segundo
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  var cfg = window.REO_CONFIG || {};
+  var activas = cfg.provinciasActivas || [];
+  var head = document.querySelector("header");
+  if (!head || !activas.length) return;
+  var actual = (location.pathname.split("/").pop() || "")
+                 .replace(/^explorador-/, "").replace(/\.html$/, "");
+  var s = null;
+  try { s = JSON.parse(sessionStorage.getItem("reo_session") || "null"); } catch (e) {}
+  var esAdmin = !!(s && s.e && (cfg.adminEmails || []).indexOf(s.e) !== -1);
+  var mias = (s && (s.slugs || (s.slug ? [s.slug] : []))) || [];
+  var lista = (cfg.betaAbierta || esAdmin)
+    ? activas
+    : activas.filter(function (p) { return mias.indexOf(p.slug) !== -1; });
+  var sel = document.createElement("select");
+  sel.id = "selector-provincia";
+  sel.setAttribute("aria-label", "Cambiar de provincia");
+  sel.style.cssText = "display:block;margin-top:8px;padding:6px 10px;" +
+    "font-size:13px;border:none;border-radius:6px;max-width:250px;cursor:pointer";
+  lista.forEach(function (p) {
+    var o = document.createElement("option");
+    o.value = p.slug; o.textContent = "\ud83d\udccd " + p.nombre;
+    if (p.slug === actual) o.selected = true;
+    sel.appendChild(o);
+  });
+  if (!cfg.betaAbierta && !esAdmin) {
+    var o = document.createElement("option");
+    o.value = "__ampliar__"; o.textContent = "\u2795 A\u00f1adir otra provincia\u2026";
+    sel.appendChild(o);
+  }
+  sel.addEventListener("change", function () {
+    if (sel.value === "__ampliar__") location.href = "ampliar.html";
+    else location.href = "explorador-" + sel.value + ".html";
+  });
+  head.appendChild(sel);
+});
+</script>
+</body>
+</html>

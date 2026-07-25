@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Scanner REO — Explorador interactivo · 26/07/2026</title>
+<style>
+  :root { --azul: #0f6b48; --verde: #1a9d57; --rojo: #c0392b; }
+  * { box-sizing: border-box; }
+  body { font-family: Arial, sans-serif; font-size: 13px; color: #222;
+         margin: 0; padding: 0 0 40px; background: #f5f5f5; }
+  header { background: linear-gradient(135deg, var(--azul), #1a9160);
+           color: #fff; padding: 16px 20px; box-shadow: 0 2px 10px rgba(0,0,0,.15); }
+  header h1 { font-size: 18px; margin: 0 0 2px; }
+  header .sub { font-size: 12px; opacity: .85; }
+
+  #filtros { position: sticky; top: 0; z-index: 10; background: #fff;
+             padding: 12px 20px; box-shadow: 0 2px 6px rgba(0,0,0,.12);
+             display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: flex-end; }
+  .campo { display: flex; flex-direction: column; gap: 3px; }
+  .campo label { font-size: 10px; font-weight: bold; color: #555;
+                 text-transform: uppercase; letter-spacing: .4px; }
+  .campo input[type=number], .campo input[type=text], .campo select {
+      padding: 5px 7px; border: 1px solid #ccc; border-radius: 4px;
+      font-size: 12px; width: 110px; }
+  .campo input[type=text] { width: 150px; }
+  .checks { display: flex; flex-wrap: wrap; gap: 4px; max-width: 340px; }
+  .chip { font-size: 11px; padding: 3px 8px; border-radius: 12px;
+          border: 1px solid #bbb; background: #f2f2f2; cursor: pointer;
+          user-select: none; }
+  .chip.on { background: var(--azul); color: #fff; border-color: var(--azul); }
+  #resumen { font-size: 12px; color: #333; padding: 10px 20px; }
+  #resumen b { color: var(--azul); }
+  button#limpiar { padding: 6px 12px; border: 1px solid var(--azul);
+      background: #fff; color: var(--azul); border-radius: 4px; cursor: pointer;
+      font-size: 12px; }
+  button#limpiar:hover { background: #e9f6ef; }
+  button#aplicar { padding: 6px 16px; border: none; background: var(--azul);
+      color: #fff; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+  button#aplicar:hover { background: #0d7d52; }
+  /* cuando hay cambios sin aplicar, el botón brilla para llamar la atención
+     (sin moverse: solo el resplandor cambia) */
+  button#aplicar.pendiente { background: #c99530; animation: brillo 1.2s ease-in-out infinite; }
+  @keyframes brillo { 0%,100% { box-shadow: 0 0 0 0 rgba(183,149,11,.5); }
+                      50% { box-shadow: 0 0 0 5px rgba(183,149,11,.15); } }
+
+  table { border-collapse: collapse; width: calc(100% - 40px); margin: 0 20px;
+          background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+  th { background: var(--azul); color: #fff; padding: 7px 8px; text-align: left;
+       font-size: 11px; white-space: nowrap; cursor: pointer; position: sticky;
+       top: 0; }
+  th .flecha { opacity: .6; font-size: 9px; }
+  td { padding: 6px 8px; border-bottom: 1px solid #eee; vertical-align: top; }
+  tr:hover td { background: #edf7f1; }
+  .num { text-align: right; white-space: nowrap; }
+  .pos { color: var(--verde); font-weight: bold; }
+  .neg { color: var(--rojo); }
+  .nd  { color: #999; font-style: italic; }
+  .tag { color: #fff; border-radius: 3px; padding: 1px 5px; font-size: 10px;
+         display: inline-block; }
+  a { color: var(--azul); }
+  .dir { color: #555; font-size: 11px; }
+  #vacio { text-align: center; padding: 40px; color: #888; display: none; }
+  .info-i { color: #cfe0ff; font-size: 10px; cursor: help; vertical-align: super; }
+  th:hover .info-i { color: #fff; }
+
+  /* Panel "cómo se calcula" */
+  #comocalc { margin: 8px 20px 0; background: #fff; border: 1px solid #e4e9f2;
+              border-radius: 8px; padding: 0 14px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  #comocalc summary { cursor: pointer; font-weight: bold; color: var(--azul);
+              padding: 11px 0; font-size: 13px; list-style: none; }
+  #comocalc summary::-webkit-details-marker { display: none; }
+  #comocalc summary::before { content: "ⓘ "; }
+  #comocalc[open] summary { border-bottom: 1px solid #eee; }
+  #comocalc .cuerpo { font-size: 12.5px; color: #333; line-height: 1.7; padding: 12px 2px 16px; }
+  #comocalc b { color: var(--azul); }
+  #comocalc .form { background: #f3f8f5; border-radius: 5px; padding: 1px 7px;
+              font-family: ui-monospace, Consolas, monospace; font-size: 11.5px; color: #244; }
+  #comocalc .aviso { margin-top: 10px; font-size: 11.5px; color: #7a5c00;
+              background: #fff8e6; border: 1px solid #e6d38a; border-radius: 6px; padding: 8px 10px; }
+
+  #toggle-filtros { display: none; }
+  .campo.solo-movil { display: none; }
+
+  /* ── Desplegable de municipios (con buscador) ── */
+  details.dd { position: relative; }
+  details.dd summary { list-style: none; cursor: pointer; user-select: none;
+      padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px;
+      font-size: 12px; background: #fff; min-width: 160px; }
+  details.dd summary::-webkit-details-marker { display: none; }
+  details.dd summary::after { content: "  ▾"; color: #777; }
+  details.dd[open] summary { border-color: var(--azul); }
+  details.dd .panel { position: absolute; z-index: 40; top: calc(100% + 4px);
+      left: 0; background: #fff; border: 1px solid #ccc; border-radius: 6px;
+      box-shadow: 0 8px 22px rgba(0,0,0,.2); padding: 10px;
+      width: min(340px, calc(100vw - 48px)); max-height: 320px; overflow: auto; }
+  details.dd .panel input { width: 100%; margin-bottom: 8px; padding: 7px 9px;
+      border: 1px solid #ccc; border-radius: 4px; font-size: 12px; }
+  details.dd .panel .checks { max-width: none; }
+
+  /* ── Móvil: tabla → tarjetas, filtros plegables, controles táctiles ── */
+  @media (max-width: 820px) {
+    body { font-size: 14px; }
+    header { padding: 12px 14px; }
+    #toggle-filtros { display: block; width: calc(100% - 28px); margin: 10px 14px 0;
+        padding: 10px; font-size: 14px; border: 1px solid var(--azul);
+        background: #fff; color: var(--azul); border-radius: 6px; }
+    #filtros { display: none; position: static; }
+    #filtros.abierto { display: flex; }
+    .campo { width: 100%; }
+    .campo input[type=number], .campo input[type=text], .campo select {
+        width: 100% !important; font-size: 16px; padding: 9px; }
+    .checks { max-width: none; }
+    .chip { font-size: 13px; padding: 7px 12px; }
+    button#limpiar { width: 100%; padding: 10px; font-size: 14px; }
+    .campo.solo-movil { display: flex; }
+
+    table { display: block; width: auto; margin: 0 10px; background: none;
+            box-shadow: none; }
+    thead { display: none; }
+    tbody { display: block; }
+    tr { display: block; background: #fff; margin: 0 0 10px; padding: 10px 14px;
+         border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+    tr:hover td { background: none; }
+    td { display: flex; justify-content: space-between; align-items: baseline;
+         gap: 12px; border: none; padding: 4px 0; text-align: right; }
+    td::before { content: attr(data-label); font-size: 10px; font-weight: bold;
+         color: #777; text-transform: uppercase; letter-spacing: .4px;
+         text-align: left; flex-shrink: 0; }
+    td:first-child { text-align: left; }
+    a { padding: 4px 0; display: inline-block; }
+  }
+</style>
+</head>
+<body>
+<script src="config.js"></script>
+<script>
+(function () {
+  if (location.protocol === "file:") return;
+  var PROV = "bizkaia";
+  var cfg = window.REO_CONFIG || {};
+  var s = null;
+  try { s = JSON.parse(sessionStorage.getItem("reo_session") || "null"); } catch (e) {}
+  if (!s) { location.replace("acceso.html"); return; }
+  if (cfg.betaAbierta) return;
+  if ((cfg.adminEmails || []).indexOf(s.e) !== -1) return;
+  var slugs = s.slugs || (s.slug ? [s.slug] : []);
+  if (slugs.indexOf(PROV) !== -1) return;
+  location.replace("ampliar.html?p=" + PROV);
+})();
+</script>
+
+<header>
+  <h1>Scanner REO — Explorador interactivo · Bizkaia</h1>
+  <div class="sub">Bizkaia · Informe del 26/07/2026 · usa los filtros y haz clic en las cabeceras para ordenar</div>
+</header>
+
+<button id="toggle-filtros">☰ Mostrar filtros</button>
+
+<div id="filtros">
+  <div class="campo solo-movil"><label>Ordenar por</label>
+    <select id="f-orden">
+      <option value="coc:1" selected>Cash-on-cash (mejor primero)</option>
+      <option value="capital:0">Capital entrada (menor primero)</option>
+      <option value="precio:0">Precio (menor primero)</option>
+      <option value="cf:1">Cashflow/año (mejor primero)</option>
+      <option value="dto:1">Dto. tasación (mayor primero)</option>
+      <option value="m2:1">m² (mayor primero)</option>
+      <option value="localidad:0">Localidad (A-Z)</option>
+    </select>
+  </div>
+  <div class="campo"><label>Municipio</label>
+    <details class="dd" id="dd-muni">
+      <summary id="muni-summary">Todos</summary>
+      <div class="panel">
+        <input id="muni-buscar" type="text" placeholder="🔎 Buscar municipio…" autocomplete="off">
+        <div class="checks" id="f-muni"></div>
+      </div>
+    </details>
+  </div>
+  <div class="campo"><label>Fuente</label><div class="checks" id="f-fuente"></div></div>
+  <div class="campo"><label title="Muestra solo inmuebles cuyo precio sea IGUAL O MENOR que este. Vacío = sin límite.">Precio máx € <span class="info-i" title="Muestra solo inmuebles con precio igual o menor. Vacío = sin límite.">ⓘ</span></label><input type="number" id="f-precio" step="10000" min="0" placeholder="sin límite"></div>
+  <div class="campo"><label title="Dinero de tu bolsillo (entrada + impuestos + notaría + reforma). Muestra los que necesiten ESE capital o menos.">Capital entrada máx € <span class="info-i" title="Dinero de tu bolsillo (entrada + impuestos + notaría + reforma). Muestra los que necesiten ese capital o menos. Vacío = sin límite.">ⓘ</span></label><input type="number" id="f-capital" step="5000" min="0" placeholder="sin límite"></div>
+  <div class="campo"><label title="Cash-on-cash: lo que rinde al año TU dinero (cashflow ÷ capital de entrada). Escribe el mínimo % que quieras. OJO: en algunas provincias todos salen negativos con los supuestos actuales, así que un mínimo positivo puede dejar la lista vacía.">Rentab. mín % <span class="info-i" title="Cash-on-cash: lo que rinde al año tu dinero (cashflow ÷ capital de entrada). Escribe el mínimo. En algunas provincias todos salen negativos, así que un mínimo positivo puede dejar la lista vacía.">ⓘ</span></label><input type="number" id="f-coc" step="1" placeholder="cualquiera"></div>
+  <div class="campo"><label title="Superficie mínima en metros cuadrados. 0 o vacío = sin mínimo.">m² mín <span class="info-i" title="Superficie mínima en metros cuadrados. 0 o vacío = sin mínimo.">ⓘ</span></label><input type="number" id="f-m2" step="10" min="0" placeholder="sin mínimo"></div>
+  <div class="campo"><label title="Número mínimo de habitaciones. 'Cualquiera' no filtra.">Habitaciones mín <span class="info-i" title="Número mínimo de habitaciones. 'Cualquiera' no filtra.">ⓘ</span></label>
+    <select id="f-hab">
+      <option value="0">Cualquiera</option>
+      <option value="1">1 o más</option>
+      <option value="2">2 o más</option>
+      <option value="3">3 o más</option>
+      <option value="4">4 o más</option>
+      <option value="5">5 o más</option>
+    </select>
+  </div>
+  <div class="campo"><label>Dirección contiene</label><input type="text" id="f-txt" placeholder="calle, zona…"></div>
+  <div class="campo"><label>&nbsp;</label><button id="aplicar">🔎 Aplicar filtros</button></div>
+  <div class="campo"><label>&nbsp;</label><button id="limpiar">Limpiar filtros</button></div>
+</div>
+
+<noscript>
+  <div style="background:#fff3cd;border:1px solid #e0c068;border-radius:6px;
+              margin:10px 20px;padding:10px 14px;font-size:12px;color:#7a5c00">
+    Estás viendo la <b>versión estática</b> (este visor bloquea los filtros
+    interactivos). La tabla completa está abajo ordenada por cash-on-cash.
+    Para filtrar y ordenar, <b>descarga el archivo y ábrelo con tu navegador</b>.
+  </div>
+</noscript>
+
+<div id="resumen">Mostrando <b>37</b> de 37 inmuebles · <b>0</b> con cash-on-cash ≥ 10% ★</div>
+
+<details id="comocalc">
+  <summary>Cómo se calculan estos números (pasa el ratón por cada columna para el detalle)</summary>
+  <div class="cuerpo">
+    Partimos del <b>precio</b> publicado y de supuestos de inversor para alquiler
+    (buy-to-let). Todo son <b>estimaciones</b> para comparar oportunidades rápido.
+    <br><br>
+    <b>Capital de entrada</b> = <span class="form">20% del precio (entrada) + ITP de tu comunidad + 1,5% notaría/registro + 15.000 € reforma + cargas</span>.
+    El 80% restante se financia con hipoteca.<br>
+    <b>Renta anual estimada</b> = <span class="form">valor × yield de tu provincia</span> (~5–7,6% según provincia).<br>
+    <b>Rent. bruta</b> = <span class="form">renta ÷ precio</span> (antes de gastos).<br>
+    <b>Gastos anuales</b> = <span class="form">IBI 0,5% + comunidad 960 € + seguro 300 € + 10% vacíos/averías</span>.<br>
+    <b>Rent. neta</b> = <span class="form">(renta − gastos) ÷ inversión total</span> (sin hipoteca).<br>
+    <b>Hipoteca</b>: 80% del precio, 20 años, 3,5% anual.<br>
+    <b>Cashflow/año</b> = <span class="form">renta − gastos − cuota anual de hipoteca</span> (lo que te queda al año).<br>
+    <b>Cash-on-cash</b> = <span class="form">cashflow ÷ capital de entrada</span> — lo que rinde TU dinero. ★ = ≥ 10%.<br>
+    <b>Dto. tasación</b> = <span class="form">(tasación − precio) ÷ tasación</span>. "~ N/D" = sin tasación publicada.
+    <div class="aviso">⚠ Cifras orientativas: la renta se estima por yield de provincia (~5–7,6%), no por el alquiler real de cada piso.
+      Verifica siempre cada caso antes de invertir. No es asesoramiento financiero.</div>
+  </div>
+</details>
+
+<table>
+  <thead><tr id="cabecera"><th>Localidad / Dirección</th><th>Fuente</th><th class="num">Precio</th><th class="num">Capital entrada</th><th class="num">m²</th><th class="num">Hab</th><th class="num">Rent. bruta</th><th class="num">Rent. neta</th><th class="num">Cash-on-cash</th><th class="num">Cashflow/año</th><th class="num">Dto. tasación</th><th>Info</th></tr></thead>
+  <tbody id="cuerpo"><tr><td data-label="Localidad / Dirección"><b>Barakaldo</b><br><span class='dir'>CONJUNTO EDIFICATORIO SEIS PORTALES CALLE LOPEZ DE VEGA 1 Y 3 Y OTROS</span></td><td data-label="Fuente"><span class='tag' style='background:#7f8c8d'>BOE otros</span><br><a href='https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JV-2026-264558' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">176.321 €</td><td data-label="Capital entrada" class="num"><b>65.251 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">7,4%</td><td data-label="Rent. neta" class="num">4,7%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-0,2%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-145 €</span></td><td data-label="Dto. tasación" class="num">22,1%</td><td data-label="Info"><span class='dir'>No consta</span><br><span class='dir'>cierra 2026-08-12</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Bilbao</b><br><span class='dir'>C/ Estrada de Masustegui</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-bilbao-2-dormitorios-139905-175493' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">55.000 €</td><td data-label="Capital entrada" class="num"><b>30.675 €</b></td><td data-label="m²" class="num">45</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">8,7%</td><td data-label="Rent. neta" class="num">3,7%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-0,9%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-277 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Bilbao</b><br><span class='dir'>C/ Urazurrutia</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-bilbao-1-dormitorio-168561-206705' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">645.000 €</td><td data-label="Capital entrada" class="num"><b>198.825 €</b></td><td data-label="m²" class="num">227</td><td data-label="Hab" class="num">1</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">4,1%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,4%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-6.727 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Intxaurraganabarniz</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-casa/bizkaia-guernicabusturialdeaurdaibai-intxaurraganabarniz/60746122' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">480.000 €</td><td data-label="Capital entrada" class="num"><b>151.800 €</b></td><td data-label="m²" class="num">532</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">4,0%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,5%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-5.329 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Elorrio</b><br><span class='dir'>C/ Mendraka</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/chalet-independiente-elorrio-4-dormitorios-162412-200123' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">382.700 €</td><td data-label="Capital entrada" class="num"><b>124.070 €</b></td><td data-label="m²" class="num">346</td><td data-label="Hab" class="num">4</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,9%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,6%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-4.504 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Galdakao</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d35400'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/galdakao/aire-acondicionado-calefaccion-ascensor-amueblado/187856328/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">330.000 €</td><td data-label="Capital entrada" class="num"><b>109.050 €</b></td><td data-label="m²" class="num">3</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,8%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-4.057 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Bilbao</b><br><span class='dir'>C/ Larratundu</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-bilbao-3-dormitorios-157394-194783' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">309.000 €</td><td data-label="Capital entrada" class="num"><b>103.065 €</b></td><td data-label="m²" class="num">60</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,8%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,8%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.879 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Barakaldo</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-piso/bizkaia-granbilbaobilboaldea-barakaldo/60746901' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">260.000 €</td><td data-label="Capital entrada" class="num"><b>89.100 €</b></td><td data-label="m²" class="num">123</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,7%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,9%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.464 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Galdakao</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-piso/bizkaia-granbilbaobilboaldea-galdakao/60782746' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">260.000 €</td><td data-label="Capital entrada" class="num"><b>89.100 €</b></td><td data-label="m²" class="num">102</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,7%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,9%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.464 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Ibarruri</b><br><span class='dir'>Lg Caserio Olabarri/ bo oka </span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/chalet-independiente-ibarruri-1-dormitorio-142297-178297' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">256.000 €</td><td data-label="Capital entrada" class="num"><b>87.960 €</b></td><td data-label="m²" class="num">253</td><td data-label="Hab" class="num">1</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,7%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,9%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.430 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Erandio</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-piso/bizkaia-granbilbaobilboaldea-erandio/60782719' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">245.000 €</td><td data-label="Capital entrada" class="num"><b>84.825 €</b></td><td data-label="m²" class="num">93</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,7%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,9%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.337 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Sestao</b><br><span class='dir'>CALLE LOS BAÑOS Nº14, 1ºA</span></td><td data-label="Fuente"><span class='tag' style='background:#0f6b48'>BOE judicial</span><br><a href='https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-264054' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">221.000 €</td><td data-label="Capital entrada" class="num"><b>77.985 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,6%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,0%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.133 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='dir'>No consta</span><br><span class='dir'>cierra 2026-07-29</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Basauri</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-piso/bizkaia-granbilbaobilboaldea-basauri/60788440' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">220.000 €</td><td data-label="Capital entrada" class="num"><b>77.700 €</b></td><td data-label="m²" class="num">90</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,6%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,0%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.125 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Sodupe-güeñes</b><br><span class='dir'>CALLE GALLARRAGA, nº20 4º Dcha</span></td><td data-label="Fuente"><span class='tag' style='background:#0f6b48'>BOE judicial</span><br><a href='https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-262303' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">212.000 €</td><td data-label="Capital entrada" class="num"><b>75.420 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,6%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,0%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.057 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='dir'>No consta</span><br><span class='dir'>cierra 2026-08-10</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Portugalete</b><br><span class='dir'>C/ Buenavista</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-portugalete-2-dormitorios-223939-271948' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">212.900 €</td><td data-label="Capital entrada" class="num"><b>75.676 €</b></td><td data-label="m²" class="num">58</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,6%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,0%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.065 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Santurtzi</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-piso/bizkaia-granbilbaobilboaldea-santurtzi/60799305' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">210.000 €</td><td data-label="Capital entrada" class="num"><b>74.850 €</b></td><td data-label="m²" class="num">84</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,6%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,1%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.040 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Nabarniz</b><br><span class='dir'>C/ Elexalde</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/casa-nabarniz-219604-266406' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">190.000 €</td><td data-label="Capital entrada" class="num"><b>69.150 €</b></td><td data-label="m²" class="num">158</td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,5%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,2%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.870 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Galdakao</b><br><span class='dir'>C/ Urreta</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-galdakao-3-dormitorios-193741-234866' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">186.800 €</td><td data-label="Capital entrada" class="num"><b>68.238 €</b></td><td data-label="m²" class="num">84</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,5%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,2%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.843 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='dir'>cierra 2026-08-08</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Bilbao</b><br><span class='dir'>Juan de Garay 41, 1º interior derecha</span></td><td data-label="Fuente"><span class='tag' style='background:#0f6b48'>BOE judicial</span><br><a href='https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-263194' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">182.137 €</td><td data-label="Capital entrada" class="num"><b>66.909 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,5%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,2%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.804 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='dir'>No consta</span><br><span class='dir'>cierra 2026-07-29</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Santurtzi</b><br><span class='dir'>CALLE JUAN SEBASTIAN ELCANO 14-3 IZQ</span></td><td data-label="Fuente"><span class='tag' style='background:#0f6b48'>BOE judicial</span><br><a href='https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-263466' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">158.815 €</td><td data-label="Capital entrada" class="num"><b>60.262 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,3%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,3%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.606 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='dir'>No consta</span><br><span class='dir'>cierra 2026-07-27</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Sestao</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-piso/bizkaia-granbilbaobilboaldea-sestao/60793789' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">155.000 €</td><td data-label="Capital entrada" class="num"><b>59.175 €</b></td><td data-label="m²" class="num">88</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,3%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,3%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.574 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Portugalete</b><br><span class='dir'>CALLE HERMANOS DE LA INSTRUCCION CRISTIANA 13-2ºINT-DRCH-B</span></td><td data-label="Fuente"><span class='tag' style='background:#7f8c8d'>BOE otros</span><br><a href='https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JV-2026-263401' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">147.936 €</td><td data-label="Capital entrada" class="num"><b>57.162 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,3%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,4%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.514 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='dir'>No consta</span><br><span class='dir'>cierra 2026-07-27</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Barakaldo</b><br><span class='dir'>C/ Gernikako Arbola</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-barakaldo-1-dormitorio-135278-169573' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">145.000 €</td><td data-label="Capital entrada" class="num"><b>56.325 €</b></td><td data-label="m²" class="num">68</td><td data-label="Hab" class="num">1</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,2%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,4%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.489 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Durango</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-piso/bizkaia-duranguesadodurangaldea-durango/60492135' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">140.000 €</td><td data-label="Capital entrada" class="num"><b>54.900 €</b></td><td data-label="m²" class="num">74</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,2%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,5%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.447 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Barakaldo</b><br><span class='dir'>MURRIETA</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-barakaldo-167190-205258' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">132.500 €</td><td data-label="Capital entrada" class="num"><b>52.762 €</b></td><td data-label="m²" class="num">98</td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,1%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,5%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.383 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Basauri</b><br><span class='dir'>FAUSTE</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-basauri-163845-201610' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">127.000 €</td><td data-label="Capital entrada" class="num"><b>51.195 €</b></td><td data-label="m²" class="num">75</td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,1%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,6%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.336 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Basauri</b><br><span class='dir'>C/ Lehendakari Aguirre</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-basauri-3-dormitorios-80166-102184' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">128.000 €</td><td data-label="Capital entrada" class="num"><b>51.480 €</b></td><td data-label="m²" class="num">66</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,1%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,6%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.345 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Valle de Trápaga-trapagaran</b><br><span class='dir'>SAN GABRIEL</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-valle-de-trapaga-trapagaran-2-dormitorios-159871-197415' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">126.000 €</td><td data-label="Capital entrada" class="num"><b>50.910 €</b></td><td data-label="m²" class="num">59</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,1%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,6%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.328 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Bilbao</b><br><span class='dir'>Camino Zurbaranbidea</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-bilbao-2-dormitorios-168416-206554' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">126.000 €</td><td data-label="Capital entrada" class="num"><b>50.910 €</b></td><td data-label="m²" class="num">75</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,1%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,6%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.328 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Güeñes</b><br><span class='dir'>C/ Iorgui</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/apartamento-guenes-3-dormitorios-114922-146163' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">123.000 €</td><td data-label="Capital entrada" class="num"><b>50.055 €</b></td><td data-label="m²" class="num">80</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,1%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,6%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.303 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Barakaldo</b><br><span class='dir'>C/ Zurbarán</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-barakaldo-2-dormitorios-168168-206296' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">119.000 €</td><td data-label="Capital entrada" class="num"><b>48.915 €</b></td><td data-label="m²" class="num">40</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,0%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,6%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.269 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Bilbao</b><br><span class='dir'>C/ Barrio Betolatza</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-bilbao-1-dormitorio-221724-269257' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">108.000 €</td><td data-label="Capital entrada" class="num"><b>45.780 €</b></td><td data-label="m²" class="num">49</td><td data-label="Hab" class="num">1</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">2,9%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,8%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.175 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Basauri</b><br><span class='dir'>C/ Larrazabal</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-basauri-2-dormitorios-155701-193030' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">101.000 €</td><td data-label="Capital entrada" class="num"><b>43.785 €</b></td><td data-label="m²" class="num">52</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">2,8%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,8%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.116 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Barakaldo</b><br><span class='dir'>C/ Quevedo</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-barakaldo-2-dormitorios-118810-150884' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">98.000 €</td><td data-label="Capital entrada" class="num"><b>42.930 €</b></td><td data-label="m²" class="num">57</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">2,8%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,9%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.091 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Ibarrangelu</b><br><span class='dir'>Lg. Akorda</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-ibarrangelu-1-dormitorio-165948-203862' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">90.000 €</td><td data-label="Capital entrada" class="num"><b>40.650 €</b></td><td data-label="m²" class="num">88</td><td data-label="Hab" class="num">1</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">2,6%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-5,0%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.023 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Zalla</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#0077b6'>SERVIHABITAT</span><br><a href='https://www.servihabitat.com/es/venta/vivienda-piso/bizkaia-lasencartacionesenkarterri-zalla/60516351' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">14.200 €</td><td data-label="Capital entrada" class="num"><b>19.047 €</b></td><td data-label="m²" class="num">84</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">-1,9%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-7,2%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.380 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Alonsotegi</b><br><span class='dir'>C/ Virgen de la Guía</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-alonsotegi-1-dormitorio-38080-47843' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">11.200 €</td><td data-label="Capital entrada" class="num"><b>18.192 €</b></td><td data-label="m²" class="num">70</td><td data-label="Hab" class="num">1</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">-2,7%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-7,4%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.355 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr></tbody>
+</table>
+<div id="vacio">Ningún inmueble cumple los filtros actuales.</div>
+
+<script>
+const DATA = [{"localidad": "Barakaldo", "direccion": "CONJUNTO EDIFICATORIO SEIS PORTALES CALLE LOPEZ DE VEGA 1 Y 3 Y OTROS", "origen": "OTRO", "tipo_subasta": "JUDICIAL VOLUNTARIA", "url": "https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JV-2026-264558", "precio": 176320.94, "capital": 65251.47, "m2": null, "hab": null, "rb": 7.4, "rn": 4.7, "coc": -0.2, "cf": -144.65, "dto": 22.1, "tensionada": false, "cargas": 0, "posesion": "No consta", "cierre": "2026-08-12"}, {"localidad": "Bilbao", "direccion": "C/ Estrada de Masustegui", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-bilbao-2-dormitorios-139905-175493", "precio": 55000.0, "capital": 30675.0, "m2": 45.48, "hab": 2, "rb": 8.7, "rn": 3.7, "coc": -0.9, "cf": -277.19, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Bilbao", "direccion": "C/ Urazurrutia", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-bilbao-1-dormitorio-168561-206705", "precio": 645000.0, "capital": 198825.0, "m2": 227.0, "hab": 1, "rb": 5.8, "rn": 4.1, "coc": -3.4, "cf": -6727.11, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Intxaurraganabarniz", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-casa/bizkaia-guernicabusturialdeaurdaibai-intxaurraganabarniz/60746122", "precio": 480000.0, "capital": 151800.0, "m2": 532.0, "hab": 3, "rb": 5.8, "rn": 4.0, "coc": -3.5, "cf": -5328.54, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Elorrio", "direccion": "C/ Mendraka", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/chalet-independiente-elorrio-4-dormitorios-162412-200123", "precio": 382700.0, "capital": 124069.5, "m2": 346.0, "hab": 4, "rb": 5.8, "rn": 3.9, "coc": -3.6, "cf": -4503.82, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Galdakao", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/galdakao/aire-acondicionado-calefaccion-ascensor-amueblado/187856328/d", "precio": 330000.0, "capital": 109050.0, "m2": 3.0, "hab": 2, "rb": 5.8, "rn": 3.8, "coc": -3.7, "cf": -4057.12, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Bilbao", "direccion": "C/ Larratundu", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-bilbao-3-dormitorios-157394-194783", "precio": 309000.0, "capital": 103065.0, "m2": 59.91, "hab": 3, "rb": 5.8, "rn": 3.8, "coc": -3.8, "cf": -3879.13, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Barakaldo", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-piso/bizkaia-granbilbaobilboaldea-barakaldo/60746901", "precio": 260000.0, "capital": 89100.0, "m2": 123.0, "hab": 3, "rb": 5.8, "rn": 3.7, "coc": -3.9, "cf": -3463.79, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Galdakao", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-piso/bizkaia-granbilbaobilboaldea-galdakao/60782746", "precio": 260000.0, "capital": 89100.0, "m2": 102.0, "hab": 3, "rb": 5.8, "rn": 3.7, "coc": -3.9, "cf": -3463.79, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ibarruri", "direccion": "Lg Caserio Olabarri/ bo oka ", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/chalet-independiente-ibarruri-1-dormitorio-142297-178297", "precio": 256000.0, "capital": 87960.0, "m2": 253.0, "hab": 1, "rb": 5.8, "rn": 3.7, "coc": -3.9, "cf": -3429.89, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Erandio", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-piso/bizkaia-granbilbaobilboaldea-erandio/60782719", "precio": 245000.0, "capital": 84825.0, "m2": 93.0, "hab": 3, "rb": 5.8, "rn": 3.7, "coc": -3.9, "cf": -3336.65, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Sestao", "direccion": "CALLE LOS BAÑOS Nº14, 1ºA", "origen": "JA", "tipo_subasta": "JUDICIAL EN VÍA DE APREMIO", "url": "https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-264054", "precio": 221000.0, "capital": 77985.0, "m2": null, "hab": null, "rb": 5.8, "rn": 3.6, "coc": -4.0, "cf": -3133.23, "dto": null, "tensionada": false, "cargas": 0, "posesion": "No consta", "cierre": "2026-07-29"}, {"localidad": "Basauri", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-piso/bizkaia-granbilbaobilboaldea-basauri/60788440", "precio": 220000.0, "capital": 77700.0, "m2": 90.0, "hab": 3, "rb": 5.8, "rn": 3.6, "coc": -4.0, "cf": -3124.75, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Sodupe-güeñes", "direccion": "CALLE GALLARRAGA, nº20 4º Dcha", "origen": "JA", "tipo_subasta": "JUDICIAL EN VÍA DE APREMIO", "url": "https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-262303", "precio": 212000.0, "capital": 75420.0, "m2": null, "hab": null, "rb": 5.8, "rn": 3.6, "coc": -4.0, "cf": -3056.94, "dto": null, "tensionada": false, "cargas": 0, "posesion": "No consta", "cierre": "2026-08-10"}, {"localidad": "Portugalete", "direccion": "C/ Buenavista", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-portugalete-2-dormitorios-223939-271948", "precio": 212900.0, "capital": 75676.5, "m2": 58.3, "hab": 2, "rb": 5.8, "rn": 3.6, "coc": -4.0, "cf": -3064.57, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Santurtzi", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-piso/bizkaia-granbilbaobilboaldea-santurtzi/60799305", "precio": 210000.0, "capital": 74850.0, "m2": 84.0, "hab": 3, "rb": 5.8, "rn": 3.6, "coc": -4.1, "cf": -3039.99, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Nabarniz", "direccion": "C/ Elexalde", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/casa-nabarniz-219604-266406", "precio": 190000.0, "capital": 69150.0, "m2": 157.81, "hab": null, "rb": 5.8, "rn": 3.5, "coc": -4.2, "cf": -2870.47, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Galdakao", "direccion": "C/ Urreta", "origen": "SOLVIA", "tipo_subasta": "SUBASTA", "url": "https://www.solvia.es/es/propiedades/comprar/piso-galdakao-3-dormitorios-193741-234866", "precio": 186800.0, "capital": 68238.0, "m2": 83.5, "hab": 3, "rb": 5.8, "rn": 3.5, "coc": -4.2, "cf": -2843.34, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": "2026-08-08"}, {"localidad": "Bilbao", "direccion": "Juan de Garay 41, 1º interior derecha", "origen": "JA", "tipo_subasta": "JUDICIAL EN VÍA DE APREMIO", "url": "https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-263194", "precio": 182136.91, "capital": 66909.02, "m2": null, "hab": null, "rb": 5.8, "rn": 3.5, "coc": -4.2, "cf": -2803.82, "dto": null, "tensionada": false, "cargas": 0, "posesion": "No consta", "cierre": "2026-07-29"}, {"localidad": "Santurtzi", "direccion": "CALLE JUAN SEBASTIAN ELCANO 14-3 IZQ", "origen": "JA", "tipo_subasta": "JUDICIAL EN VÍA DE APREMIO", "url": "https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-263466", "precio": 158814.88, "capital": 60262.24, "m2": null, "hab": null, "rb": 5.8, "rn": 3.3, "coc": -4.3, "cf": -2606.14, "dto": null, "tensionada": false, "cargas": 0, "posesion": "No consta", "cierre": "2026-07-27"}, {"localidad": "Sestao", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-piso/bizkaia-granbilbaobilboaldea-sestao/60793789", "precio": 155000.0, "capital": 59175.0, "m2": 88.0, "hab": 3, "rb": 5.8, "rn": 3.3, "coc": -4.3, "cf": -2573.8, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Portugalete", "direccion": "CALLE HERMANOS DE LA INSTRUCCION CRISTIANA 13-2ºINT-DRCH-B", "origen": "OTRO", "tipo_subasta": "JUDICIAL VOLUNTARIA", "url": "https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JV-2026-263401", "precio": 147936.0, "capital": 57161.76, "m2": null, "hab": null, "rb": 5.8, "rn": 3.3, "coc": -4.4, "cf": -2513.93, "dto": null, "tensionada": false, "cargas": 0, "posesion": "No consta", "cierre": "2026-07-27"}, {"localidad": "Barakaldo", "direccion": "C/ Gernikako Arbola", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-barakaldo-1-dormitorio-135278-169573", "precio": 145000.0, "capital": 56325.0, "m2": 68.05, "hab": 1, "rb": 5.8, "rn": 3.2, "coc": -4.4, "cf": -2489.04, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Durango", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-piso/bizkaia-duranguesadodurangaldea-durango/60492135", "precio": 140000.0, "capital": 54900.0, "m2": 74.0, "hab": 2, "rb": 5.8, "rn": 3.2, "coc": -4.5, "cf": -2446.66, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Barakaldo", "direccion": "MURRIETA", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-barakaldo-167190-205258", "precio": 132500.0, "capital": 52762.5, "m2": 98.38, "hab": null, "rb": 5.8, "rn": 3.1, "coc": -4.5, "cf": -2383.09, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Basauri", "direccion": "FAUSTE", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-basauri-163845-201610", "precio": 127000.0, "capital": 51195.0, "m2": 75.0, "hab": null, "rb": 5.8, "rn": 3.1, "coc": -4.6, "cf": -2336.47, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Basauri", "direccion": "C/ Lehendakari Aguirre", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-basauri-3-dormitorios-80166-102184", "precio": 128000.0, "capital": 51480.0, "m2": 66.35, "hab": 3, "rb": 5.8, "rn": 3.1, "coc": -4.6, "cf": -2344.95, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Valle de Trápaga-trapagaran", "direccion": "SAN GABRIEL", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-valle-de-trapaga-trapagaran-2-dormitorios-159871-197415", "precio": 126000.0, "capital": 50910.0, "m2": 58.67, "hab": 2, "rb": 5.8, "rn": 3.1, "coc": -4.6, "cf": -2327.99, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Bilbao", "direccion": "Camino Zurbaranbidea", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-bilbao-2-dormitorios-168416-206554", "precio": 126000.0, "capital": 50910.0, "m2": 75.04, "hab": 2, "rb": 5.8, "rn": 3.1, "coc": -4.6, "cf": -2327.99, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Güeñes", "direccion": "C/ Iorgui", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/apartamento-guenes-3-dormitorios-114922-146163", "precio": 123000.0, "capital": 50055.0, "m2": 79.6, "hab": 3, "rb": 5.8, "rn": 3.1, "coc": -4.6, "cf": -2302.56, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Barakaldo", "direccion": "C/ Zurbarán", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-barakaldo-2-dormitorios-168168-206296", "precio": 119000.0, "capital": 48915.0, "m2": 40.0, "hab": 2, "rb": 5.8, "rn": 3.0, "coc": -4.6, "cf": -2268.66, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Bilbao", "direccion": "C/ Barrio Betolatza", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-bilbao-1-dormitorio-221724-269257", "precio": 108000.0, "capital": 45780.0, "m2": 49.09, "hab": 1, "rb": 5.8, "rn": 2.9, "coc": -4.8, "cf": -2175.42, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Basauri", "direccion": "C/ Larrazabal", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-basauri-2-dormitorios-155701-193030", "precio": 101000.0, "capital": 43785.0, "m2": 52.0, "hab": 2, "rb": 5.8, "rn": 2.8, "coc": -4.8, "cf": -2116.09, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Barakaldo", "direccion": "C/ Quevedo", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-barakaldo-2-dormitorios-118810-150884", "precio": 98000.0, "capital": 42930.0, "m2": 57.45, "hab": 2, "rb": 5.8, "rn": 2.8, "coc": -4.9, "cf": -2090.66, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ibarrangelu", "direccion": "Lg. Akorda", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-ibarrangelu-1-dormitorio-165948-203862", "precio": 90000.0, "capital": 40650.0, "m2": 87.9, "hab": 1, "rb": 5.8, "rn": 2.6, "coc": -5.0, "cf": -2022.85, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Zalla", "direccion": null, "origen": "SERVIHABITAT", "tipo_subasta": "REO", "url": "https://www.servihabitat.com/es/venta/vivienda-piso/bizkaia-lasencartacionesenkarterri-zalla/60516351", "precio": 14200.0, "capital": 19047.0, "m2": 84.0, "hab": 3, "rb": 5.8, "rn": -1.9, "coc": -7.2, "cf": -1380.36, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Alonsotegi", "direccion": "C/ Virgen de la Guía", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-alonsotegi-1-dormitorio-38080-47843", "precio": 11200.0, "capital": 18192.0, "m2": 70.0, "hab": 1, "rb": 5.8, "rn": -2.7, "coc": -7.4, "cf": -1354.93, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}];
+
+const COLORES_FUENTE = {
+  "SOLVIA": "#e67e22", "ALISEDA": "#6c3483", "ALTAMIRA": "#117a65",
+  "FOTOCASA": "#d35400", "SERVIHABITAT": "#0077b6", "JA": "#0f6b48",
+  "AT": "#c0392b", "SAREB": "#c99530", "HIPOGES": "#148f77",
+  "PISOS.COM": "#2e86c1", "BUILDINGCENTER": "#8e6f00", "OTRO": "#7f8c8d",
+};
+const NOMBRE_FUENTE = {
+  "JA": "BOE judicial", "AT": "BOE AEAT", "OTRO": "BOE otros",
+  "SAREB": "Sareb (vía Hipoges)", "HIPOGES": "Hipoges",
+};
+
+const COLS = [
+  { id: "localidad", label: "Localidad / Dirección", num: false,
+    val: r => r.localidad || "",
+    html: r => `<b>${esc(r.localidad)}</b><br><span class="dir">${esc(r.direccion || "—")}</span>` },
+  { id: "origen", label: "Fuente", num: false, val: r => r.origen,
+    html: r => {
+      const c = COLORES_FUENTE[r.origen] || "#7f8c8d";
+      const n = NOMBRE_FUENTE[r.origen] || r.origen;
+      let extra = "";
+      if (r.tipo_subasta === "SUBASTA") extra = "<br><span class='nd'>subasta</span>";
+      if (r.tipo_subasta === "CESION_REMATE") extra = "<br><span class='nd'>cesión remate</span>";
+      return `<span class="tag" style="background:${c}">${esc(n)}</span>${extra}` +
+             `<br><a href="${esc(r.url)}" target="_blank">ver anuncio ↗</a>`; } },
+  { id: "precio", label: "Precio", num: true, val: r => r.precio,
+    tip: "Precio de venta o salida de subasta publicado por la fuente.",
+    html: r => eur(r.precio) },
+  { id: "capital", label: "Capital entrada", num: true, val: r => r.capital,
+    tip: "El dinero de tu bolsillo: entrada (20% del precio) + impuesto de compra (ITP de tu comunidad) + notaría y registro (1,5%) + reforma estimada (15.000 €) + cargas. El 80% restante se supone financiado con hipoteca.",
+    html: r => `<b>${eur(r.capital)}</b>` },
+  { id: "m2", label: "m²", num: true, val: r => r.m2,
+    tip: "Superficie construida en metros cuadrados (según la fuente).",
+    html: r => r.m2 ? fmt(r.m2, 0) : "<span class='nd'>—</span>" },
+  { id: "hab", label: "Hab", num: true, val: r => r.hab,
+    tip: "Número de habitaciones (según la fuente).",
+    html: r => r.hab ?? "<span class='nd'>—</span>" },
+  { id: "rb", label: "Rent. bruta", num: true, val: r => r.rb,
+    tip: "Renta anual estimada ÷ precio. La renta se estima como valor × yield de tu provincia (~5–7,6% según provincia). Es la rentabilidad ANTES de gastos e hipoteca.",
+    html: r => pct(r.rb) },
+  { id: "rn", label: "Rent. neta", num: true, val: r => r.rn,
+    tip: "(Renta anual − gastos anuales) ÷ inversión total. Gastos = IBI (0,5%) + comunidad (960 €) + seguro (300 €) + 10% para vacíos y averías. Rentabilidad DESPUÉS de gastos, pero sin contar la hipoteca.",
+    html: r => pct(r.rn) },
+  { id: "coc", label: "Cash-on-cash", num: true, val: r => r.coc,
+    tip: "Cashflow anual ÷ capital de entrada. Lo que rinde TU dinero real ya con la hipoteca puesta. Es la métrica que decide: ★ marca los ≥ 10%.",
+    html: r => `<span class="${r.coc >= 0 ? "pos" : "neg"}">${pct(r.coc)}${r.coc >= 10 ? " ★" : ""}</span>` },
+  { id: "cf", label: "Cashflow/año", num: true, val: r => r.cf,
+    tip: "Renta anual − gastos anuales − cuota de hipoteca (año). Lo que te queda en el bolsillo cada año tras pagarlo todo. En verde si es positivo. Hipoteca: 80% a 20 años al 3,5%.",
+    html: r => `<span class="${r.cf >= 0 ? "pos" : "neg"}">${r.cf >= 0 ? "+" : ""}${eur(r.cf)}</span>` },
+  { id: "dto", label: "Dto. tasación", num: true, val: r => r.dto,
+    tip: "Cuánto más barato es el precio respecto a la tasación: (tasación − precio) ÷ tasación. '~ N/D' = la fuente no publica tasación.",
+    html: r => r.dto === null ? "<span class='nd'>~ N/D</span>" : pct(r.dto) },
+  { id: "info", label: "Info", num: false, val: r => "",
+    html: r => {
+      let out = [];
+      if (r.tensionada) out.push("<span class='tag' style='background:#8e44ad'>Tensionada</span>");
+      if (r.cargas > 0) out.push(`<span class='tag' style='background:#e67e22'>Cargas ${eur(r.cargas)}</span>`);
+      if (r.posesion) out.push(`<span class='dir'>${esc(r.posesion)}</span>`);
+      if (r.cierre) out.push(`<span class='dir'>cierra ${esc(r.cierre)}</span>`);
+      return out.join("<br>") || "<span class='nd'>—</span>"; } },
+];
+
+let orden = { col: "coc", desc: true };
+let muniOn = new Set(), fuenteOn = new Set();
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+const fmt = (v, d) => v.toLocaleString("es-ES", { minimumFractionDigits: d, maximumFractionDigits: d });
+const eur = v => fmt(Math.round(v), 0) + " €";
+const pct = v => fmt(v, 1) + "%";
+
+const _chipSyncs = [];  // para re-pintar chips al restaurar parámetros guardados
+
+function chips(contId, valores, activo) {
+  // Comportamiento intuitivo:
+  //  - con todo activado, un clic AÍSLA esa opción (solo esa);
+  //  - clic sobre la única activa → se reactivan todas;
+  //  - en estado mixto, el clic alterna esa opción.
+  const cont = document.getElementById(contId);
+  const els = new Map();
+  const sync = () => els.forEach((el, v) =>
+    el.classList.toggle("on", activo.has(v)));
+  _chipSyncs.push(sync);
+  valores.forEach(v => {
+    const el = document.createElement("span");
+    el.className = "chip on";
+    el.textContent = NOMBRE_FUENTE[v] || v;
+    el.title = "Clic: ver solo esta · otro clic: ver todas";
+    activo.add(v);
+    els.set(v, el);
+    el.onclick = () => {
+      if (activo.size === valores.length) {
+        activo.clear(); activo.add(v);            // aislar
+      } else if (activo.size === 1 && activo.has(v)) {
+        valores.forEach(x => activo.add(x));      // restaurar todas
+      } else {
+        activo.has(v) ? activo.delete(v) : activo.add(v);
+        if (activo.size === 0) valores.forEach(x => activo.add(x));
+      }
+      sync();
+      if (typeof actualizarMuniSummary === "function") actualizarMuniSummary();
+      marcarPendiente();   // el cambio se aplica al pulsar "Aplicar filtros"
+    };
+    cont.appendChild(el);
+  });
+}
+
+// Estado de filtros APLICADO. La tabla solo cambia cuando se pulsa "Aplicar
+// filtros" (o Enter), que copia aquí lo que hay en los controles. Así los
+// controles son un "borrador" y la búsqueda se formaliza al aplicar.
+let aplicados = {
+  pMax: Infinity, cMax: Infinity, cocMin: -Infinity, m2Min: 0, habMin: 0,
+  txt: "", muni: null, fuente: null,
+};
+
+function aplicar() {
+  const gv = id => document.getElementById(id).value;
+  aplicados = {
+    pMax: parseFloat(gv("f-precio")) || Infinity,
+    cMax: parseFloat(gv("f-capital")) || Infinity,
+    cocMin: gv("f-coc") === "" ? -Infinity : parseFloat(gv("f-coc")),
+    m2Min: parseFloat(gv("f-m2")) || 0,
+    habMin: parseInt(gv("f-hab")) || 0,
+    txt: gv("f-txt").trim().toLowerCase(),
+    muni: new Set(muniOn),
+    fuente: new Set(fuenteOn),
+  };
+  const btn = document.getElementById("aplicar");
+  if (btn) { btn.classList.remove("pendiente"); btn.textContent = "🔎 Aplicar filtros"; }
+  pintar();
+}
+
+function marcarPendiente() {
+  const btn = document.getElementById("aplicar");
+  if (btn) { btn.classList.add("pendiente"); btn.textContent = "🔎 Aplicar filtros (pulsa aquí)"; }
+}
+
+function filtrar() {
+  const a = aplicados;
+  return DATA.filter(r =>
+    (!a.muni || a.muni.has(r.localidad)) && (!a.fuente || a.fuente.has(r.origen)) &&
+    r.precio <= a.pMax && r.capital <= a.cMax && r.coc >= a.cocMin &&
+    (a.m2Min === 0 || (r.m2 || 0) >= a.m2Min) &&
+    (a.habMin === 0 || (r.hab || 0) >= a.habMin) &&
+    (!a.txt || (r.direccion || "").toLowerCase().includes(a.txt) || r.localidad.toLowerCase().includes(a.txt))
+  );
+}
+
+// ── Parámetros de búsqueda persistentes ─────────────────────────────────────
+// Cada usuario define SUS parámetros una vez; se guardan en su navegador y
+// cada acceso muestra su búsqueda ya aplicada (sin depender del email diario).
+const CLAVE_FILTROS = (() => {
+  let quien = "local";
+  try {
+    const s = JSON.parse(sessionStorage.getItem("reo_session") || "null");
+    if (s && s.e) quien = s.e;
+  } catch (e) {}
+  return "reo_filtros:" + quien + ":" + (document.title.match(/Explorador/) ? location.pathname : "");
+})();
+
+const _CAMPOS = ["f-precio", "f-capital", "f-coc", "f-m2", "f-hab", "f-txt"];
+
+function guardarFiltros() {
+  try {
+    localStorage.setItem(CLAVE_FILTROS, JSON.stringify({
+      campos: Object.fromEntries(_CAMPOS.map(id => [id, document.getElementById(id).value])),
+      muni: [...muniOn], fuente: [...fuenteOn], orden,
+    }));
+  } catch (e) {}
+}
+
+function restaurarFiltros() {
+  try {
+    const f = JSON.parse(localStorage.getItem(CLAVE_FILTROS) || "null");
+    if (!f) return false;
+    _CAMPOS.forEach(id => {
+      if (f.campos && f.campos[id] !== undefined)
+        document.getElementById(id).value = f.campos[id];
+    });
+    if (Array.isArray(f.muni) && f.muni.length) {
+      const validas = f.muni.filter(v => muniOn.has(v) ||
+        DATA.some(r => r.localidad === v));
+      if (validas.length) { muniOn.clear(); validas.forEach(v => muniOn.add(v)); }
+    }
+    if (Array.isArray(f.fuente) && f.fuente.length) {
+      const validas = f.fuente.filter(v => fuenteOn.has(v) ||
+        DATA.some(r => r.origen === v));
+      if (validas.length) { fuenteOn.clear(); validas.forEach(v => fuenteOn.add(v)); }
+    }
+    if (f.orden && f.orden.col) orden = f.orden;
+    _chipSyncs.forEach(s => s());
+    return true;
+  } catch (e) { return false; }
+}
+
+function pintar() {
+  guardarFiltros();
+  const col = COLS.find(c => c.id === orden.col);
+  const rows = filtrar().sort((a, b) => {
+    let va = col.val(a), vb = col.val(b);
+    if (va === null || va === undefined) va = -Infinity;
+    if (vb === null || vb === undefined) vb = -Infinity;
+    if (typeof va === "string") return orden.desc ? vb.localeCompare(va) : va.localeCompare(vb);
+    return orden.desc ? vb - va : va - vb;
+  });
+
+  document.getElementById("cabecera").innerHTML = COLS.map(c =>
+    `<th data-c="${c.id}" ${c.num ? 'class="num"' : ""}` +
+    (c.tip ? ` title="${esc(c.tip)}"` : "") + `>${c.label}` +
+    (c.tip ? ` <span class="info-i" title="${esc(c.tip)}">ⓘ</span>` : "") + " " +
+    (orden.col === c.id ? `<span class="flecha">${orden.desc ? "▼" : "▲"}</span>` : "") + "</th>"
+  ).join("");
+  document.querySelectorAll("#cabecera th").forEach(th =>
+    th.onclick = () => {
+      const c = th.dataset.c;
+      orden = { col: c, desc: orden.col === c ? !orden.desc : true };
+      pintar();
+    });
+
+  // Tope de filas dibujadas: en provincias grandes (Barcelona 3.986, Madrid…)
+  // dibujar miles de filas en cada acción congela el navegador (y hace que
+  // "limpiar"/filtros parezcan no responder). Se dibujan las TOPE mejores; el
+  // conteo real se mantiene y se avisa de que se afine para ver el resto.
+  const TOPE = 400;
+  const visibles = rows.length > TOPE ? rows.slice(0, TOPE) : rows;
+  document.getElementById("cuerpo").innerHTML = visibles.map(r =>
+    "<tr>" + COLS.map(c =>
+      `<td data-label="${esc(c.label)}"${c.num ? ' class="num"' : ""}>${c.html(r)}</td>`
+    ).join("") + "</tr>"
+  ).join("");
+
+  document.getElementById("vacio").style.display = rows.length ? "none" : "block";
+  const destacados = rows.filter(r => r.coc >= 10).length;
+  const aviso = rows.length > TOPE
+    ? ` · <span style="color:#c0392b">en pantalla los ${TOPE} de mejor rentabilidad — afina los filtros para acotar</span>`
+    : "";
+  document.getElementById("resumen").innerHTML =
+    `<b>${rows.length}</b> de ${DATA.length} inmuebles cumplen tus filtros${aviso} · ` +
+    `<b>${destacados}</b> con cash-on-cash ≥ 10% ★ · ` +
+    `<span style="color:#888">💾 tus parámetros se guardan solos para tu próxima visita</span>`;
+}
+
+// init
+chips("f-muni", [...new Set(DATA.map(r => r.localidad))].sort(), muniOn);
+chips("f-fuente", [...new Set(DATA.map(r => r.origen))].sort(), fuenteOn);
+// Los controles NO aplican al instante: al cambiar, marcan "pendiente".
+// Se formaliza al pulsar "Aplicar filtros" o con Enter.
+["f-precio", "f-capital", "f-coc", "f-m2", "f-hab", "f-txt"].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener("input", marcarPendiente);
+  el.addEventListener("change", marcarPendiente);
+  el.addEventListener("keydown", e => { if (e.key === "Enter") aplicar(); });
+});
+document.getElementById("aplicar").addEventListener("click", aplicar);
+
+// desplegable de municipios: resumen dinámico, buscador y cierre al clicar fuera
+function actualizarMuniSummary() {
+  const total = new Set(DATA.map(r => r.localidad)).size;
+  const el = document.getElementById("muni-summary");
+  if (el) el.textContent = muniOn.size >= total ? "Todos" :
+    (muniOn.size === 1 ? [...muniOn][0] : muniOn.size + " seleccionados");
+}
+const _pintarOriginal = pintar;
+pintar = function () { _pintarOriginal(); actualizarMuniSummary(); };
+document.getElementById("muni-buscar").addEventListener("input", function () {
+  const q = this.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  document.querySelectorAll("#f-muni .chip").forEach(ch => {
+    const t = ch.textContent.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    ch.style.display = t.includes(q) ? "" : "none";
+  });
+});
+document.addEventListener("click", e => {
+  const dd = document.getElementById("dd-muni");
+  if (dd && dd.open && !dd.contains(e.target)) dd.open = false;
+});
+
+// filtros plegables (móvil) + selector de orden (la tabla-tarjeta no tiene cabeceras)
+document.getElementById("toggle-filtros").onclick = () => {
+  const f = document.getElementById("filtros");
+  const abierto = f.classList.toggle("abierto");
+  document.getElementById("toggle-filtros").textContent =
+    abierto ? "✕ Ocultar filtros" : "☰ Mostrar filtros";
+};
+document.getElementById("f-orden").addEventListener("change", e => {
+  const [col, desc] = e.target.value.split(":");
+  orden = { col, desc: desc === "1" };
+  pintar();
+});
+document.getElementById("limpiar").onclick = () => {
+  ["f-precio", "f-capital", "f-coc", "f-m2", "f-txt"].forEach(id => document.getElementById(id).value = "");
+  document.getElementById("f-hab").value = "0";
+  document.querySelectorAll(".chip").forEach(el => el.classList.add("on"));
+  muniOn = new Set(DATA.map(r => r.localidad));
+  fuenteOn = new Set(DATA.map(r => r.origen));
+  if (typeof actualizarMuniSummary === "function") actualizarMuniSummary();
+  try { localStorage.removeItem(CLAVE_FILTROS); } catch (e) {}
+  aplicar();   // limpiar sí re-renderiza al momento
+};
+restaurarFiltros();  // parámetros guardados del usuario cargados en los controles
+aplicar();           // ...y aplicados desde el primer segundo
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  var cfg = window.REO_CONFIG || {};
+  var activas = cfg.provinciasActivas || [];
+  var head = document.querySelector("header");
+  if (!head || !activas.length) return;
+  var actual = (location.pathname.split("/").pop() || "")
+                 .replace(/^explorador-/, "").replace(/\.html$/, "");
+  var s = null;
+  try { s = JSON.parse(sessionStorage.getItem("reo_session") || "null"); } catch (e) {}
+  var esAdmin = !!(s && s.e && (cfg.adminEmails || []).indexOf(s.e) !== -1);
+  var mias = (s && (s.slugs || (s.slug ? [s.slug] : []))) || [];
+  var lista = (cfg.betaAbierta || esAdmin)
+    ? activas
+    : activas.filter(function (p) { return mias.indexOf(p.slug) !== -1; });
+  var sel = document.createElement("select");
+  sel.id = "selector-provincia";
+  sel.setAttribute("aria-label", "Cambiar de provincia");
+  sel.style.cssText = "display:block;margin-top:8px;padding:6px 10px;" +
+    "font-size:13px;border:none;border-radius:6px;max-width:250px;cursor:pointer";
+  lista.forEach(function (p) {
+    var o = document.createElement("option");
+    o.value = p.slug; o.textContent = "\ud83d\udccd " + p.nombre;
+    if (p.slug === actual) o.selected = true;
+    sel.appendChild(o);
+  });
+  if (!cfg.betaAbierta && !esAdmin) {
+    var o = document.createElement("option");
+    o.value = "__ampliar__"; o.textContent = "\u2795 A\u00f1adir otra provincia\u2026";
+    sel.appendChild(o);
+  }
+  sel.addEventListener("change", function () {
+    if (sel.value === "__ampliar__") location.href = "ampliar.html";
+    else location.href = "explorador-" + sel.value + ".html";
+  });
+  head.appendChild(sel);
+});
+</script>
+</body>
+</html>
