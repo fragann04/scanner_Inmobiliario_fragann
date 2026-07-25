@@ -34,6 +34,14 @@
       background: #fff; color: var(--azul); border-radius: 4px; cursor: pointer;
       font-size: 12px; }
   button#limpiar:hover { background: #eef2fa; }
+  button#aplicar { padding: 6px 16px; border: none; background: var(--azul);
+      color: #fff; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+  button#aplicar:hover { background: #24549c; }
+  /* cuando hay cambios sin aplicar, el botón brilla para llamar la atención
+     (sin moverse: solo el resplandor cambia) */
+  button#aplicar.pendiente { background: #b7950b; animation: brillo 1.2s ease-in-out infinite; }
+  @keyframes brillo { 0%,100% { box-shadow: 0 0 0 0 rgba(183,149,11,.5); }
+                      50% { box-shadow: 0 0 0 5px rgba(183,149,11,.15); } }
 
   table { border-collapse: collapse; width: calc(100% - 40px); margin: 0 20px;
           background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
@@ -185,6 +193,7 @@
     </select>
   </div>
   <div class="campo"><label>Dirección contiene</label><input type="text" id="f-txt" placeholder="calle, zona…"></div>
+  <div class="campo"><label>&nbsp;</label><button id="aplicar">🔎 Aplicar filtros</button></div>
   <div class="campo"><label>&nbsp;</label><button id="limpiar">Limpiar filtros</button></div>
 </div>
 
@@ -999,26 +1008,52 @@ function chips(contId, valores, activo) {
         activo.has(v) ? activo.delete(v) : activo.add(v);
         if (activo.size === 0) valores.forEach(x => activo.add(x));
       }
-      sync(); pintar();
+      sync();
+      if (typeof actualizarMuniSummary === "function") actualizarMuniSummary();
+      marcarPendiente();   // el cambio se aplica al pulsar "Aplicar filtros"
     };
     cont.appendChild(el);
   });
 }
 
-function filtrar() {
-  const pMax = parseFloat(document.getElementById("f-precio").value) || Infinity;
-  const cMax = parseFloat(document.getElementById("f-capital").value) || Infinity;
-  const cocMin = document.getElementById("f-coc").value === "" ? -Infinity : parseFloat(document.getElementById("f-coc").value);
-  const m2Min = parseFloat(document.getElementById("f-m2").value) || 0;
-  const habMin = parseInt(document.getElementById("f-hab").value);
-  const txt = document.getElementById("f-txt").value.trim().toLowerCase();
+// Estado de filtros APLICADO. La tabla solo cambia cuando se pulsa "Aplicar
+// filtros" (o Enter), que copia aquí lo que hay en los controles. Así los
+// controles son un "borrador" y la búsqueda se formaliza al aplicar.
+let aplicados = {
+  pMax: Infinity, cMax: Infinity, cocMin: -Infinity, m2Min: 0, habMin: 0,
+  txt: "", muni: null, fuente: null,
+};
 
+function aplicar() {
+  const gv = id => document.getElementById(id).value;
+  aplicados = {
+    pMax: parseFloat(gv("f-precio")) || Infinity,
+    cMax: parseFloat(gv("f-capital")) || Infinity,
+    cocMin: gv("f-coc") === "" ? -Infinity : parseFloat(gv("f-coc")),
+    m2Min: parseFloat(gv("f-m2")) || 0,
+    habMin: parseInt(gv("f-hab")) || 0,
+    txt: gv("f-txt").trim().toLowerCase(),
+    muni: new Set(muniOn),
+    fuente: new Set(fuenteOn),
+  };
+  const btn = document.getElementById("aplicar");
+  if (btn) { btn.classList.remove("pendiente"); btn.textContent = "🔎 Aplicar filtros"; }
+  pintar();
+}
+
+function marcarPendiente() {
+  const btn = document.getElementById("aplicar");
+  if (btn) { btn.classList.add("pendiente"); btn.textContent = "🔎 Aplicar filtros (pulsa aquí)"; }
+}
+
+function filtrar() {
+  const a = aplicados;
   return DATA.filter(r =>
-    muniOn.has(r.localidad) && fuenteOn.has(r.origen) &&
-    r.precio <= pMax && r.capital <= cMax && r.coc >= cocMin &&
-    (m2Min === 0 || (r.m2 || 0) >= m2Min) &&
-    (habMin === 0 || (r.hab || 0) >= habMin) &&
-    (!txt || (r.direccion || "").toLowerCase().includes(txt) || r.localidad.toLowerCase().includes(txt))
+    (!a.muni || a.muni.has(r.localidad)) && (!a.fuente || a.fuente.has(r.origen)) &&
+    r.precio <= a.pMax && r.capital <= a.cMax && r.coc >= a.cocMin &&
+    (a.m2Min === 0 || (r.m2 || 0) >= a.m2Min) &&
+    (a.habMin === 0 || (r.hab || 0) >= a.habMin) &&
+    (!a.txt || (r.direccion || "").toLowerCase().includes(a.txt) || r.localidad.toLowerCase().includes(a.txt))
   );
 }
 
@@ -1110,8 +1145,15 @@ function pintar() {
 // init
 chips("f-muni", [...new Set(DATA.map(r => r.localidad))].sort(), muniOn);
 chips("f-fuente", [...new Set(DATA.map(r => r.origen))].sort(), fuenteOn);
-["f-precio", "f-capital", "f-coc", "f-m2", "f-hab", "f-txt"].forEach(id =>
-  document.getElementById(id).addEventListener("input", pintar));
+// Los controles NO aplican al instante: al cambiar, marcan "pendiente".
+// Se formaliza al pulsar "Aplicar filtros" o con Enter.
+["f-precio", "f-capital", "f-coc", "f-m2", "f-hab", "f-txt"].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener("input", marcarPendiente);
+  el.addEventListener("change", marcarPendiente);
+  el.addEventListener("keydown", e => { if (e.key === "Enter") aplicar(); });
+});
+document.getElementById("aplicar").addEventListener("click", aplicar);
 
 // desplegable de municipios: resumen dinámico, buscador y cierre al clicar fuera
 function actualizarMuniSummary() {
@@ -1152,11 +1194,12 @@ document.getElementById("limpiar").onclick = () => {
   document.querySelectorAll(".chip").forEach(el => el.classList.add("on"));
   muniOn = new Set(DATA.map(r => r.localidad));
   fuenteOn = new Set(DATA.map(r => r.origen));
+  if (typeof actualizarMuniSummary === "function") actualizarMuniSummary();
   try { localStorage.removeItem(CLAVE_FILTROS); } catch (e) {}
-  pintar();
+  aplicar();   // limpiar sí re-renderiza al momento
 };
-restaurarFiltros();  // parámetros del usuario aplicados desde el primer segundo
-pintar();
+restaurarFiltros();  // parámetros guardados del usuario cargados en los controles
+aplicar();           // ...y aplicados desde el primer segundo
 </script>
 
 <script>
