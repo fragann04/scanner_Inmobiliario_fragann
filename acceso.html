@@ -6,9 +6,9 @@
 <title>Acceder — Scanner REO</title>
 <meta name="robots" content="noindex">
 <style>
-  :root { --azul:#1a3c6b; --azul2:#2456a0; --dorado:#b7950b; }
+  :root { --azul:#0f6b48; --azul2:#1a9160; --dorado:#c99530; }
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family:'Segoe UI',Arial,sans-serif; background:#f4f7fb; min-height:100vh;
+  body { font-family:'Segoe UI',Arial,sans-serif; background:#f3f8f5; min-height:100vh;
          display:flex; align-items:center; justify-content:center; padding:20px; }
   .caja { background:#fff; border-radius:14px; box-shadow:0 6px 26px rgba(0,0,0,.14);
           padding:34px 30px; max-width:420px; width:100%; }
@@ -24,8 +24,8 @@
            cursor:pointer; }
   button:hover { filter:brightness(1.08); }
   #msg { font-size:13px; text-align:center; margin-top:12px; min-height:18px; }
-  .err { color:#c0392b; } .ok { color:#1a7a1a; }
-  .beta { background:#eef4ff; border:1px solid #b9cdf0; border-radius:8px;
+  .err { color:#c0392b; } .ok { color:#1a9d57; }
+  .beta { background:#e9f6ef; border:1px solid #b9cdf0; border-radius:8px;
           padding:10px 12px; font-size:12px; color:#33507a; margin-top:16px; }
   .pie { text-align:center; font-size:12px; color:#888; margin-top:18px; }
   .pie a { color:var(--azul); }
@@ -56,7 +56,6 @@
   </div>
 </div>
 
-<script src="config.js"></script>
 <script>
 const SALT = "REO2026";
 
@@ -87,14 +86,9 @@ function cargarToken() {
       document.getElementById("email").value = cuenta.e;
       const b = document.getElementById("beta-info");
       b.style.display = "block";
-      const provsTok = Array.isArray(cuenta.p) ? cuenta.p : [cuenta.p];
-      const cfgTok = window.REO_CONFIG || {};
-      b.innerHTML = "✅ Cuenta vinculada a este navegador.<br>" +
-        (cfgTok.betaAbierta
-          ? "Durante la <b>beta abierta</b> puedes explorar <b>todas las " +
-            "provincias disponibles</b>. "
-          : "Tu cuenta incluye: <b>" + provsTok.join(", ") + "</b>. ") +
-        "Escribe tu clave para entrar.";
+      b.innerHTML = "✅ Cuenta vinculada a este navegador.<br>Tu beta gratuita " +
+                    "incluye la provincia de <b>" + cuenta.p + "</b>. " +
+                    "Escribe tu clave para entrar.";
       history.replaceState(null, "", location.pathname); // limpiar el token de la URL
     }
   } catch (e) { /* token inválido: se ignora */ }
@@ -110,20 +104,19 @@ window.addEventListener("hashchange", cargarToken);  // por si llega el enlace
   if (ult && !campo.value) campo.value = ult;
 })();
 
-// 2) Validación en cada acceso: email + clave contra el hash de la cuenta
-// Busca la cuenta por email: 1º en este navegador (rápido), 2º en el
-// servidor (archivo publicado cuentas/<hash>.json) → login desde CUALQUIER
-// navegador/dispositivo sin necesidad del enlace personal.
+// Busca la cuenta por email: 1º en este navegador (rápido), 2º en el servidor
+// (archivo publicado, nombrado por el hash del email — así funciona en
+// cualquier navegador/dispositivo sin el enlace personal).
 async function buscarCuenta(email) {
   const cuentas = JSON.parse(localStorage.getItem("reo_cuentas") || "{}");
   if (cuentas[email]) return cuentas[email];
   try {
-    const idFile = await sha256(email);
+    const idFile = await sha256(email);   // sha256(email) = nombre del archivo
     const r = await fetch("cuentas/" + idFile + ".json", { cache: "no-store" });
     if (r.ok) {
-      const d = await r.json();
+      const d = await r.json();           // { p: provincia, h: hash_clave }
       const cuenta = { e: email, p: d.p, h: d.h };
-      cuentas[email] = cuenta;
+      cuentas[email] = cuenta;            // cachear para próximas veces
       localStorage.setItem("reo_cuentas", JSON.stringify(cuentas));
       return cuenta;
     }
@@ -131,6 +124,7 @@ async function buscarCuenta(email) {
   return null;
 }
 
+// 2) Validación en cada acceso: email + clave contra el hash de la cuenta
 async function entrar() {
   const msg = document.getElementById("msg");
   const email = document.getElementById("email").value.trim().toLowerCase();
@@ -143,8 +137,8 @@ async function entrar() {
   if (!cuenta) {
     msg.className = "err";
     msg.innerHTML = "No encontramos una cuenta con ese email.<br>" +
-      "¿Es el email con el que te registraste? Si aún no tienes cuenta, " +
-      "<a href='index.html#alta'>apúntate a la beta gratuita</a>.";
+      "¿Seguro que es el email con el que te registraste? Si aún no tienes " +
+      "cuenta, <a href='index.html#alta'>apúntate a la beta gratuita</a>.";
     return;
   }
   const h = await sha256(email + "|" + clave + "|" + SALT);
@@ -154,21 +148,12 @@ async function entrar() {
     return;
   }
   // sesión de acceso (se revalida en cada entrada a la página de acceso)
-  const provs = Array.isArray(cuenta.p) ? cuenta.p : [cuenta.p];
-  const slugs = provs.map(slugify);
+  const slug = slugify(cuenta.p);
   sessionStorage.setItem("reo_session", JSON.stringify(
-    { e: email, p: provs[0], provs: provs, slug: slugs[0], slugs: slugs,
-      t: Date.now() }));
+    { e: email, p: cuenta.p, slug: slug, t: Date.now() }));
   localStorage.setItem("reo_ultimo", email);
-  const cfg = window.REO_CONFIG || {};
-  const esAdmin = (cfg.adminEmails || []).indexOf(email) !== -1;
-  if (cfg.betaAbierta || esAdmin || provs.length > 1) {
-    msg.textContent = "✓ Acceso correcto. Elige la provincia que quieras explorar…";
-    location.href = "explorar.html";
-    return;
-  }
-  msg.textContent = "✓ Acceso correcto. Abriendo " + provs[0] + "…";
-  const destino = "explorador-" + slugs[0] + ".html";
+  msg.textContent = "✓ Acceso correcto. Abriendo " + cuenta.p + "…";
+  const destino = "explorador-" + slug + ".html";
   // ¿su provincia ya tiene datos publicados?
   try {
     const r = await fetch(destino, { method: "HEAD" });
@@ -177,7 +162,7 @@ async function entrar() {
   } catch (e2) {
     if (location.protocol === "file:") { location.href = destino; return; }
     msg.className = "ok";
-    msg.innerHTML = "✓ Acceso correcto.<br><b>" + provs[0] + " se está activando</b> — " +
+    msg.innerHTML = "✓ Acceso correcto.<br><b>" + cuenta.p + " se está activando</b> — " +
       "el radar de tu provincia entra en marcha en breve y te avisaremos por email. " +
       "Gracias por la paciencia 🙏";
   }

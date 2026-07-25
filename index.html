@@ -6,7 +6,7 @@
 <title>Scanner REO — Pisos de banco y subastas en toda España, con la rentabilidad ya calculada</title>
 <meta name="description" content="Radar diario de pisos de banco (REO), cartera Sareb y subastas BOE en España con rentabilidad calculada: capital de entrada, cash-on-cash y descuento sobre tasación. Elige tu provincia.">
 <style>
-  :root { --azul:#1a3c6b; --azul2:#2456a0; --dorado:#b7950b; --verde:#1a7a1a; }
+  :root { --azul:#0f6b48; --azul2:#1a9160; --dorado:#c99530; --verde:#1a9d57; }
   * { box-sizing:border-box; margin:0; padding:0; }
   body { font-family:'Segoe UI',Arial,sans-serif; color:#222; line-height:1.55; background:#fff; }
   a { color:var(--azul); }
@@ -36,7 +36,7 @@
   .stat span { font-size:12px; color:#666; }
 
   section { padding:48px 0; }
-  section.alt { background:#f4f7fb; }
+  section.alt { background:#f3f8f5; }
   h2 { color:var(--azul); font-size:24px; margin-bottom:22px; text-align:center; }
 
   .fuentes { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; max-width:760px; margin:0 auto; }
@@ -86,7 +86,7 @@
   details summary { font-weight:bold; cursor:pointer; color:var(--azul); font-size:15px; }
   details p { margin-top:8px; font-size:14px; color:#444; }
 
-  footer { background:#12263f; color:#9fb3cc; font-size:12px; padding:28px 0; text-align:center; }
+  footer { background:#10352a; color:#9fb3cc; font-size:12px; padding:28px 0; text-align:center; }
   footer a { color:#cdd9e8; }
 </style>
 </head>
@@ -112,7 +112,7 @@
 <div class="stats">
   <div class="stat"><b>52</b><span>provincias de España — tú eliges la tuya</span></div>
   <div class="stat"><b>9</b><span>fuentes: bancos, Sareb, BOE y portales</span></div>
-  <div class="stat"><b>3.900+</b><span>inmuebles en Barcelona (provincia completa)</span></div>
+  <div class="stat"><b>900+</b><span>inmuebles activos en la provincia piloto</span></div>
   <div class="stat"><b>08:00</b><span>informe diario en tu bandeja</span></div>
 </div>
 
@@ -120,12 +120,12 @@
   <div class="wrap">
     <h2>Fuentes que rastreamos por ti, todas a la vez</h2>
     <div class="fuentes">
-      <span class="fuente" style="background:#1a3c6b">BOE Subastas</span>
+      <span class="fuente" style="background:#0f6b48">BOE Subastas</span>
       <span class="fuente" style="background:#e67e22">Solvia · Sabadell</span>
       <span class="fuente" style="background:#6c3483">Aliseda · Santander</span>
       <span class="fuente" style="background:#117a65">Altamira · doValue</span>
       <span class="fuente" style="background:#0077b6">Servihabitat · CaixaBank</span>
-      <span class="fuente" style="background:#b7950b">Sareb · vía Hipoges</span>
+      <span class="fuente" style="background:#c99530">Sareb · vía Hipoges</span>
       <span class="fuente" style="background:#d35400">Fotocasa</span>
       <span class="fuente" style="background:#2e86c1">pisos.com</span>
       <span class="fuente" style="background:#8e6f00">La Caixa · BuildingCenter</span>
@@ -175,7 +175,7 @@
       </tr>
       <tr>
         <td><b>Corbera de Llobregat</b><br><span style="color:#777">Casa 4 hab · 154 m²</span></td>
-        <td><span class="tag" style="background:#b7950b">SAREB · HIPOGES</span></td>
+        <td><span class="tag" style="background:#c99530">SAREB · HIPOGES</span></td>
         <td>123.000 €</td><td><b>29.800 €</b></td>
         <td class="pos">+11,3% ★</td><td class="pos">+3.370 €</td><td>-27%</td>
       </tr>
@@ -196,9 +196,7 @@
   <div class="wrap">
     <h2>Cómo funciona</h2>
     <ol class="pasos">
-      <li><b>Te suscribes</b> con tu email y eliges tu provincia prioritaria
-          (beta gratuita, sin tarjeta). Durante la beta puedes explorar
-          <b>todas las provincias activas</b>.</li>
+      <li><b>Te suscribes</b> con tu email y eliges tu provincia (beta gratuita, sin tarjeta).</li>
       <li><b>Tu provincia se activa.</b> Barcelona ya está en marcha; el resto se
           activan por orden de demanda — los primeros suscriptores de cada provincia
           estrenan su informe y fijan la zona prioritaria.</li>
@@ -222,8 +220,7 @@
       <label for="email">Email donde recibir el informe</label>
       <input type="email" id="email" name="email" required placeholder="tu@email.com">
       <label for="provincia">Provincia donde quieres invertir
-        <span style="font-weight:normal;text-transform:none">(tu prioritaria —
-        durante la beta exploras todas las activas)</span></label>
+        <span style="font-weight:normal;text-transform:none">(la beta incluye 1 provincia)</span></label>
       <select id="provincia" name="provincia" required>
         <option value="" disabled selected>Elige tu provincia…</option>
         <option>Barcelona (✓ ya activa)</option>
@@ -270,11 +267,9 @@
     <h2>Preguntas frecuentes</h2>
     <details>
       <summary>¿Cuánto cuesta?</summary>
-      <p>Durante la beta, nada: exploras gratis todas las provincias activas.
-         Cuando el servicio salga de beta, el acceso completo pasará a ser de
-         pago; los suscriptores de la beta tendrán condiciones preferentes y se
-         avisará con antelación. Nunca se cobrará nada sin tu confirmación
-         expresa.</p>
+      <p>Durante la beta, nada. Cuando el servicio salga de beta, los suscriptores
+         de la beta tendrán condiciones preferentes y se avisará con antelación.
+         Nunca se cobrará nada sin tu confirmación expresa.</p>
     </details>
     <details>
       <summary>¿Cuándo se activa mi provincia?</summary>
