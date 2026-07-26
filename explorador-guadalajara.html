@@ -818,10 +818,10 @@ const pct = v => fmt(v, 1) + "%";
 const _chipSyncs = [];  // para re-pintar chips al restaurar parámetros guardados
 
 function chips(contId, valores, activo) {
-  // Comportamiento intuitivo:
-  //  - con todo activado, un clic AÍSLA esa opción (solo esa);
-  //  - clic sobre la única activa → se reactivan todas;
-  //  - en estado mixto, el clic alterna esa opción.
+  // Comportamiento: los chips empiezan SIN marcar (= sin filtro, se ve todo).
+  // Marcas los que te interesan y el filtro se queda solo con esos.
+  // Desmarcar todos vuelve a "se ve todo". Mucho más intuitivo que el viejo
+  // "todo marcado por defecto".
   const cont = document.getElementById(contId);
   const els = new Map();
   const sync = () => els.forEach((el, v) =>
@@ -829,20 +829,12 @@ function chips(contId, valores, activo) {
   _chipSyncs.push(sync);
   valores.forEach(v => {
     const el = document.createElement("span");
-    el.className = "chip on";
+    el.className = "chip";
     el.textContent = NOMBRE_FUENTE[v] || v;
-    el.title = "Clic: ver solo esta · otro clic: ver todas";
-    activo.add(v);
+    el.title = "Márcalo para filtrar · sin ninguno marcado se ven todos";
     els.set(v, el);
     el.onclick = () => {
-      if (activo.size === valores.length) {
-        activo.clear(); activo.add(v);            // aislar
-      } else if (activo.size === 1 && activo.has(v)) {
-        valores.forEach(x => activo.add(x));      // restaurar todas
-      } else {
-        activo.has(v) ? activo.delete(v) : activo.add(v);
-        if (activo.size === 0) valores.forEach(x => activo.add(x));
-      }
+      activo.has(v) ? activo.delete(v) : activo.add(v);
       sync();
       if (typeof actualizarMuniSummary === "function") actualizarMuniSummary();
       marcarPendiente();   // el cambio se aplica al pulsar "Aplicar filtros"
@@ -868,8 +860,8 @@ function aplicar() {
     m2Min: parseFloat(gv("f-m2")) || 0,
     habMin: parseInt(gv("f-hab")) || 0,
     txt: gv("f-txt").trim().toLowerCase(),
-    muni: new Set(muniOn),
-    fuente: new Set(fuenteOn),
+    muni: muniOn.size ? new Set(muniOn) : null,      // vacío = sin filtro
+    fuente: fuenteOn.size ? new Set(fuenteOn) : null, // vacío = sin filtro
   };
   const btn = document.getElementById("aplicar");
   if (btn) { btn.classList.remove("pendiente"); btn.textContent = "🔎 Aplicar filtros"; }
@@ -923,15 +915,21 @@ function restaurarFiltros() {
       if (f.campos && f.campos[id] !== undefined)
         document.getElementById(id).value = f.campos[id];
     });
+    // Guardados con el esquema viejo ("todo marcado" = sin filtro) se migran:
+    // si lo guardado cubre todos los valores, equivale a no marcar nada.
     if (Array.isArray(f.muni) && f.muni.length) {
-      const validas = f.muni.filter(v => muniOn.has(v) ||
-        DATA.some(r => r.localidad === v));
-      if (validas.length) { muniOn.clear(); validas.forEach(v => muniOn.add(v)); }
+      const todasM = new Set(DATA.map(r => r.localidad)).size;
+      const validas = f.muni.filter(v => DATA.some(r => r.localidad === v));
+      muniOn.clear();
+      if (validas.length && validas.length < todasM)
+        validas.forEach(v => muniOn.add(v));
     }
     if (Array.isArray(f.fuente) && f.fuente.length) {
-      const validas = f.fuente.filter(v => fuenteOn.has(v) ||
-        DATA.some(r => r.origen === v));
-      if (validas.length) { fuenteOn.clear(); validas.forEach(v => fuenteOn.add(v)); }
+      const todasF = new Set(DATA.map(r => r.origen)).size;
+      const validas = f.fuente.filter(v => DATA.some(r => r.origen === v));
+      fuenteOn.clear();
+      if (validas.length && validas.length < todasF)
+        validas.forEach(v => fuenteOn.add(v));
     }
     if (f.orden && f.orden.col) orden = f.orden;
     _chipSyncs.forEach(s => s());
@@ -1001,9 +999,8 @@ document.getElementById("aplicar").addEventListener("click", aplicar);
 
 // desplegable de municipios: resumen dinámico, buscador y cierre al clicar fuera
 function actualizarMuniSummary() {
-  const total = new Set(DATA.map(r => r.localidad)).size;
   const el = document.getElementById("muni-summary");
-  if (el) el.textContent = muniOn.size >= total ? "Todos" :
+  if (el) el.textContent = muniOn.size === 0 ? "Todos" :
     (muniOn.size === 1 ? [...muniOn][0] : muniOn.size + " seleccionados");
 }
 const _pintarOriginal = pintar;
@@ -1035,9 +1032,11 @@ document.getElementById("f-orden").addEventListener("change", e => {
 document.getElementById("limpiar").onclick = () => {
   ["f-precio", "f-capital", "f-coc", "f-m2", "f-txt"].forEach(id => document.getElementById(id).value = "");
   document.getElementById("f-hab").value = "0";
-  document.querySelectorAll(".chip").forEach(el => el.classList.add("on"));
-  muniOn = new Set(DATA.map(r => r.localidad));
-  fuenteOn = new Set(DATA.map(r => r.origen));
+  // OJO: mutar los sets EN SITIO (clear), nunca reasignar — los chips guardan
+  // la referencia original y una reasignación los desconecta del filtro.
+  muniOn.clear();
+  fuenteOn.clear();
+  _chipSyncs.forEach(s => s());
   if (typeof actualizarMuniSummary === "function") actualizarMuniSummary();
   try { localStorage.removeItem(CLAVE_FILTROS); } catch (e) {}
   aplicar();   // limpiar sí re-renderiza al momento
