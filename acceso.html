@@ -50,9 +50,9 @@
 
   <div class="pie">
     ¿Aún sin cuenta? <a href="index.html#alta">Apúntate a la beta gratuita</a><br>
-    ¿Olvidaste tu clave o tu enlace? Vuelve a
-    <a href="index.html#alta">registrarte con tu mismo email</a> y te
-    reenviamos el correo de acceso.
+    ¿Olvidaste tu clave? Vuelve a
+    <a href="index.html#alta">registrarte con tu mismo email</a> y una clave
+    nueva — quedará activa al momento.
   </div>
 </div>
 
@@ -144,7 +144,7 @@ async function entrar() {
   const h = await sha256(email + "|" + clave + "|" + SALT);
   if (h !== cuenta.h) {
     msg.className = "err";
-    msg.textContent = "Clave incorrecta. Revisa tu email de bienvenida.";
+    msg.textContent = "Clave incorrecta. Es la que elegiste al registrarte.";
     return;
   }
   // sesión de acceso (se revalida en cada entrada a la página de acceso)
