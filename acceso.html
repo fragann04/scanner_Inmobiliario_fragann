@@ -86,8 +86,9 @@ function cargarToken() {
       document.getElementById("email").value = cuenta.e;
       const b = document.getElementById("beta-info");
       b.style.display = "block";
-      b.innerHTML = "✅ Cuenta vinculada a este navegador.<br>Tu beta gratuita " +
-                    "incluye la provincia de <b>" + cuenta.p + "</b>. " +
+      b.innerHTML = "✅ Cuenta vinculada a este navegador.<br>Durante la beta " +
+                    "exploras <b>las 52 provincias</b> de España " +
+                    "(tu referencia: " + cuenta.p + "). " +
                     "Escribe tu clave para entrar.";
       history.replaceState(null, "", location.pathname); // limpiar el token de la URL
     }
