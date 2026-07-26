@@ -116,6 +116,9 @@
         font-size:13px;font-weight:bold;cursor:pointer">📲 Instalar la app</button>
       <div id="pwa-ios" style="display:none;font-size:12px;opacity:.85">
         📲 En iPhone: <b>Compartir</b> → <b>Añadir a pantalla de inicio</b> y tendrás la app</div>
+      <div id="pwa-android" style="display:none;font-size:12px;opacity:.85">
+        📲 Para tenerla como app: menú <b>⋮</b> de Chrome →
+        <b>Instalar aplicación</b> (o "Añadir a pantalla de inicio")</div>
     </div>
   </div>
 </header>
@@ -358,6 +361,7 @@ document.getElementById("form-alta").addEventListener("submit", async function (
     e.preventDefault();
     promptGuardado = e;
     document.getElementById("pwa-btn").style.display = "inline-block";
+    document.getElementById("pwa-android").style.display = "none";
   });
   document.getElementById("pwa-btn").addEventListener("click", function () {
     if (!promptGuardado) return;
@@ -366,7 +370,14 @@ document.getElementById("form-alta").addEventListener("submit", async function (
     this.style.display = "none";
   });
   var esIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  var esAndroid = /Android/.test(navigator.userAgent);
   if (esIOS) document.getElementById("pwa-ios").style.display = "block";
+  // Si Chrome no ofrece el aviso nativo (p.ej. navegador interno de
+  // WhatsApp/Gmail), mostrar igualmente cómo instalarla.
+  if (esAndroid) setTimeout(function () {
+    if (!promptGuardado)
+      document.getElementById("pwa-android").style.display = "block";
+  }, 2500);
 })();
 </script>
 </body>
