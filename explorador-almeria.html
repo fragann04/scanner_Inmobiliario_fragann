@@ -2,6 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b1f3a">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Scanner REO — Explorador interactivo · 26/07/2026</title>
 <style>
@@ -1486,6 +1489,8 @@ document.getElementById("limpiar").onclick = () => {
 };
 restaurarFiltros();  // parámetros guardados del usuario cargados en los controles
 aplicar();           // ...y aplicados desde el primer segundo
+if ("serviceWorker" in navigator && location.protocol !== "file:")
+  navigator.serviceWorker.register("sw.js");
 </script>
 
 <script>

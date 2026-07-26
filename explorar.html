@@ -2,6 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b1f3a">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Scanner REO — Explora oportunidades inmobiliarias por provincia</title>
 <meta name="description" content="Pisos de banco, cartera Sareb y subastas BOE de toda España con la rentabilidad ya calculada. Elige tu provincia y explora gratis.">
@@ -120,5 +123,7 @@ b.addEventListener("input", () => {
   });
 });
 </script>
+<script>if ("serviceWorker" in navigator && location.protocol !== "file:")
+  navigator.serviceWorker.register("sw.js");</script>
 </body>
 </html>

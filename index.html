@@ -2,6 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b1f3a">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Scanner REO — Pisos de banco y subastas en toda España, con la rentabilidad ya calculada</title>
 <meta name="description" content="Radar diario de pisos de banco (REO), cartera Sareb y subastas BOE en España con rentabilidad calculada: capital de entrada, cash-on-cash y descuento sobre tasación. Elige tu provincia.">
@@ -107,6 +110,13 @@
     <a class="cta" href="#alta">🔎 Crear mi acceso gratis — explora toda España</a>
     <div class="mini">Sin tarjeta · Eliges tu provincia y tu clave · Entras cuando quieras con
       <a href="acceso.html" style="color:#fff;text-decoration:underline">👤 Acceder</a></div>
+    <div id="pwa-zona" style="margin-top:14px">
+      <button id="pwa-btn" style="display:none;background:rgba(255,255,255,.14);color:#fff;
+        border:1.5px solid rgba(255,255,255,.55);border-radius:22px;padding:8px 18px;
+        font-size:13px;font-weight:bold;cursor:pointer">📲 Instalar la app</button>
+      <div id="pwa-ios" style="display:none;font-size:12px;opacity:.85">
+        📲 En iPhone: <b>Compartir</b> → <b>Añadir a pantalla de inicio</b> y tendrás la app</div>
+    </div>
   </div>
 </header>
 
@@ -334,6 +344,30 @@ document.getElementById("form-alta").addEventListener("submit", async function (
   } catch (err) { /* si el navegador no soporta WebCrypto, seguimos igual */ }
   this.submit();  // envía el aviso de alta (para el informe diario por email)
 });
+</script>
+<script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");</script>
+<script>
+// Instalación como app (PWA). Android/Chrome: botón con el aviso nativo.
+// iPhone/Safari: no existe el aviso nativo — se muestra la instrucción.
+(function () {
+  var enApp = window.matchMedia("(display-mode: standalone)").matches ||
+              window.navigator.standalone === true;
+  if (enApp) return;  // ya está instalada
+  var promptGuardado = null;
+  window.addEventListener("beforeinstallprompt", function (e) {
+    e.preventDefault();
+    promptGuardado = e;
+    document.getElementById("pwa-btn").style.display = "inline-block";
+  });
+  document.getElementById("pwa-btn").addEventListener("click", function () {
+    if (!promptGuardado) return;
+    promptGuardado.prompt();
+    promptGuardado = null;
+    this.style.display = "none";
+  });
+  var esIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  if (esIOS) document.getElementById("pwa-ios").style.display = "block";
+})();
 </script>
 </body>
 </html>
