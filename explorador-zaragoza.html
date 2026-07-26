@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Scanner REO — Explorador interactivo · 26/07/2026</title>
 <style>
-  :root { --azul: #0f6b48; --verde: #1a9d57; --rojo: #c0392b; }
+  :root { --azul: #0b1f3a; --verde: #1a9d57; --rojo: #c0392b; }
   * { box-sizing: border-box; }
   body { font-family: Arial, sans-serif; font-size: 13px; color: #222;
          margin: 0; padding: 0 0 40px; background: #f5f5f5; }
-  header { background: linear-gradient(135deg, var(--azul), #1a9160);
+  header { background: linear-gradient(135deg, var(--azul), #16365c);
            color: #fff; padding: 16px 20px; box-shadow: 0 2px 10px rgba(0,0,0,.15); }
   header h1 { font-size: 18px; margin: 0 0 2px; }
   header .sub { font-size: 12px; opacity: .85; }
@@ -34,13 +34,13 @@
   button#limpiar { padding: 6px 12px; border: 1px solid var(--azul);
       background: #fff; color: var(--azul); border-radius: 4px; cursor: pointer;
       font-size: 12px; }
-  button#limpiar:hover { background: #e9f6ef; }
+  button#limpiar:hover { background: #e8edf5; }
   button#aplicar { padding: 6px 16px; border: none; background: var(--azul);
       color: #fff; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
-  button#aplicar:hover { background: #0d7d52; }
+  button#aplicar:hover { background: #14406b; }
   /* cuando hay cambios sin aplicar, el botón brilla para llamar la atención
      (sin moverse: solo el resplandor cambia) */
-  button#aplicar.pendiente { background: #c99530; animation: brillo 1.2s ease-in-out infinite; }
+  button#aplicar.pendiente { background: #c9a24b; animation: brillo 1.2s ease-in-out infinite; }
   @keyframes brillo { 0%,100% { box-shadow: 0 0 0 0 rgba(183,149,11,.5); }
                       50% { box-shadow: 0 0 0 5px rgba(183,149,11,.15); } }
 
@@ -51,7 +51,7 @@
        top: 0; }
   th .flecha { opacity: .6; font-size: 9px; }
   td { padding: 6px 8px; border-bottom: 1px solid #eee; vertical-align: top; }
-  tr:hover td { background: #edf7f1; }
+  tr:hover td { background: #eaf0f7; }
   .num { text-align: right; white-space: nowrap; }
   .pos { color: var(--verde); font-weight: bold; }
   .neg { color: var(--rojo); }
@@ -74,7 +74,7 @@
   #comocalc[open] summary { border-bottom: 1px solid #eee; }
   #comocalc .cuerpo { font-size: 12.5px; color: #333; line-height: 1.7; padding: 12px 2px 16px; }
   #comocalc b { color: var(--azul); }
-  #comocalc .form { background: #f3f8f5; border-radius: 5px; padding: 1px 7px;
+  #comocalc .form { background: #f4f6f9; border-radius: 5px; padding: 1px 7px;
               font-family: ui-monospace, Consolas, monospace; font-size: 11.5px; color: #244; }
   #comocalc .aviso { margin-top: 10px; font-size: 11.5px; color: #7a5c00;
               background: #fff8e6; border: 1px solid #e6d38a; border-radius: 6px; padding: 8px 10px; }
@@ -616,7 +616,7 @@
 <tr><td data-label="Localidad / Dirección"><b>Zaragoza</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#2e86c1'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/piso-zaragoza_capital_casco_antiguo50002-59235391926_100500/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">189.000 €</td><td data-label="Capital entrada" class="num"><b>70.755 €</b></td><td data-label="m²" class="num">109</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">6,8%</td><td data-label="Rent. neta" class="num">4,2%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-1,6%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.161 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Villalba de Perejil</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#2e86c1'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/casa-villalba_de_perejil_centro_urbano-64171171259_109300/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">189.000 €</td><td data-label="Capital entrada" class="num"><b>70.755 €</b></td><td data-label="m²" class="num">426</td><td data-label="Hab" class="num">8</td><td data-label="Rent. bruta" class="num">6,8%</td><td data-label="Rent. neta" class="num">4,2%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-1,6%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.161 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Zaragoza</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#2e86c1'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/piso-zaragoza_capital_san_jose-65061360004_100200/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">187.500 €</td><td data-label="Capital entrada" class="num"><b>70.312 €</b></td><td data-label="m²" class="num">70</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">6,8%</td><td data-label="Rent. neta" class="num">4,2%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-1,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.162 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
-<tr><td data-label="Localidad / Dirección"><b>Zaragoza</b><br><span class='dir'>FEDERICO GARCÍA LORCA 6</span></td><td data-label="Fuente"><span class='tag' style='background:#0f6b48'>BOE judicial</span><br><a href='https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-264014' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">186.150 €</td><td data-label="Capital entrada" class="num"><b>69.914 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">6,8%</td><td data-label="Rent. neta" class="num">4,2%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-1,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.162 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='dir'>No consta</span><br><span class='dir'>cierra 2026-08-06</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Zaragoza</b><br><span class='dir'>FEDERICO GARCÍA LORCA 6</span></td><td data-label="Fuente"><span class='tag' style='background:#0b1f3a'>BOE judicial</span><br><a href='https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-264014' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">186.150 €</td><td data-label="Capital entrada" class="num"><b>69.914 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">6,8%</td><td data-label="Rent. neta" class="num">4,2%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-1,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.162 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='dir'>No consta</span><br><span class='dir'>cierra 2026-08-06</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Zaragoza</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#2e86c1'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/piso-zaragoza_capital_centro-63380663426_100200/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">185.000 €</td><td data-label="Capital entrada" class="num"><b>69.575 €</b></td><td data-label="m²" class="num">63</td><td data-label="Hab" class="num">1</td><td data-label="Rent. bruta" class="num">6,8%</td><td data-label="Rent. neta" class="num">4,2%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-1,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.163 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Zaragoza</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#2e86c1'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/piso-el_rabal-62529063070_100500/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">185.000 €</td><td data-label="Capital entrada" class="num"><b>69.575 €</b></td><td data-label="m²" class="num">79</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">6,8%</td><td data-label="Rent. neta" class="num">4,2%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-1,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.163 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Novallas</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#2e86c1'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/chalet-novallas_centro_urbano-90039293027_100500/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">185.000 €</td><td data-label="Capital entrada" class="num"><b>69.575 €</b></td><td data-label="m²" class="num">800</td><td data-label="Hab" class="num">10</td><td data-label="Rent. bruta" class="num">6,8%</td><td data-label="Rent. neta" class="num">4,2%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-1,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.163 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
@@ -933,8 +933,8 @@ const DATA = [{"localidad": "Agón", "direccion": "C/ Florida", "origen": "SOLVI
 
 const COLORES_FUENTE = {
   "SOLVIA": "#e67e22", "ALISEDA": "#6c3483", "ALTAMIRA": "#117a65",
-  "FOTOCASA": "#d35400", "SERVIHABITAT": "#0077b6", "JA": "#0f6b48",
-  "AT": "#c0392b", "SAREB": "#c99530", "HIPOGES": "#148f77",
+  "FOTOCASA": "#d35400", "SERVIHABITAT": "#0077b6", "JA": "#0b1f3a",
+  "AT": "#c0392b", "SAREB": "#c9a24b", "HIPOGES": "#148f77",
   "PISOS.COM": "#2e86c1", "BUILDINGCENTER": "#8e6f00", "OTRO": "#7f8c8d",
 };
 const NOMBRE_FUENTE = {

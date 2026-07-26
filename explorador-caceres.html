@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Scanner REO — Explorador interactivo · 26/07/2026</title>
 <style>
-  :root { --azul: #0f6b48; --verde: #1a9d57; --rojo: #c0392b; }
+  :root { --azul: #0b1f3a; --verde: #1a9d57; --rojo: #c0392b; }
   * { box-sizing: border-box; }
   body { font-family: Arial, sans-serif; font-size: 13px; color: #222;
          margin: 0; padding: 0 0 40px; background: #f5f5f5; }
-  header { background: linear-gradient(135deg, var(--azul), #1a9160);
+  header { background: linear-gradient(135deg, var(--azul), #16365c);
            color: #fff; padding: 16px 20px; box-shadow: 0 2px 10px rgba(0,0,0,.15); }
   header h1 { font-size: 18px; margin: 0 0 2px; }
   header .sub { font-size: 12px; opacity: .85; }
@@ -34,13 +34,13 @@
   button#limpiar { padding: 6px 12px; border: 1px solid var(--azul);
       background: #fff; color: var(--azul); border-radius: 4px; cursor: pointer;
       font-size: 12px; }
-  button#limpiar:hover { background: #e9f6ef; }
+  button#limpiar:hover { background: #e8edf5; }
   button#aplicar { padding: 6px 16px; border: none; background: var(--azul);
       color: #fff; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
-  button#aplicar:hover { background: #0d7d52; }
+  button#aplicar:hover { background: #14406b; }
   /* cuando hay cambios sin aplicar, el botón brilla para llamar la atención
      (sin moverse: solo el resplandor cambia) */
-  button#aplicar.pendiente { background: #c99530; animation: brillo 1.2s ease-in-out infinite; }
+  button#aplicar.pendiente { background: #c9a24b; animation: brillo 1.2s ease-in-out infinite; }
   @keyframes brillo { 0%,100% { box-shadow: 0 0 0 0 rgba(183,149,11,.5); }
                       50% { box-shadow: 0 0 0 5px rgba(183,149,11,.15); } }
 
@@ -51,7 +51,7 @@
        top: 0; }
   th .flecha { opacity: .6; font-size: 9px; }
   td { padding: 6px 8px; border-bottom: 1px solid #eee; vertical-align: top; }
-  tr:hover td { background: #edf7f1; }
+  tr:hover td { background: #eaf0f7; }
   .num { text-align: right; white-space: nowrap; }
   .pos { color: var(--verde); font-weight: bold; }
   .neg { color: var(--rojo); }
@@ -74,7 +74,7 @@
   #comocalc[open] summary { border-bottom: 1px solid #eee; }
   #comocalc .cuerpo { font-size: 12.5px; color: #333; line-height: 1.7; padding: 12px 2px 16px; }
   #comocalc b { color: var(--azul); }
-  #comocalc .form { background: #f3f8f5; border-radius: 5px; padding: 1px 7px;
+  #comocalc .form { background: #f4f6f9; border-radius: 5px; padding: 1px 7px;
               font-family: ui-monospace, Consolas, monospace; font-size: 11.5px; color: #244; }
   #comocalc .aviso { margin-top: 10px; font-size: 11.5px; color: #7a5c00;
               background: #fff8e6; border: 1px solid #e6d38a; border-radius: 6px; padding: 8px 10px; }
@@ -335,7 +335,7 @@
 <tr><td data-label="Localidad / Dirección"><b>Belvís de Monroy</b><br><span class='dir'>Calle Dehesa Los Pinos</span></td><td data-label="Fuente"><span class='tag' style='background:#148f77'>Hipoges</span><br><a href='https://realestate.hipoges.com/es/detail/GTRE-02068' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">206.200 €</td><td data-label="Capital entrada" class="num"><b>75.829 €</b></td><td data-label="m²" class="num">119</td><td data-label="Hab" class="num">4</td><td data-label="Rent. bruta" class="num">7,4%</td><td data-label="Rent. neta" class="num">4,8%</td><td data-label="Cash-on-cash" class="num"><span class='pos'>0,0%</span></td><td data-label="Cashflow/año" class="num"><span class='pos'>+31 €</span></td><td data-label="Dto. tasación" class="num">3,2%</td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Plasencia</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#2e86c1'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/finca_rustica-plasencia_centro_urbano-53340203102_100500/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">310.000 €</td><td data-label="Capital entrada" class="num"><b>106.450 €</b></td><td data-label="m²" class="num">177</td><td data-label="Hab" class="num">4</td><td data-label="Rent. bruta" class="num">7,2%</td><td data-label="Rent. neta" class="num">4,9%</td><td data-label="Cash-on-cash" class="num"><span class='pos'>0,0%</span></td><td data-label="Cashflow/año" class="num"><span class='pos'>+18 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Villanueva de la Vera</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#2e86c1'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/casa_rustica-villanueva_de_la_vera_centro_urbano-65030395900_106500/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">310.000 €</td><td data-label="Capital entrada" class="num"><b>106.450 €</b></td><td data-label="m²" class="num">170</td><td data-label="Hab" class="num">4</td><td data-label="Rent. bruta" class="num">7,2%</td><td data-label="Rent. neta" class="num">4,9%</td><td data-label="Cash-on-cash" class="num"><span class='pos'>0,0%</span></td><td data-label="Cashflow/año" class="num"><span class='pos'>+18 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
-<tr><td data-label="Localidad / Dirección"><b>Cáceres</b><br><span class='dir'>C/MARGALLO 64</span></td><td data-label="Fuente"><span class='tag' style='background:#0f6b48'>BOE judicial</span><br><a href='https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-263580' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">300.281 €</td><td data-label="Capital entrada" class="num"><b>103.583 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">7,2%</td><td data-label="Rent. neta" class="num">4,9%</td><td data-label="Cash-on-cash" class="num"><span class='pos'>-0,0%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-22 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='dir'>No consta</span><br><span class='dir'>cierra 2026-07-27</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Cáceres</b><br><span class='dir'>C/MARGALLO 64</span></td><td data-label="Fuente"><span class='tag' style='background:#0b1f3a'>BOE judicial</span><br><a href='https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-263580' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">300.281 €</td><td data-label="Capital entrada" class="num"><b>103.583 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">7,2%</td><td data-label="Rent. neta" class="num">4,9%</td><td data-label="Cash-on-cash" class="num"><span class='pos'>-0,0%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-22 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='dir'>No consta</span><br><span class='dir'>cierra 2026-07-27</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Plasencia</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#2e86c1'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/piso-plasencia_centro_urbano-59254149438_106600/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">297.900 €</td><td data-label="Capital entrada" class="num"><b>102.880 €</b></td><td data-label="m²" class="num">290</td><td data-label="Hab" class="num">6</td><td data-label="Rent. bruta" class="num">7,2%</td><td data-label="Rent. neta" class="num">4,9%</td><td data-label="Cash-on-cash" class="num"><span class='pos'>-0,0%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-32 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Navalmoral de la Mata</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#2e86c1'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/casa_adosada-navalmoral_de_la_mata_centro_urbano-65061625326_106500/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">298.000 €</td><td data-label="Capital entrada" class="num"><b>102.910 €</b></td><td data-label="m²" class="num">280</td><td data-label="Hab" class="num">4</td><td data-label="Rent. bruta" class="num">7,2%</td><td data-label="Rent. neta" class="num">4,9%</td><td data-label="Cash-on-cash" class="num"><span class='pos'>-0,0%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-31 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Cáceres</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#2e86c1'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/duplex-sur10005-65001005613_100500/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">295.000 €</td><td data-label="Capital entrada" class="num"><b>102.025 €</b></td><td data-label="m²" class="num">165</td><td data-label="Hab" class="num">4</td><td data-label="Rent. bruta" class="num">7,2%</td><td data-label="Rent. neta" class="num">4,9%</td><td data-label="Cash-on-cash" class="num"><span class='pos'>-0,0%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-43 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
@@ -770,8 +770,8 @@ const DATA = [{"localidad": "Madroñera", "direccion": "Calle Cl Panaderia", "or
 
 const COLORES_FUENTE = {
   "SOLVIA": "#e67e22", "ALISEDA": "#6c3483", "ALTAMIRA": "#117a65",
-  "FOTOCASA": "#d35400", "SERVIHABITAT": "#0077b6", "JA": "#0f6b48",
-  "AT": "#c0392b", "SAREB": "#c99530", "HIPOGES": "#148f77",
+  "FOTOCASA": "#d35400", "SERVIHABITAT": "#0077b6", "JA": "#0b1f3a",
+  "AT": "#c0392b", "SAREB": "#c9a24b", "HIPOGES": "#148f77",
   "PISOS.COM": "#2e86c1", "BUILDINGCENTER": "#8e6f00", "OTRO": "#7f8c8d",
 };
 const NOMBRE_FUENTE = {
