@@ -433,6 +433,7 @@ const _CAMPOS = ["f-precio", "f-capital", "f-coc", "f-m2", "f-hab", "f-txt"];
 function guardarFiltros() {
   try {
     localStorage.setItem(CLAVE_FILTROS, JSON.stringify({
+      v: 2,   // esquema: chips sin marcar por defecto (vacío = todos)
       campos: Object.fromEntries(_CAMPOS.map(id => [id, document.getElementById(id).value])),
       muni: [...muniOn], fuente: [...fuenteOn], orden,
     }));
@@ -443,6 +444,12 @@ function restaurarFiltros() {
   try {
     const f = JSON.parse(localStorage.getItem(CLAVE_FILTROS) || "null");
     if (!f) return false;
+    // Guardados del esquema viejo ("todo marcado por defecto"): se descartan
+    // enteros — restaurarlos deja cientos de municipios pre-marcados.
+    if (f.v !== 2) {
+      try { localStorage.removeItem(CLAVE_FILTROS); } catch (e) {}
+      return false;
+    }
     _CAMPOS.forEach(id => {
       if (f.campos && f.campos[id] !== undefined)
         document.getElementById(id).value = f.campos[id];
