@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Scanner">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Scanner REO — Explorador interactivo · 31/07/2026</title>
+<title>Scanner REO — Explorador interactivo · 02/08/2026</title>
 <style>
   :root { --azul: #0b1f3a; --verde: #1a9d57; --rojo: #c0392b; }
   * { box-sizing: border-box; }
@@ -159,7 +159,7 @@
 
 <header>
   <h1>Scanner REO — Explorador interactivo · Álava</h1>
-  <div class="sub">Álava · Informe del 31/07/2026 · usa los filtros y haz clic en las cabeceras para ordenar</div>
+  <div class="sub">Álava · Informe del 02/08/2026 · usa los filtros y haz clic en las cabeceras para ordenar</div>
 </header>
 
 <button id="toggle-filtros">☰ Mostrar filtros</button>
@@ -190,14 +190,13 @@
   <div class="campo"><label title="Dinero de tu bolsillo (entrada + impuestos + notaría + reforma). Muestra los que necesiten ESE capital o menos.">Capital entrada máx € <span class="info-i" title="Dinero de tu bolsillo (entrada + impuestos + notaría + reforma). Muestra los que necesiten ese capital o menos. Vacío = sin límite.">ⓘ</span></label><input type="number" id="f-capital" step="5000" min="0" placeholder="sin límite"></div>
   <div class="campo"><label title="Cash-on-cash: lo que rinde al año TU dinero (cashflow ÷ capital de entrada). Escribe el mínimo % que quieras. OJO: en algunas provincias todos salen negativos con los supuestos actuales, así que un mínimo positivo puede dejar la lista vacía.">Rentab. mín % <span class="info-i" title="Cash-on-cash: lo que rinde al año tu dinero (cashflow ÷ capital de entrada). Escribe el mínimo. En algunas provincias todos salen negativos, así que un mínimo positivo puede dejar la lista vacía.">ⓘ</span></label><input type="number" id="f-coc" step="1" placeholder="cualquiera"></div>
   <div class="campo"><label title="Superficie mínima en metros cuadrados. 0 o vacío = sin mínimo.">m² mín <span class="info-i" title="Superficie mínima en metros cuadrados. 0 o vacío = sin mínimo.">ⓘ</span></label><input type="number" id="f-m2" step="10" min="0" placeholder="sin mínimo"></div>
-  <div class="campo"><label title="Número mínimo de habitaciones. 'Cualquiera' no filtra.">Habitaciones mín <span class="info-i" title="Número mínimo de habitaciones. 'Cualquiera' no filtra.">ⓘ</span></label>
+  <div class="campo"><label title="Habitaciones exactas (1, 2 o 3). '4 o más' incluye los de 4 en adelante. 'Cualquiera' no filtra.">Habitaciones <span class="info-i" title="Habitaciones exactas: '2' muestra SOLO los de 2 habitaciones. '4 o más' incluye los de 4 en adelante. 'Cualquiera' no filtra.">ⓘ</span></label>
     <select id="f-hab">
-      <option value="0">Cualquiera</option>
-      <option value="1">1 o más</option>
-      <option value="2">2 o más</option>
-      <option value="3">3 o más</option>
-      <option value="4">4 o más</option>
-      <option value="5">5 o más</option>
+      <option value="">Cualquiera</option>
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4+">4 o más</option>
     </select>
   </div>
   <div class="campo"><label>Dirección contiene</label><input type="text" id="f-txt" placeholder="calle, zona…"></div>
@@ -385,7 +384,7 @@ function chips(contId, valores, activo) {
 // filtros" (o Enter), que copia aquí lo que hay en los controles. Así los
 // controles son un "borrador" y la búsqueda se formaliza al aplicar.
 let aplicados = {
-  pMax: Infinity, cMax: Infinity, cocMin: -Infinity, m2Min: 0, habMin: 0,
+  pMax: Infinity, cMax: Infinity, cocMin: -Infinity, m2Min: 0, hab: "",
   txt: "", muni: null, fuente: null,
 };
 
@@ -396,7 +395,7 @@ function aplicar() {
     cMax: parseFloat(gv("f-capital")) || Infinity,
     cocMin: gv("f-coc") === "" ? -Infinity : parseFloat(gv("f-coc")),
     m2Min: parseFloat(gv("f-m2")) || 0,
-    habMin: parseInt(gv("f-hab")) || 0,
+    hab: gv("f-hab"),   // "" | "1" | "2" | "3" | "4+"
     txt: gv("f-txt").trim().toLowerCase(),
     muni: muniOn.size ? new Set(muniOn) : null,      // vacío = sin filtro
     fuente: fuenteOn.size ? new Set(fuenteOn) : null, // vacío = sin filtro
@@ -417,7 +416,8 @@ function filtrar() {
     (!a.muni || a.muni.has(r.localidad)) && (!a.fuente || a.fuente.has(r.origen)) &&
     r.precio <= a.pMax && r.capital <= a.cMax && r.coc >= a.cocMin &&
     (a.m2Min === 0 || (r.m2 || 0) >= a.m2Min) &&
-    (a.habMin === 0 || (r.hab || 0) >= a.habMin) &&
+    (!a.hab || (a.hab === "4+" ? (r.hab || 0) >= 4
+                               : (r.hab || 0) === parseInt(a.hab))) &&
     (!a.txt || (r.direccion || "").toLowerCase().includes(a.txt) || r.localidad.toLowerCase().includes(a.txt))
   );
 }
@@ -576,7 +576,7 @@ document.getElementById("f-orden").addEventListener("change", e => {
 });
 document.getElementById("limpiar").onclick = () => {
   ["f-precio", "f-capital", "f-coc", "f-m2", "f-txt"].forEach(id => document.getElementById(id).value = "");
-  document.getElementById("f-hab").value = "0";
+  document.getElementById("f-hab").value = "";
   // OJO: mutar los sets EN SITIO (clear), nunca reasignar — los chips guardan
   // la referencia original y una reasignación los desconecta del filtro.
   muniOn.clear();
