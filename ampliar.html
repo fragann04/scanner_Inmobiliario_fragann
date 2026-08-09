@@ -6,32 +6,37 @@
 <title>Ampliar provincias — Scanner REO</title>
 <meta name="robots" content="noindex">
 <style>
-  :root { --azul:#0b1f3a; --azul2:#16365c; --dorado:#c9a24b; }
+  :root {
+    --azul:#141d33; --azul2:#1b2540; --dorado:#d9a53d;
+    --bg:#070b14; --surface:#111827; --surface-2:#161f33;
+    --border:rgba(255,255,255,.08); --border-strong:rgba(255,255,255,.16);
+    --text-1:#f4f6fb; --text-2:#9aa5b8; --text-3:#64708a;
+  }
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family:'Segoe UI',Arial,sans-serif; background:#f4f6f9; min-height:100vh;
+  body { font-family:'Segoe UI',Arial,sans-serif; background:var(--bg); min-height:100vh;
          display:flex; align-items:center; justify-content:center; padding:20px; }
-  .caja { background:#fff; border-radius:14px; box-shadow:0 6px 26px rgba(0,0,0,.14);
-          padding:34px 30px; max-width:460px; width:100%; }
-  h1 { color:var(--azul); font-size:21px; text-align:center; margin-bottom:6px; }
-  .sub { text-align:center; color:#666; font-size:13px; margin-bottom:18px; }
-  .destacado { background:#fff8e6; border:1px solid #e6d28a; border-radius:8px;
-               padding:12px 14px; font-size:13px; color:#6b5900; margin-bottom:16px;
+  .caja { background:var(--surface); border:1px solid var(--border); border-radius:14px;
+          box-shadow:0 6px 26px rgba(0,0,0,.5); padding:34px 30px; max-width:460px; width:100%; }
+  h1 { color:var(--text-1); font-size:21px; text-align:center; margin-bottom:6px; }
+  .sub { text-align:center; color:var(--text-2); font-size:13px; margin-bottom:18px; }
+  .destacado { background:rgba(217,165,61,.12); border:1px solid rgba(217,165,61,.4); border-radius:8px;
+               padding:12px 14px; font-size:13px; color:#e8c877; margin-bottom:16px;
                text-align:center; display:none; }
-  .precio { background:#e8edf5; border:1px solid #b9cdf0; border-radius:8px;
-            padding:12px 14px; font-size:13px; color:#33507a; margin-bottom:16px; }
-  .precio b { color:var(--azul); }
-  label { display:block; font-size:11px; font-weight:bold; color:#555;
+  .precio { background:rgba(57,135,229,.12); border:1px solid rgba(57,135,229,.4); border-radius:8px;
+            padding:12px 14px; font-size:13px; color:#9cc4f2; margin-bottom:16px; }
+  .precio b { color:var(--text-1); }
+  label { display:block; font-size:11px; font-weight:bold; color:var(--text-3);
           text-transform:uppercase; letter-spacing:.4px; margin:14px 0 4px; }
-  input, select { width:100%; padding:12px; font-size:16px; border:1.5px solid #ccd6e6;
-          border-radius:8px; background:#fff; }
-  input:focus, select:focus { outline:none; border-color:var(--azul2); }
+  input, select { width:100%; padding:12px; font-size:16px; border:1.5px solid var(--border-strong);
+          border-radius:8px; background:var(--surface-2); color:var(--text-1); }
+  input:focus, select:focus { outline:none; border-color:var(--dorado); }
   button { width:100%; margin-top:18px; padding:13px; font-size:16px; font-weight:bold;
-           color:#fff; background:var(--dorado); border:none; border-radius:8px;
+           color:#221703; background:var(--dorado); border:none; border-radius:8px;
            cursor:pointer; }
   button:hover { filter:brightness(1.08); }
-  .mini { font-size:12px; color:#777; margin-top:14px; line-height:1.5; }
-  .pie { text-align:center; font-size:12px; color:#888; margin-top:18px; }
-  .pie a { color:var(--azul); }
+  .mini { font-size:12px; color:var(--text-3); margin-top:14px; line-height:1.5; }
+  .pie { text-align:center; font-size:12px; color:var(--text-3); margin-top:18px; }
+  .pie a { color:var(--dorado); }
 </style>
 </head>
 <body>

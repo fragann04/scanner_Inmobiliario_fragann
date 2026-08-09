@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0b1f3a">
+<meta name="theme-color" content="#070b14">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -12,79 +12,90 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Scanner REO — Explorador interactivo · 07/08/2026</title>
 <style>
-  :root { --azul: #0b1f3a; --verde: #1a9d57; --rojo: #c0392b; }
+  :root {
+    --azul: #141d33; --azul2: #1b2540; --azul3: #202c4d; --dorado: #d9a53d;
+    --verde: #34d17a; --rojo: #f36a6a;
+    --bg: #070b14; --surface: #111827; --surface-2: #161f33;
+    --border: rgba(255,255,255,.08); --border-strong: rgba(255,255,255,.16);
+    --text-1: #f4f6fb; --text-2: #9aa5b8; --text-3: #64708a;
+  }
   * { box-sizing: border-box; }
-  body { font-family: Arial, sans-serif; font-size: 13px; color: #222;
-         margin: 0; padding: 0 0 40px; background: #f5f5f5; }
-  header { background: linear-gradient(135deg, var(--azul), #16365c);
-           color: #fff; padding: 16px 20px; box-shadow: 0 2px 10px rgba(0,0,0,.15); }
+  body { font-family: Arial, sans-serif; font-size: 13px; color: var(--text-1);
+         margin: 0; padding: 0 0 40px; background: var(--bg); }
+  header { background: linear-gradient(135deg, var(--azul), var(--azul2));
+           color: #fff; padding: 16px 20px; box-shadow: 0 2px 10px rgba(0,0,0,.45);
+           border-bottom: 1px solid var(--border); }
   header h1 { font-size: 18px; margin: 0 0 2px; }
   header .sub { font-size: 12px; opacity: .85; }
 
-  #filtros { position: sticky; top: 0; z-index: 10; background: #fff;
-             padding: 12px 20px; box-shadow: 0 2px 6px rgba(0,0,0,.12);
+  #filtros { position: sticky; top: 0; z-index: 10; background: var(--surface);
+             padding: 12px 20px; box-shadow: 0 2px 6px rgba(0,0,0,.4);
+             border-bottom: 1px solid var(--border);
              display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: flex-end; }
   .campo { display: flex; flex-direction: column; gap: 3px; }
-  .campo label { font-size: 10px; font-weight: bold; color: #555;
+  .campo label { font-size: 10px; font-weight: bold; color: var(--text-3);
                  text-transform: uppercase; letter-spacing: .4px; }
   .campo input[type=number], .campo input[type=text], .campo select {
-      padding: 5px 7px; border: 1px solid #ccc; border-radius: 4px;
-      font-size: 12px; width: 110px; }
+      padding: 5px 7px; border: 1px solid var(--border-strong); border-radius: 4px;
+      font-size: 12px; width: 110px; background: var(--surface-2); color: var(--text-1); }
   .campo input[type=text] { width: 150px; }
   .checks { display: flex; flex-wrap: wrap; gap: 4px; max-width: 340px; }
   .chip { font-size: 11px; padding: 3px 8px; border-radius: 12px;
-          border: 1px solid #bbb; background: #f2f2f2; cursor: pointer;
-          user-select: none; }
-  .chip.on { background: var(--azul); color: #fff; border-color: var(--azul); }
-  #resumen { font-size: 12px; color: #333; padding: 10px 20px; }
-  #resumen b { color: var(--azul); }
-  button#limpiar { padding: 6px 12px; border: 1px solid var(--azul);
-      background: #fff; color: var(--azul); border-radius: 4px; cursor: pointer;
+          border: 1px solid var(--border-strong); background: var(--surface-2); cursor: pointer;
+          color: var(--text-2); user-select: none; }
+  .chip.on { background: rgba(217,165,61,.16); color: var(--dorado); border-color: var(--dorado); }
+  #resumen { font-size: 12px; color: var(--text-2); padding: 10px 20px; }
+  #resumen b { color: var(--dorado); }
+  button#limpiar { padding: 6px 12px; border: 1px solid var(--border-strong);
+      background: var(--surface); color: var(--text-1); border-radius: 4px; cursor: pointer;
       font-size: 12px; }
-  button#limpiar:hover { background: #e8edf5; }
-  button#aplicar { padding: 6px 16px; border: none; background: var(--azul);
-      color: #fff; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
-  button#aplicar:hover { background: #14406b; }
+  button#limpiar:hover { background: var(--surface-2); }
+  button#aplicar { padding: 6px 16px; border: none; background: var(--azul3);
+      color: var(--text-1); border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+  button#aplicar:hover { background: #2a3a63; }
   /* cuando hay cambios sin aplicar, el botón brilla para llamar la atención
      (sin moverse: solo el resplandor cambia) */
-  button#aplicar.pendiente { background: #c9a24b; animation: brillo 1.2s ease-in-out infinite; }
-  @keyframes brillo { 0%,100% { box-shadow: 0 0 0 0 rgba(183,149,11,.5); }
-                      50% { box-shadow: 0 0 0 5px rgba(183,149,11,.15); } }
+  button#aplicar.pendiente { background: var(--dorado); color: #221703;
+      animation: brillo 1.2s ease-in-out infinite; }
+  @keyframes brillo { 0%,100% { box-shadow: 0 0 0 0 rgba(217,165,61,.55); }
+                      50% { box-shadow: 0 0 0 5px rgba(217,165,61,.18); } }
 
   table { border-collapse: collapse; width: calc(100% - 40px); margin: 0 20px;
-          background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
-  th { background: var(--azul); color: #fff; padding: 7px 8px; text-align: left;
+          background: var(--surface); box-shadow: 0 1px 3px rgba(0,0,0,.4); }
+  th { background: var(--azul); color: var(--text-1); padding: 7px 8px; text-align: left;
        font-size: 11px; white-space: nowrap; cursor: pointer; position: sticky;
        top: 0; }
   th .flecha { opacity: .6; font-size: 9px; }
-  td { padding: 6px 8px; border-bottom: 1px solid #eee; vertical-align: top; }
-  tr:hover td { background: #eaf0f7; }
+  td { padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: top;
+       color: var(--text-2); }
+  tr:hover td { background: var(--surface-2); }
   .num { text-align: right; white-space: nowrap; }
   .pos { color: var(--verde); font-weight: bold; }
   .neg { color: var(--rojo); }
-  .nd  { color: #999; font-style: italic; }
+  .nd  { color: var(--text-3); font-style: italic; }
   .tag { color: #fff; border-radius: 3px; padding: 1px 5px; font-size: 10px;
          display: inline-block; }
-  a { color: var(--azul); }
-  .dir { color: #555; font-size: 11px; }
-  #vacio { text-align: center; padding: 40px; color: #888; display: none; }
-  .info-i { color: #cfe0ff; font-size: 10px; cursor: help; vertical-align: super; }
+  a { color: var(--dorado); }
+  .dir { color: var(--text-3); font-size: 11px; }
+  #vacio { text-align: center; padding: 40px; color: var(--text-3); display: none; }
+  .info-i { color: #8fb3e0; font-size: 10px; cursor: help; vertical-align: super; }
   th:hover .info-i { color: #fff; }
 
   /* Panel "cómo se calcula" */
-  #comocalc { margin: 8px 20px 0; background: #fff; border: 1px solid #e4e9f2;
-              border-radius: 8px; padding: 0 14px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
-  #comocalc summary { cursor: pointer; font-weight: bold; color: var(--azul);
+  #comocalc { margin: 8px 20px 0; background: var(--surface); border: 1px solid var(--border);
+              border-radius: 8px; padding: 0 14px; box-shadow: 0 1px 3px rgba(0,0,0,.35); }
+  #comocalc summary { cursor: pointer; font-weight: bold; color: var(--dorado);
               padding: 11px 0; font-size: 13px; list-style: none; }
   #comocalc summary::-webkit-details-marker { display: none; }
   #comocalc summary::before { content: "ⓘ "; }
-  #comocalc[open] summary { border-bottom: 1px solid #eee; }
-  #comocalc .cuerpo { font-size: 12.5px; color: #333; line-height: 1.7; padding: 12px 2px 16px; }
-  #comocalc b { color: var(--azul); }
-  #comocalc .form { background: #f4f6f9; border-radius: 5px; padding: 1px 7px;
-              font-family: ui-monospace, Consolas, monospace; font-size: 11.5px; color: #244; }
-  #comocalc .aviso { margin-top: 10px; font-size: 11.5px; color: #7a5c00;
-              background: #fff8e6; border: 1px solid #e6d38a; border-radius: 6px; padding: 8px 10px; }
+  #comocalc[open] summary { border-bottom: 1px solid var(--border); }
+  #comocalc .cuerpo { font-size: 12.5px; color: var(--text-2); line-height: 1.7; padding: 12px 2px 16px; }
+  #comocalc b { color: var(--dorado); }
+  #comocalc .form { background: var(--surface-2); border-radius: 5px; padding: 1px 7px;
+              font-family: ui-monospace, Consolas, monospace; font-size: 11.5px; color: #8fd6c7; }
+  #comocalc .aviso { margin-top: 10px; font-size: 11.5px; color: #e8c877;
+              background: rgba(217,165,61,.12); border: 1px solid rgba(217,165,61,.4);
+              border-radius: 6px; padding: 8px 10px; }
 
   #toggle-filtros { display: none; }
   .campo.solo-movil { display: none; }
@@ -92,17 +103,18 @@
   /* ── Desplegable de municipios (con buscador) ── */
   details.dd { position: relative; }
   details.dd summary { list-style: none; cursor: pointer; user-select: none;
-      padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px;
-      font-size: 12px; background: #fff; min-width: 160px; }
+      padding: 6px 10px; border: 1px solid var(--border-strong); border-radius: 4px;
+      font-size: 12px; background: var(--surface-2); color: var(--text-1); min-width: 160px; }
   details.dd summary::-webkit-details-marker { display: none; }
-  details.dd summary::after { content: "  ▾"; color: #777; }
-  details.dd[open] summary { border-color: var(--azul); }
+  details.dd summary::after { content: "  ▾"; color: var(--text-3); }
+  details.dd[open] summary { border-color: var(--dorado); }
   details.dd .panel { position: absolute; z-index: 40; top: calc(100% + 4px);
-      left: 0; background: #fff; border: 1px solid #ccc; border-radius: 6px;
-      box-shadow: 0 8px 22px rgba(0,0,0,.2); padding: 10px;
+      left: 0; background: var(--surface); border: 1px solid var(--border-strong); border-radius: 6px;
+      box-shadow: 0 8px 22px rgba(0,0,0,.55); padding: 10px;
       width: min(340px, calc(100vw - 48px)); max-height: 320px; overflow: auto; }
   details.dd .panel input { width: 100%; margin-bottom: 8px; padding: 7px 9px;
-      border: 1px solid #ccc; border-radius: 4px; font-size: 12px; }
+      border: 1px solid var(--border-strong); border-radius: 4px; font-size: 12px;
+      background: var(--surface-2); color: var(--text-1); }
   details.dd .panel .checks { max-width: none; }
 
   /* ── Móvil: tabla → tarjetas, filtros plegables, controles táctiles ── */
@@ -110,8 +122,8 @@
     body { font-size: 14px; }
     header { padding: 12px 14px; }
     #toggle-filtros { display: block; width: calc(100% - 28px); margin: 10px 14px 0;
-        padding: 10px; font-size: 14px; border: 1px solid var(--azul);
-        background: #fff; color: var(--azul); border-radius: 6px; }
+        padding: 10px; font-size: 14px; border: 1px solid var(--border-strong);
+        background: var(--surface); color: var(--text-1); border-radius: 6px; }
     #filtros { display: none; position: static; }
     #filtros.abierto { display: flex; }
     .campo { width: 100%; }
@@ -126,13 +138,13 @@
             box-shadow: none; }
     thead { display: none; }
     tbody { display: block; }
-    tr { display: block; background: #fff; margin: 0 0 10px; padding: 10px 14px;
-         border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+    tr { display: block; background: var(--surface); margin: 0 0 10px; padding: 10px 14px;
+         border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.4); }
     tr:hover td { background: none; }
     td { display: flex; justify-content: space-between; align-items: baseline;
          gap: 12px; border: none; padding: 4px 0; text-align: right; }
     td::before { content: attr(data-label); font-size: 10px; font-weight: bold;
-         color: #777; text-transform: uppercase; letter-spacing: .4px;
+         color: var(--text-3); text-transform: uppercase; letter-spacing: .4px;
          text-align: left; flex-shrink: 0; }
     td:first-child { text-align: left; }
     a { padding: 4px 0; display: inline-block; }
@@ -1197,7 +1209,7 @@ function pintar() {
   document.getElementById("vacio").style.display = rows.length ? "none" : "block";
   const destacados = rows.filter(r => r.coc >= 10).length;
   const aviso = rows.length > TOPE
-    ? ` · <span style="color:#c0392b">en pantalla los ${TOPE} de mejor rentabilidad — afina los filtros para acotar</span>`
+    ? ` · <span style="color:#f36a6a">en pantalla los ${TOPE} de mejor rentabilidad — afina los filtros para acotar</span>`
     : "";
   document.getElementById("resumen").innerHTML =
     `<b>${rows.length}</b> de ${DATA.length} inmuebles cumplen tus filtros${aviso} · ` +
