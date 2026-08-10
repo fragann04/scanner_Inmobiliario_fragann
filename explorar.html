@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#070b14">
+<meta name="theme-color" content="#0b1f3a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -13,40 +13,34 @@
 <title>Scanner REO — Explora oportunidades inmobiliarias por provincia</title>
 <meta name="description" content="Pisos de banco, cartera Sareb y subastas BOE de toda España con la rentabilidad ya calculada. Elige tu provincia y explora gratis.">
 <style>
-  :root {
-    --azul:#141d33; --azul2:#1b2540; --dorado:#d9a53d; --verde:#34d17a;
-    --bg:#070b14; --surface:#111827; --surface-2:#161f33;
-    --border:rgba(255,255,255,.08); --border-strong:rgba(255,255,255,.16);
-    --text-1:#f4f6fb; --text-2:#9aa5b8; --text-3:#64708a;
-  }
+  :root { --azul:#0b1f3a; --azul2:#16365c; --dorado:#c9a24b; }
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family:'Segoe UI',Arial,sans-serif; color:var(--text-1); background:var(--bg); }
+  body { font-family:'Segoe UI',Arial,sans-serif; color:#222; background:#f4f6f9; }
   header { background:linear-gradient(135deg,var(--azul),var(--azul2)); color:#fff;
-    padding:40px 20px 30px; text-align:center; border-bottom:1px solid var(--border); }
+    padding:40px 20px 30px; text-align:center; }
   header h1 { font-size:clamp(22px,4vw,34px); margin-bottom:10px; }
   header p { opacity:.9; font-size:15px; max-width:640px; margin:0 auto; }
   .wrap { max-width:1000px; margin:0 auto; padding:26px 20px 60px; }
   .buscador { display:block; width:100%; max-width:460px; margin:0 auto 26px;
-    padding:13px 16px; font-size:16px; border:1px solid var(--border-strong); border-radius:10px;
-    background:var(--surface-2); color:var(--text-1); }
-  h2 { color:var(--dorado); font-size:16px; margin:22px 4px 12px; }
+    padding:13px 16px; font-size:16px; border:1px solid #ccd6e6; border-radius:10px; }
+  h2 { color:var(--azul); font-size:16px; margin:22px 4px 12px; }
   .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
     gap:12px; }
   a.card { display:flex; flex-direction:column; justify-content:space-between;
-    background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px;
-    text-decoration:none; color:inherit; box-shadow:0 1px 3px rgba(0,0,0,.3);
+    background:#fff; border:1px solid #e4e9f2; border-radius:12px; padding:16px;
+    text-decoration:none; color:inherit; box-shadow:0 1px 3px rgba(0,0,0,.06);
     transition:transform .1s, box-shadow .1s; min-height:92px; }
-  a.card:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(0,0,0,.45);
+  a.card:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(0,0,0,.13);
     border-color:var(--dorado); }
-  .card .prov { font-size:16px; font-weight:bold; color:var(--text-1); }
-  .card .n { font-size:13px; color:var(--verde); font-weight:bold; margin-top:6px; }
+  .card .prov { font-size:16px; font-weight:bold; color:var(--azul); }
+  .card .n { font-size:13px; color:#1a9d57; font-weight:bold; margin-top:6px; }
   .card .go { font-size:12px; color:var(--dorado); font-weight:bold; margin-top:8px; }
   .card.soon { opacity:.72; cursor:default; pointer-events:none; }
-  .card.soon .prov { color:var(--text-2); }
-  .card .soon-t { font-size:12px; color:var(--text-3); margin-top:6px; }
-  .nota { text-align:center; font-size:12px; color:var(--text-3); margin:24px auto 0; max-width:640px; }
-  footer { text-align:center; font-size:12px; color:var(--text-3); padding:24px; }
-  footer a { color:var(--dorado); }
+  .card.soon .prov { color:#555; }
+  .card .soon-t { font-size:12px; color:#999; margin-top:6px; }
+  .nota { text-align:center; font-size:12px; color:#777; margin:24px auto 0; max-width:640px; }
+  footer { text-align:center; font-size:12px; color:#999; padding:24px; }
+  footer a { color:var(--azul); }
 </style>
 </head>
 <body>
@@ -62,62 +56,62 @@
          autocomplete="off">
   <div id="disponibles-wrap">
     <h2>✅ Disponibles ahora (52)</h2>
-    <div class="grid" id="disponibles"><a class="card" data-prov="a-coruna" href="explorador-a-coruna.html"><div class="prov">A Coruña</div><div class="n">105 inmuebles</div><div class="go">Explorar →</div></a>
+    <div class="grid" id="disponibles"><a class="card" data-prov="a-coruna" href="explorador-a-coruna.html"><div class="prov">A Coruña</div><div class="n">76 inmuebles</div><div class="go">Explorar →</div></a>
 <a class="card" data-prov="albacete" href="explorador-albacete.html"><div class="prov">Albacete</div><div class="n">502 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="alicante" href="explorador-alicante.html"><div class="prov">Alicante</div><div class="n">1079 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="almeria" href="explorador-almeria.html"><div class="prov">Almería</div><div class="n">927 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="asturias" href="explorador-asturias.html"><div class="prov">Asturias</div><div class="n">593 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="badajoz" href="explorador-badajoz.html"><div class="prov">Badajoz</div><div class="n">594 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="baleares" href="explorador-baleares.html"><div class="prov">Baleares</div><div class="n">575 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="barcelona" href="explorador-barcelona.html"><div class="prov">Barcelona</div><div class="n">4129 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="alicante" href="explorador-alicante.html"><div class="prov">Alicante</div><div class="n">1080 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="almeria" href="explorador-almeria.html"><div class="prov">Almería</div><div class="n">941 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="asturias" href="explorador-asturias.html"><div class="prov">Asturias</div><div class="n">597 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="badajoz" href="explorador-badajoz.html"><div class="prov">Badajoz</div><div class="n">595 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="baleares" href="explorador-baleares.html"><div class="prov">Baleares</div><div class="n">576 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="barcelona" href="explorador-barcelona.html"><div class="prov">Barcelona</div><div class="n">4121 inmuebles</div><div class="go">Explorar →</div></a>
 <a class="card" data-prov="bizkaia" href="explorador-bizkaia.html"><div class="prov">Bizkaia</div><div class="n">26 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="burgos" href="explorador-burgos.html"><div class="prov">Burgos</div><div class="n">624 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="cantabria" href="explorador-cantabria.html"><div class="prov">Cantabria</div><div class="n">566 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="castellon" href="explorador-castellon.html"><div class="prov">Castellón</div><div class="n">550 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="burgos" href="explorador-burgos.html"><div class="prov">Burgos</div><div class="n">622 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="cantabria" href="explorador-cantabria.html"><div class="prov">Cantabria</div><div class="n">569 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="castellon" href="explorador-castellon.html"><div class="prov">Castellón</div><div class="n">551 inmuebles</div><div class="go">Explorar →</div></a>
 <a class="card" data-prov="ceuta" href="explorador-ceuta.html"><div class="prov">Ceuta</div><div class="n">19 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="ciudad-real" href="explorador-ciudad-real.html"><div class="prov">Ciudad Real</div><div class="n">264 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="cuenca" href="explorador-cuenca.html"><div class="prov">Cuenca</div><div class="n">515 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="ciudad-real" href="explorador-ciudad-real.html"><div class="prov">Ciudad Real</div><div class="n">270 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="cuenca" href="explorador-cuenca.html"><div class="prov">Cuenca</div><div class="n">514 inmuebles</div><div class="go">Explorar →</div></a>
 <a class="card" data-prov="caceres" href="explorador-caceres.html"><div class="prov">Cáceres</div><div class="n">514 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="cadiz" href="explorador-cadiz.html"><div class="prov">Cádiz</div><div class="n">665 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="cordoba" href="explorador-cordoba.html"><div class="prov">Córdoba</div><div class="n">625 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="cadiz" href="explorador-cadiz.html"><div class="prov">Cádiz</div><div class="n">702 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="cordoba" href="explorador-cordoba.html"><div class="prov">Córdoba</div><div class="n">627 inmuebles</div><div class="go">Explorar →</div></a>
 <a class="card" data-prov="gipuzkoa" href="explorador-gipuzkoa.html"><div class="prov">Gipuzkoa</div><div class="n">6 inmuebles</div><div class="go">Explorar →</div></a>
 <a class="card" data-prov="girona" href="explorador-girona.html"><div class="prov">Girona</div><div class="n">841 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="granada" href="explorador-granada.html"><div class="prov">Granada</div><div class="n">672 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="guadalajara" href="explorador-guadalajara.html"><div class="prov">Guadalajara</div><div class="n">508 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="huelva" href="explorador-huelva.html"><div class="prov">Huelva</div><div class="n">591 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="huesca" href="explorador-huesca.html"><div class="prov">Huesca</div><div class="n">502 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="jaen" href="explorador-jaen.html"><div class="prov">Jaén</div><div class="n">690 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="la-rioja" href="explorador-la-rioja.html"><div class="prov">La Rioja</div><div class="n">156 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="las-palmas" href="explorador-las-palmas.html"><div class="prov">Las Palmas</div><div class="n">266 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="leon" href="explorador-leon.html"><div class="prov">León</div><div class="n">550 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="granada" href="explorador-granada.html"><div class="prov">Granada</div><div class="n">671 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="guadalajara" href="explorador-guadalajara.html"><div class="prov">Guadalajara</div><div class="n">519 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="huelva" href="explorador-huelva.html"><div class="prov">Huelva</div><div class="n">618 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="huesca" href="explorador-huesca.html"><div class="prov">Huesca</div><div class="n">505 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="jaen" href="explorador-jaen.html"><div class="prov">Jaén</div><div class="n">693 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="la-rioja" href="explorador-la-rioja.html"><div class="prov">La Rioja</div><div class="n">163 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="las-palmas" href="explorador-las-palmas.html"><div class="prov">Las Palmas</div><div class="n">280 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="leon" href="explorador-leon.html"><div class="prov">León</div><div class="n">552 inmuebles</div><div class="go">Explorar →</div></a>
 <a class="card" data-prov="lleida" href="explorador-lleida.html"><div class="prov">Lleida</div><div class="n">669 inmuebles</div><div class="go">Explorar →</div></a>
 <a class="card" data-prov="lugo" href="explorador-lugo.html"><div class="prov">Lugo</div><div class="n">491 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="madrid" href="explorador-madrid.html"><div class="prov">Madrid</div><div class="n">1151 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="melilla" href="explorador-melilla.html"><div class="prov">Melilla</div><div class="n">216 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="murcia" href="explorador-murcia.html"><div class="prov">Murcia</div><div class="n">1494 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="malaga" href="explorador-malaga.html"><div class="prov">Málaga</div><div class="n">749 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="madrid" href="explorador-madrid.html"><div class="prov">Madrid</div><div class="n">1182 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="melilla" href="explorador-melilla.html"><div class="prov">Melilla</div><div class="n">217 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="murcia" href="explorador-murcia.html"><div class="prov">Murcia</div><div class="n">1512 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="malaga" href="explorador-malaga.html"><div class="prov">Málaga</div><div class="n">754 inmuebles</div><div class="go">Explorar →</div></a>
 <a class="card" data-prov="navarra" href="explorador-navarra.html"><div class="prov">Navarra</div><div class="n">543 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="ourense" href="explorador-ourense.html"><div class="prov">Ourense</div><div class="n">464 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="palencia" href="explorador-palencia.html"><div class="prov">Palencia</div><div class="n">476 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="pontevedra" href="explorador-pontevedra.html"><div class="prov">Pontevedra</div><div class="n">504 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="salamanca" href="explorador-salamanca.html"><div class="prov">Salamanca</div><div class="n">498 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="santa-cruz-de-tenerife" href="explorador-santa-cruz-de-tenerife.html"><div class="prov">Santa Cruz de Tenerife</div><div class="n">595 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="segovia" href="explorador-segovia.html"><div class="prov">Segovia</div><div class="n">417 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="sevilla" href="explorador-sevilla.html"><div class="prov">Sevilla</div><div class="n">1005 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="soria" href="explorador-soria.html"><div class="prov">Soria</div><div class="n">160 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="tarragona" href="explorador-tarragona.html"><div class="prov">Tarragona</div><div class="n">1143 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="teruel" href="explorador-teruel.html"><div class="prov">Teruel</div><div class="n">367 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="toledo" href="explorador-toledo.html"><div class="prov">Toledo</div><div class="n">679 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="valencia" href="explorador-valencia.html"><div class="prov">Valencia</div><div class="n">802 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="ourense" href="explorador-ourense.html"><div class="prov">Ourense</div><div class="n">463 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="palencia" href="explorador-palencia.html"><div class="prov">Palencia</div><div class="n">477 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="pontevedra" href="explorador-pontevedra.html"><div class="prov">Pontevedra</div><div class="n">505 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="salamanca" href="explorador-salamanca.html"><div class="prov">Salamanca</div><div class="n">501 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="santa-cruz-de-tenerife" href="explorador-santa-cruz-de-tenerife.html"><div class="prov">Santa Cruz de Tenerife</div><div class="n">598 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="segovia" href="explorador-segovia.html"><div class="prov">Segovia</div><div class="n">420 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="sevilla" href="explorador-sevilla.html"><div class="prov">Sevilla</div><div class="n">1069 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="soria" href="explorador-soria.html"><div class="prov">Soria</div><div class="n">161 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="tarragona" href="explorador-tarragona.html"><div class="prov">Tarragona</div><div class="n">1140 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="teruel" href="explorador-teruel.html"><div class="prov">Teruel</div><div class="n">368 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="toledo" href="explorador-toledo.html"><div class="prov">Toledo</div><div class="n">696 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="valencia" href="explorador-valencia.html"><div class="prov">Valencia</div><div class="n">809 inmuebles</div><div class="go">Explorar →</div></a>
 <a class="card" data-prov="valladolid" href="explorador-valladolid.html"><div class="prov">Valladolid</div><div class="n">527 inmuebles</div><div class="go">Explorar →</div></a>
 <a class="card" data-prov="zamora" href="explorador-zamora.html"><div class="prov">Zamora</div><div class="n">465 inmuebles</div><div class="go">Explorar →</div></a>
 <a class="card" data-prov="zaragoza" href="explorador-zaragoza.html"><div class="prov">Zaragoza</div><div class="n">707 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="alava" href="explorador-alava.html"><div class="prov">Álava</div><div class="n">39 inmuebles</div><div class="go">Explorar →</div></a>
-<a class="card" data-prov="avila" href="explorador-avila.html"><div class="prov">Ávila</div><div class="n">484 inmuebles</div><div class="go">Explorar →</div></a></div>
+<a class="card" data-prov="alava" href="explorador-alava.html"><div class="prov">Álava</div><div class="n">10 inmuebles</div><div class="go">Explorar →</div></a>
+<a class="card" data-prov="avila" href="explorador-avila.html"><div class="prov">Ávila</div><div class="n">485 inmuebles</div><div class="go">Explorar →</div></a></div>
   </div>
   <h2>🕓 Próximamente — se activan por demanda</h2>
   <div class="grid" id="proximamente"></div>
-  <div class="nota">Actualizado el 07/08/2026. Los datos proceden de fuentes públicas
+  <div class="nota">Actualizado el 10/08/2026. Los datos proceden de fuentes públicas
     y las rentabilidades son estimaciones — no constituyen asesoramiento
     financiero, inmobiliario ni legal.</div>
 </div>

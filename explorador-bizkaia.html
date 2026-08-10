@@ -3,99 +3,88 @@
 <head>
 <meta charset="utf-8">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#070b14">
+<meta name="theme-color" content="#0b1f3a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Scanner">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Scanner REO — Explorador interactivo · 07/08/2026</title>
+<title>Scanner REO — Explorador interactivo · 10/08/2026</title>
 <style>
-  :root {
-    --azul: #141d33; --azul2: #1b2540; --azul3: #202c4d; --dorado: #d9a53d;
-    --verde: #34d17a; --rojo: #f36a6a;
-    --bg: #070b14; --surface: #111827; --surface-2: #161f33;
-    --border: rgba(255,255,255,.08); --border-strong: rgba(255,255,255,.16);
-    --text-1: #f4f6fb; --text-2: #9aa5b8; --text-3: #64708a;
-  }
+  :root { --azul: #0b1f3a; --verde: #1a9d57; --rojo: #c0392b; }
   * { box-sizing: border-box; }
-  body { font-family: Arial, sans-serif; font-size: 13px; color: var(--text-1);
-         margin: 0; padding: 0 0 40px; background: var(--bg); }
-  header { background: linear-gradient(135deg, var(--azul), var(--azul2));
-           color: #fff; padding: 16px 20px; box-shadow: 0 2px 10px rgba(0,0,0,.45);
-           border-bottom: 1px solid var(--border); }
+  body { font-family: Arial, sans-serif; font-size: 13px; color: #222;
+         margin: 0; padding: 0 0 40px; background: #f5f5f5; }
+  header { background: linear-gradient(135deg, var(--azul), #16365c);
+           color: #fff; padding: 16px 20px; box-shadow: 0 2px 10px rgba(0,0,0,.15); }
   header h1 { font-size: 18px; margin: 0 0 2px; }
   header .sub { font-size: 12px; opacity: .85; }
 
-  #filtros { position: sticky; top: 0; z-index: 10; background: var(--surface);
-             padding: 12px 20px; box-shadow: 0 2px 6px rgba(0,0,0,.4);
-             border-bottom: 1px solid var(--border);
+  #filtros { position: sticky; top: 0; z-index: 10; background: #fff;
+             padding: 12px 20px; box-shadow: 0 2px 6px rgba(0,0,0,.12);
              display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: flex-end; }
   .campo { display: flex; flex-direction: column; gap: 3px; }
-  .campo label { font-size: 10px; font-weight: bold; color: var(--text-3);
+  .campo label { font-size: 10px; font-weight: bold; color: #555;
                  text-transform: uppercase; letter-spacing: .4px; }
   .campo input[type=number], .campo input[type=text], .campo select {
-      padding: 5px 7px; border: 1px solid var(--border-strong); border-radius: 4px;
-      font-size: 12px; width: 110px; background: var(--surface-2); color: var(--text-1); }
+      padding: 5px 7px; border: 1px solid #ccc; border-radius: 4px;
+      font-size: 12px; width: 110px; }
   .campo input[type=text] { width: 150px; }
   .checks { display: flex; flex-wrap: wrap; gap: 4px; max-width: 340px; }
   .chip { font-size: 11px; padding: 3px 8px; border-radius: 12px;
-          border: 1px solid var(--border-strong); background: var(--surface-2); cursor: pointer;
-          color: var(--text-2); user-select: none; }
-  .chip.on { background: rgba(217,165,61,.16); color: var(--dorado); border-color: var(--dorado); }
-  #resumen { font-size: 12px; color: var(--text-2); padding: 10px 20px; }
-  #resumen b { color: var(--dorado); }
-  button#limpiar { padding: 6px 12px; border: 1px solid var(--border-strong);
-      background: var(--surface); color: var(--text-1); border-radius: 4px; cursor: pointer;
+          border: 1px solid #bbb; background: #f2f2f2; cursor: pointer;
+          user-select: none; }
+  .chip.on { background: var(--azul); color: #fff; border-color: var(--azul); }
+  #resumen { font-size: 12px; color: #333; padding: 10px 20px; }
+  #resumen b { color: var(--azul); }
+  button#limpiar { padding: 6px 12px; border: 1px solid var(--azul);
+      background: #fff; color: var(--azul); border-radius: 4px; cursor: pointer;
       font-size: 12px; }
-  button#limpiar:hover { background: var(--surface-2); }
-  button#aplicar { padding: 6px 16px; border: none; background: var(--azul3);
-      color: var(--text-1); border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
-  button#aplicar:hover { background: #2a3a63; }
+  button#limpiar:hover { background: #e8edf5; }
+  button#aplicar { padding: 6px 16px; border: none; background: var(--azul);
+      color: #fff; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+  button#aplicar:hover { background: #14406b; }
   /* cuando hay cambios sin aplicar, el botón brilla para llamar la atención
      (sin moverse: solo el resplandor cambia) */
-  button#aplicar.pendiente { background: var(--dorado); color: #221703;
-      animation: brillo 1.2s ease-in-out infinite; }
-  @keyframes brillo { 0%,100% { box-shadow: 0 0 0 0 rgba(217,165,61,.55); }
-                      50% { box-shadow: 0 0 0 5px rgba(217,165,61,.18); } }
+  button#aplicar.pendiente { background: #c9a24b; animation: brillo 1.2s ease-in-out infinite; }
+  @keyframes brillo { 0%,100% { box-shadow: 0 0 0 0 rgba(183,149,11,.5); }
+                      50% { box-shadow: 0 0 0 5px rgba(183,149,11,.15); } }
 
   table { border-collapse: collapse; width: calc(100% - 40px); margin: 0 20px;
-          background: var(--surface); box-shadow: 0 1px 3px rgba(0,0,0,.4); }
-  th { background: var(--azul); color: var(--text-1); padding: 7px 8px; text-align: left;
+          background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+  th { background: var(--azul); color: #fff; padding: 7px 8px; text-align: left;
        font-size: 11px; white-space: nowrap; cursor: pointer; position: sticky;
        top: 0; }
   th .flecha { opacity: .6; font-size: 9px; }
-  td { padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: top;
-       color: var(--text-2); }
-  tr:hover td { background: var(--surface-2); }
+  td { padding: 6px 8px; border-bottom: 1px solid #eee; vertical-align: top; }
+  tr:hover td { background: #eaf0f7; }
   .num { text-align: right; white-space: nowrap; }
   .pos { color: var(--verde); font-weight: bold; }
   .neg { color: var(--rojo); }
-  .nd  { color: var(--text-3); font-style: italic; }
+  .nd  { color: #999; font-style: italic; }
   .tag { color: #fff; border-radius: 3px; padding: 1px 5px; font-size: 10px;
          display: inline-block; }
-  a { color: var(--dorado); }
-  .dir { color: var(--text-3); font-size: 11px; }
-  #vacio { text-align: center; padding: 40px; color: var(--text-3); display: none; }
-  .info-i { color: #8fb3e0; font-size: 10px; cursor: help; vertical-align: super; }
+  a { color: var(--azul); }
+  .dir { color: #555; font-size: 11px; }
+  #vacio { text-align: center; padding: 40px; color: #888; display: none; }
+  .info-i { color: #cfe0ff; font-size: 10px; cursor: help; vertical-align: super; }
   th:hover .info-i { color: #fff; }
 
   /* Panel "cómo se calcula" */
-  #comocalc { margin: 8px 20px 0; background: var(--surface); border: 1px solid var(--border);
-              border-radius: 8px; padding: 0 14px; box-shadow: 0 1px 3px rgba(0,0,0,.35); }
-  #comocalc summary { cursor: pointer; font-weight: bold; color: var(--dorado);
+  #comocalc { margin: 8px 20px 0; background: #fff; border: 1px solid #e4e9f2;
+              border-radius: 8px; padding: 0 14px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  #comocalc summary { cursor: pointer; font-weight: bold; color: var(--azul);
               padding: 11px 0; font-size: 13px; list-style: none; }
   #comocalc summary::-webkit-details-marker { display: none; }
   #comocalc summary::before { content: "ⓘ "; }
-  #comocalc[open] summary { border-bottom: 1px solid var(--border); }
-  #comocalc .cuerpo { font-size: 12.5px; color: var(--text-2); line-height: 1.7; padding: 12px 2px 16px; }
-  #comocalc b { color: var(--dorado); }
-  #comocalc .form { background: var(--surface-2); border-radius: 5px; padding: 1px 7px;
-              font-family: ui-monospace, Consolas, monospace; font-size: 11.5px; color: #8fd6c7; }
-  #comocalc .aviso { margin-top: 10px; font-size: 11.5px; color: #e8c877;
-              background: rgba(217,165,61,.12); border: 1px solid rgba(217,165,61,.4);
-              border-radius: 6px; padding: 8px 10px; }
+  #comocalc[open] summary { border-bottom: 1px solid #eee; }
+  #comocalc .cuerpo { font-size: 12.5px; color: #333; line-height: 1.7; padding: 12px 2px 16px; }
+  #comocalc b { color: var(--azul); }
+  #comocalc .form { background: #f4f6f9; border-radius: 5px; padding: 1px 7px;
+              font-family: ui-monospace, Consolas, monospace; font-size: 11.5px; color: #244; }
+  #comocalc .aviso { margin-top: 10px; font-size: 11.5px; color: #7a5c00;
+              background: #fff8e6; border: 1px solid #e6d38a; border-radius: 6px; padding: 8px 10px; }
 
   #toggle-filtros { display: none; }
   .campo.solo-movil { display: none; }
@@ -103,18 +92,17 @@
   /* ── Desplegable de municipios (con buscador) ── */
   details.dd { position: relative; }
   details.dd summary { list-style: none; cursor: pointer; user-select: none;
-      padding: 6px 10px; border: 1px solid var(--border-strong); border-radius: 4px;
-      font-size: 12px; background: var(--surface-2); color: var(--text-1); min-width: 160px; }
+      padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px;
+      font-size: 12px; background: #fff; min-width: 160px; }
   details.dd summary::-webkit-details-marker { display: none; }
-  details.dd summary::after { content: "  ▾"; color: var(--text-3); }
-  details.dd[open] summary { border-color: var(--dorado); }
+  details.dd summary::after { content: "  ▾"; color: #777; }
+  details.dd[open] summary { border-color: var(--azul); }
   details.dd .panel { position: absolute; z-index: 40; top: calc(100% + 4px);
-      left: 0; background: var(--surface); border: 1px solid var(--border-strong); border-radius: 6px;
-      box-shadow: 0 8px 22px rgba(0,0,0,.55); padding: 10px;
+      left: 0; background: #fff; border: 1px solid #ccc; border-radius: 6px;
+      box-shadow: 0 8px 22px rgba(0,0,0,.2); padding: 10px;
       width: min(340px, calc(100vw - 48px)); max-height: 320px; overflow: auto; }
   details.dd .panel input { width: 100%; margin-bottom: 8px; padding: 7px 9px;
-      border: 1px solid var(--border-strong); border-radius: 4px; font-size: 12px;
-      background: var(--surface-2); color: var(--text-1); }
+      border: 1px solid #ccc; border-radius: 4px; font-size: 12px; }
   details.dd .panel .checks { max-width: none; }
 
   /* ── Móvil: tabla → tarjetas, filtros plegables, controles táctiles ── */
@@ -122,8 +110,8 @@
     body { font-size: 14px; }
     header { padding: 12px 14px; }
     #toggle-filtros { display: block; width: calc(100% - 28px); margin: 10px 14px 0;
-        padding: 10px; font-size: 14px; border: 1px solid var(--border-strong);
-        background: var(--surface); color: var(--text-1); border-radius: 6px; }
+        padding: 10px; font-size: 14px; border: 1px solid var(--azul);
+        background: #fff; color: var(--azul); border-radius: 6px; }
     #filtros { display: none; position: static; }
     #filtros.abierto { display: flex; }
     .campo { width: 100%; }
@@ -138,13 +126,13 @@
             box-shadow: none; }
     thead { display: none; }
     tbody { display: block; }
-    tr { display: block; background: var(--surface); margin: 0 0 10px; padding: 10px 14px;
-         border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.4); }
+    tr { display: block; background: #fff; margin: 0 0 10px; padding: 10px 14px;
+         border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
     tr:hover td { background: none; }
     td { display: flex; justify-content: space-between; align-items: baseline;
          gap: 12px; border: none; padding: 4px 0; text-align: right; }
     td::before { content: attr(data-label); font-size: 10px; font-weight: bold;
-         color: var(--text-3); text-transform: uppercase; letter-spacing: .4px;
+         color: #777; text-transform: uppercase; letter-spacing: .4px;
          text-align: left; flex-shrink: 0; }
     td:first-child { text-align: left; }
     a { padding: 4px 0; display: inline-block; }
@@ -171,7 +159,7 @@
 
 <header>
   <h1>Scanner REO — Explorador interactivo · Bizkaia</h1>
-  <div class="sub">Bizkaia · Informe del 07/08/2026 · usa los filtros y haz clic en las cabeceras para ordenar</div>
+  <div class="sub">Bizkaia · Informe del 10/08/2026 · usa los filtros y haz clic en las cabeceras para ordenar</div>
 </header>
 
 <button id="toggle-filtros">☰ Mostrar filtros</button>
@@ -259,7 +247,7 @@
 <tr><td data-label="Localidad / Dirección"><b>Sodupe-güeñes</b><br><span class='dir'>CALLE GALLARRAGA, nº20 4º Dcha</span></td><td data-label="Fuente"><span class='tag' style='background:#0b1f3a'>BOE judicial</span><br><a href='https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-262303' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">212.000 €</td><td data-label="Capital entrada" class="num"><b>75.420 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,6%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,0%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.057 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='dir'>No consta</span><br><span class='dir'>cierra 2026-08-10</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Portugalete</b><br><span class='dir'>C/ Buenavista</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-portugalete-2-dormitorios-223939-271948' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">212.900 €</td><td data-label="Capital entrada" class="num"><b>75.676 €</b></td><td data-label="m²" class="num">58</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,6%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,0%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.065 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Nabarniz</b><br><span class='dir'>C/ Elexalde</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/casa-nabarniz-219604-266406' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">190.000 €</td><td data-label="Capital entrada" class="num"><b>69.150 €</b></td><td data-label="m²" class="num">158</td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,5%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,2%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.870 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
-<tr><td data-label="Localidad / Dirección"><b>Galdakao</b><br><span class='dir'>C/ Urreta</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-galdakao-2-dormitorios-193741-234866' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">186.800 €</td><td data-label="Capital entrada" class="num"><b>68.238 €</b></td><td data-label="m²" class="num">84</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,5%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,2%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.843 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='dir'>cierra 2026-08-08</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Galdakao</b><br><span class='dir'>C/ Urreta</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-galdakao-2-dormitorios-193741-234866' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">186.800 €</td><td data-label="Capital entrada" class="num"><b>68.238 €</b></td><td data-label="m²" class="num">84</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,5%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,2%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.843 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Galdakao</b><br><span class='dir'>barrio aperrbay nº51 3ºizq</span></td><td data-label="Fuente"><span class='tag' style='background:#0b1f3a'>BOE judicial</span><br><a href='https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-263630' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">144.253 €</td><td data-label="Capital entrada" class="num"><b>56.112 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,2%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,4%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.483 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='dir'>No consta</span><br><span class='dir'>cierra 2026-08-17</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Barakaldo</b><br><span class='dir'>C/ Gernikako Arbola</span></td><td data-label="Fuente"><span class='tag' style='background:#e67e22'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-barakaldo-1-dormitorio-135278-169573' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">145.000 €</td><td data-label="Capital entrada" class="num"><b>56.325 €</b></td><td data-label="m²" class="num">68</td><td data-label="Hab" class="num">1</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,2%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,4%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.489 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Bilbao</b><br><span class='dir'>calle las cortes 1</span></td><td data-label="Fuente"><span class='tag' style='background:#0b1f3a'>BOE judicial</span><br><a href='https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-263329' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">135.700 €</td><td data-label="Capital entrada" class="num"><b>53.674 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,2%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,5%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.410 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='dir'>No consta</span><br><span class='dir'>cierra 2026-08-17</span></td></tr>
@@ -288,7 +276,7 @@
 </div>
 
 <script>
-const DATA = [{"localidad": "Barakaldo", "direccion": "CONJUNTO EDIFICATORIO SEIS PORTALES CALLE LOPEZ DE VEGA 1 Y 3 Y OTROS", "origen": "OTRO", "tipo_subasta": "JUDICIAL VOLUNTARIA", "url": "https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JV-2026-264558", "precio": 176320.94, "capital": 65251.47, "m2": null, "hab": null, "rb": 7.4, "rn": 4.7, "coc": -0.2, "cf": -144.65, "dto": 22.1, "tensionada": false, "cargas": 0, "posesion": "No consta", "cierre": "2026-08-12"}, {"localidad": "Bilbao", "direccion": "C/ Estrada de Masustegui", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-bilbao-2-dormitorios-139905-175493", "precio": 55000.0, "capital": 30675.0, "m2": 45.48, "hab": 2, "rb": 8.7, "rn": 3.7, "coc": -0.9, "cf": -277.19, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Bilbao", "direccion": "C/ Urazurrutia", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-bilbao-1-dormitorio-168561-206705", "precio": 645000.0, "capital": 198825.0, "m2": 227.0, "hab": 1, "rb": 5.8, "rn": 4.1, "coc": -3.4, "cf": -6727.11, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Elorrio", "direccion": "C/ Mendraka", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/chalet-independiente-elorrio-4-dormitorios-162412-200123", "precio": 382700.0, "capital": 124069.5, "m2": 346.0, "hab": 4, "rb": 5.8, "rn": 3.9, "coc": -3.6, "cf": -4503.82, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Bilbao", "direccion": "C/ Larratundu", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-bilbao-3-dormitorios-157394-194783", "precio": 309000.0, "capital": 103065.0, "m2": 59.91, "hab": 3, "rb": 5.8, "rn": 3.8, "coc": -3.8, "cf": -3879.13, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ibarruri", "direccion": "Lg Caserio Olabarri/ bo oka ", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/chalet-independiente-ibarruri-1-dormitorio-142297-178297", "precio": 256000.0, "capital": 87960.0, "m2": 253.0, "hab": 1, "rb": 5.8, "rn": 3.7, "coc": -3.9, "cf": -3429.89, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Sodupe-güeñes", "direccion": "CALLE GALLARRAGA, nº20 4º Dcha", "origen": "JA", "tipo_subasta": "JUDICIAL EN VÍA DE APREMIO", "url": "https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-262303", "precio": 212000.0, "capital": 75420.0, "m2": null, "hab": null, "rb": 5.8, "rn": 3.6, "coc": -4.0, "cf": -3056.94, "dto": null, "tensionada": false, "cargas": 0, "posesion": "No consta", "cierre": "2026-08-10"}, {"localidad": "Portugalete", "direccion": "C/ Buenavista", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-portugalete-2-dormitorios-223939-271948", "precio": 212900.0, "capital": 75676.5, "m2": 58.3, "hab": 2, "rb": 5.8, "rn": 3.6, "coc": -4.0, "cf": -3064.57, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Nabarniz", "direccion": "C/ Elexalde", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/casa-nabarniz-219604-266406", "precio": 190000.0, "capital": 69150.0, "m2": 157.81, "hab": null, "rb": 5.8, "rn": 3.5, "coc": -4.2, "cf": -2870.47, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Galdakao", "direccion": "C/ Urreta", "origen": "SOLVIA", "tipo_subasta": "SUBASTA", "url": "https://www.solvia.es/es/propiedades/comprar/piso-galdakao-2-dormitorios-193741-234866", "precio": 186800.0, "capital": 68238.0, "m2": 83.5, "hab": 2, "rb": 5.8, "rn": 3.5, "coc": -4.2, "cf": -2843.34, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": "2026-08-08"}, {"localidad": "Galdakao", "direccion": "barrio aperrbay nº51 3ºizq", "origen": "JA", "tipo_subasta": "JUDICIAL EN VÍA DE APREMIO", "url": "https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-263630", "precio": 144253.12, "capital": 56112.14, "m2": null, "hab": null, "rb": 5.8, "rn": 3.2, "coc": -4.4, "cf": -2482.71, "dto": null, "tensionada": false, "cargas": 0, "posesion": "No consta", "cierre": "2026-08-17"}, {"localidad": "Barakaldo", "direccion": "C/ Gernikako Arbola", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-barakaldo-1-dormitorio-135278-169573", "precio": 145000.0, "capital": 56325.0, "m2": 68.05, "hab": 1, "rb": 5.8, "rn": 3.2, "coc": -4.4, "cf": -2489.04, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Bilbao", "direccion": "calle las cortes 1", "origen": "JA", "tipo_subasta": "JUDICIAL EN VÍA DE APREMIO", "url": "https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-263329", "precio": 135700.0, "capital": 53674.5, "m2": null, "hab": null, "rb": 5.8, "rn": 3.2, "coc": -4.5, "cf": -2410.21, "dto": null, "tensionada": false, "cargas": 0, "posesion": "No consta", "cierre": "2026-08-17"}, {"localidad": "Abanto y Ciérvana-abanto Zierbena", "direccion": "C/ Grupo Serantes", "origen": "SOLVIA", "tipo_subasta": "SUBASTA", "url": "https://www.solvia.es/es/propiedades/comprar/piso-abanto-y-ciervana-abanto-zierbena-2-dormitorios-195581-237746", "precio": 135000.0, "capital": 53475.0, "m2": 55.12, "hab": 2, "rb": 5.8, "rn": 3.2, "coc": -4.5, "cf": -2404.28, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": "2026-08-09"}, {"localidad": "Barakaldo", "direccion": "MURRIETA", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-barakaldo-167190-205258", "precio": 132500.0, "capital": 52762.5, "m2": 98.38, "hab": null, "rb": 5.8, "rn": 3.1, "coc": -4.5, "cf": -2383.09, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Basauri", "direccion": "FAUSTE", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-basauri-163845-201610", "precio": 127000.0, "capital": 51195.0, "m2": 75.0, "hab": null, "rb": 5.8, "rn": 3.1, "coc": -4.6, "cf": -2336.47, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Basauri", "direccion": "C/ Lehendakari Aguirre", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-basauri-3-dormitorios-80166-102184", "precio": 128000.0, "capital": 51480.0, "m2": 66.35, "hab": 3, "rb": 5.8, "rn": 3.1, "coc": -4.6, "cf": -2344.95, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Valle de Trápaga-trapagaran", "direccion": "SAN GABRIEL", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-valle-de-trapaga-trapagaran-2-dormitorios-159871-197415", "precio": 126000.0, "capital": 50910.0, "m2": 58.67, "hab": 2, "rb": 5.8, "rn": 3.1, "coc": -4.6, "cf": -2327.99, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Bilbao", "direccion": "Camino Zurbaranbidea", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-bilbao-2-dormitorios-168416-206554", "precio": 126000.0, "capital": 50910.0, "m2": 75.04, "hab": 2, "rb": 5.8, "rn": 3.1, "coc": -4.6, "cf": -2327.99, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Güeñes", "direccion": "C/ Iorgui", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/apartamento-guenes-3-dormitorios-114922-146163", "precio": 123000.0, "capital": 50055.0, "m2": 79.6, "hab": 3, "rb": 5.8, "rn": 3.1, "coc": -4.6, "cf": -2302.56, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Barakaldo", "direccion": "C/ Zurbarán", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-barakaldo-2-dormitorios-168168-206296", "precio": 119000.0, "capital": 48915.0, "m2": 40.0, "hab": 2, "rb": 5.8, "rn": 3.0, "coc": -4.6, "cf": -2268.66, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Bilbao", "direccion": "C/ Barrio Betolatza", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-bilbao-1-dormitorio-221724-269257", "precio": 108000.0, "capital": 45780.0, "m2": 49.09, "hab": 1, "rb": 5.8, "rn": 2.9, "coc": -4.8, "cf": -2175.42, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Basauri", "direccion": "C/ Larrazabal", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-basauri-2-dormitorios-155701-193030", "precio": 101000.0, "capital": 43785.0, "m2": 52.0, "hab": 2, "rb": 5.8, "rn": 2.8, "coc": -4.8, "cf": -2116.09, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Barakaldo", "direccion": "C/ Quevedo", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-barakaldo-2-dormitorios-118810-150884", "precio": 98000.0, "capital": 42930.0, "m2": 57.45, "hab": 2, "rb": 5.8, "rn": 2.8, "coc": -4.9, "cf": -2090.66, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ibarrangelu", "direccion": "Lg. Akorda", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-ibarrangelu-1-dormitorio-165948-203862", "precio": 90000.0, "capital": 40650.0, "m2": 87.9, "hab": 1, "rb": 5.8, "rn": 2.6, "coc": -5.0, "cf": -2022.85, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Alonsotegi", "direccion": "C/ Virgen de la Guía", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-alonsotegi-1-dormitorio-38080-47843", "precio": 11200.0, "capital": 18192.0, "m2": 70.0, "hab": 1, "rb": 5.8, "rn": -2.7, "coc": -7.4, "cf": -1354.93, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}];
+const DATA = [{"localidad": "Barakaldo", "direccion": "CONJUNTO EDIFICATORIO SEIS PORTALES CALLE LOPEZ DE VEGA 1 Y 3 Y OTROS", "origen": "OTRO", "tipo_subasta": "JUDICIAL VOLUNTARIA", "url": "https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JV-2026-264558", "precio": 176320.94, "capital": 65251.47, "m2": null, "hab": null, "rb": 7.4, "rn": 4.7, "coc": -0.2, "cf": -144.65, "dto": 22.1, "tensionada": false, "cargas": 0, "posesion": "No consta", "cierre": "2026-08-12"}, {"localidad": "Bilbao", "direccion": "C/ Estrada de Masustegui", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-bilbao-2-dormitorios-139905-175493", "precio": 55000.0, "capital": 30675.0, "m2": 45.48, "hab": 2, "rb": 8.7, "rn": 3.7, "coc": -0.9, "cf": -277.19, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Bilbao", "direccion": "C/ Urazurrutia", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-bilbao-1-dormitorio-168561-206705", "precio": 645000.0, "capital": 198825.0, "m2": 227.0, "hab": 1, "rb": 5.8, "rn": 4.1, "coc": -3.4, "cf": -6727.11, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Elorrio", "direccion": "C/ Mendraka", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/chalet-independiente-elorrio-4-dormitorios-162412-200123", "precio": 382700.0, "capital": 124069.5, "m2": 346.0, "hab": 4, "rb": 5.8, "rn": 3.9, "coc": -3.6, "cf": -4503.82, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Bilbao", "direccion": "C/ Larratundu", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-bilbao-3-dormitorios-157394-194783", "precio": 309000.0, "capital": 103065.0, "m2": 59.91, "hab": 3, "rb": 5.8, "rn": 3.8, "coc": -3.8, "cf": -3879.13, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ibarruri", "direccion": "Lg Caserio Olabarri/ bo oka ", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/chalet-independiente-ibarruri-1-dormitorio-142297-178297", "precio": 256000.0, "capital": 87960.0, "m2": 253.0, "hab": 1, "rb": 5.8, "rn": 3.7, "coc": -3.9, "cf": -3429.89, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Sodupe-güeñes", "direccion": "CALLE GALLARRAGA, nº20 4º Dcha", "origen": "JA", "tipo_subasta": "JUDICIAL EN VÍA DE APREMIO", "url": "https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-262303", "precio": 212000.0, "capital": 75420.0, "m2": null, "hab": null, "rb": 5.8, "rn": 3.6, "coc": -4.0, "cf": -3056.94, "dto": null, "tensionada": false, "cargas": 0, "posesion": "No consta", "cierre": "2026-08-10"}, {"localidad": "Portugalete", "direccion": "C/ Buenavista", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-portugalete-2-dormitorios-223939-271948", "precio": 212900.0, "capital": 75676.5, "m2": 58.3, "hab": 2, "rb": 5.8, "rn": 3.6, "coc": -4.0, "cf": -3064.57, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Nabarniz", "direccion": "C/ Elexalde", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/casa-nabarniz-219604-266406", "precio": 190000.0, "capital": 69150.0, "m2": 157.81, "hab": null, "rb": 5.8, "rn": 3.5, "coc": -4.2, "cf": -2870.47, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Galdakao", "direccion": "C/ Urreta", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-galdakao-2-dormitorios-193741-234866", "precio": 186800.0, "capital": 68238.0, "m2": 83.5, "hab": 2, "rb": 5.8, "rn": 3.5, "coc": -4.2, "cf": -2843.34, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Galdakao", "direccion": "barrio aperrbay nº51 3ºizq", "origen": "JA", "tipo_subasta": "JUDICIAL EN VÍA DE APREMIO", "url": "https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-263630", "precio": 144253.12, "capital": 56112.14, "m2": null, "hab": null, "rb": 5.8, "rn": 3.2, "coc": -4.4, "cf": -2482.71, "dto": null, "tensionada": false, "cargas": 0, "posesion": "No consta", "cierre": "2026-08-17"}, {"localidad": "Barakaldo", "direccion": "C/ Gernikako Arbola", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-barakaldo-1-dormitorio-135278-169573", "precio": 145000.0, "capital": 56325.0, "m2": 68.05, "hab": 1, "rb": 5.8, "rn": 3.2, "coc": -4.4, "cf": -2489.04, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Bilbao", "direccion": "calle las cortes 1", "origen": "JA", "tipo_subasta": "JUDICIAL EN VÍA DE APREMIO", "url": "https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-263329", "precio": 135700.0, "capital": 53674.5, "m2": null, "hab": null, "rb": 5.8, "rn": 3.2, "coc": -4.5, "cf": -2410.21, "dto": null, "tensionada": false, "cargas": 0, "posesion": "No consta", "cierre": "2026-08-17"}, {"localidad": "Abanto y Ciérvana-abanto Zierbena", "direccion": "C/ Grupo Serantes", "origen": "SOLVIA", "tipo_subasta": "SUBASTA", "url": "https://www.solvia.es/es/propiedades/comprar/piso-abanto-y-ciervana-abanto-zierbena-2-dormitorios-195581-237746", "precio": 135000.0, "capital": 53475.0, "m2": 55.12, "hab": 2, "rb": 5.8, "rn": 3.2, "coc": -4.5, "cf": -2404.28, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": "2026-08-09"}, {"localidad": "Barakaldo", "direccion": "MURRIETA", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-barakaldo-167190-205258", "precio": 132500.0, "capital": 52762.5, "m2": 98.38, "hab": null, "rb": 5.8, "rn": 3.1, "coc": -4.5, "cf": -2383.09, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Basauri", "direccion": "FAUSTE", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-basauri-163845-201610", "precio": 127000.0, "capital": 51195.0, "m2": 75.0, "hab": null, "rb": 5.8, "rn": 3.1, "coc": -4.6, "cf": -2336.47, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Basauri", "direccion": "C/ Lehendakari Aguirre", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-basauri-3-dormitorios-80166-102184", "precio": 128000.0, "capital": 51480.0, "m2": 66.35, "hab": 3, "rb": 5.8, "rn": 3.1, "coc": -4.6, "cf": -2344.95, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Valle de Trápaga-trapagaran", "direccion": "SAN GABRIEL", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-valle-de-trapaga-trapagaran-2-dormitorios-159871-197415", "precio": 126000.0, "capital": 50910.0, "m2": 58.67, "hab": 2, "rb": 5.8, "rn": 3.1, "coc": -4.6, "cf": -2327.99, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Bilbao", "direccion": "Camino Zurbaranbidea", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-bilbao-2-dormitorios-168416-206554", "precio": 126000.0, "capital": 50910.0, "m2": 75.04, "hab": 2, "rb": 5.8, "rn": 3.1, "coc": -4.6, "cf": -2327.99, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Güeñes", "direccion": "C/ Iorgui", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/apartamento-guenes-3-dormitorios-114922-146163", "precio": 123000.0, "capital": 50055.0, "m2": 79.6, "hab": 3, "rb": 5.8, "rn": 3.1, "coc": -4.6, "cf": -2302.56, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Barakaldo", "direccion": "C/ Zurbarán", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-barakaldo-2-dormitorios-168168-206296", "precio": 119000.0, "capital": 48915.0, "m2": 40.0, "hab": 2, "rb": 5.8, "rn": 3.0, "coc": -4.6, "cf": -2268.66, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Bilbao", "direccion": "C/ Barrio Betolatza", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-bilbao-1-dormitorio-221724-269257", "precio": 108000.0, "capital": 45780.0, "m2": 49.09, "hab": 1, "rb": 5.8, "rn": 2.9, "coc": -4.8, "cf": -2175.42, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Basauri", "direccion": "C/ Larrazabal", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-basauri-2-dormitorios-155701-193030", "precio": 101000.0, "capital": 43785.0, "m2": 52.0, "hab": 2, "rb": 5.8, "rn": 2.8, "coc": -4.8, "cf": -2116.09, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Barakaldo", "direccion": "C/ Quevedo", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-barakaldo-2-dormitorios-118810-150884", "precio": 98000.0, "capital": 42930.0, "m2": 57.45, "hab": 2, "rb": 5.8, "rn": 2.8, "coc": -4.9, "cf": -2090.66, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ibarrangelu", "direccion": "Lg. Akorda", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-ibarrangelu-1-dormitorio-165948-203862", "precio": 90000.0, "capital": 40650.0, "m2": 87.9, "hab": 1, "rb": 5.8, "rn": 2.6, "coc": -5.0, "cf": -2022.85, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Alonsotegi", "direccion": "C/ Virgen de la Guía", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-alonsotegi-1-dormitorio-38080-47843", "precio": 11200.0, "capital": 18192.0, "m2": 70.0, "hab": 1, "rb": 5.8, "rn": -2.7, "coc": -7.4, "cf": -1354.93, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}];
 
 const COLORES_FUENTE = {
   "SOLVIA": "#e67e22", "ALISEDA": "#6c3483", "ALTAMIRA": "#117a65",
@@ -528,7 +516,7 @@ function pintar() {
   document.getElementById("vacio").style.display = rows.length ? "none" : "block";
   const destacados = rows.filter(r => r.coc >= 10).length;
   const aviso = rows.length > TOPE
-    ? ` · <span style="color:#f36a6a">en pantalla los ${TOPE} de mejor rentabilidad — afina los filtros para acotar</span>`
+    ? ` · <span style="color:#c0392b">en pantalla los ${TOPE} de mejor rentabilidad — afina los filtros para acotar</span>`
     : "";
   document.getElementById("resumen").innerHTML =
     `<b>${rows.length}</b> de ${DATA.length} inmuebles cumplen tus filtros${aviso} · ` +
