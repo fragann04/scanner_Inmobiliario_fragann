@@ -2,7 +2,7 @@
 // siempre intenta traer la versión fresca (los datos cambian a diario) y
 // solo usa la copia en caché si no hay conexión. Así la PWA nunca enseña
 // inventario viejo teniendo internet.
-const CACHE = "scanner-v1";
+const CACHE = "scanner-v2";
 
 self.addEventListener("install", () => self.skipWaiting());
 

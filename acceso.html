@@ -3,27 +3,30 @@
 <head>
 <meta charset="utf-8">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#070b14">
+<meta name="theme-color" content="#f5f8fb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Scanner">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Acceder — Scanner REO</title>
 <meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --azul:#141d33; --azul2:#1b2540; --dorado:#d9a53d;
-    --bg:#070b14; --surface:#111827; --surface-2:#161f33;
-    --border:rgba(255,255,255,.08); --border-strong:rgba(255,255,255,.16);
-    --text-1:#f4f6fb; --text-2:#9aa5b8; --text-3:#64708a;
+    --azul:#e9f0f6; --azul2:#f5f8fb; --dorado:#5b84a6;
+    --bg:#f5f8fb; --surface:#ffffff; --surface-2:#eef4f9;
+    --border:#e2e9f0; --border-strong:#cfdbe6;
+    --text-1:#233140; --text-2:#4a5a68; --text-3:#7c8b98;
   }
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family:'Segoe UI',Arial,sans-serif; background:var(--bg); min-height:100vh;
+  body { font-family:'Work Sans','Segoe UI',Arial,sans-serif; background:var(--bg); min-height:100vh;
          display:flex; align-items:center; justify-content:center; padding:20px; }
   .caja { background:var(--surface); border:1px solid var(--border); border-radius:14px;
-          box-shadow:0 6px 26px rgba(0,0,0,.5); padding:34px 30px; max-width:420px; width:100%; }
+          box-shadow:0 6px 26px rgba(35,49,64,.12); padding:34px 30px; max-width:420px; width:100%; }
   h1 { color:var(--text-1); font-size:21px; text-align:center; margin-bottom:6px; }
   .sub { text-align:center; color:var(--text-2); font-size:13px; margin-bottom:20px; }
   label { display:block; font-size:11px; font-weight:bold; color:var(--text-3);
@@ -32,15 +35,17 @@
           border-radius:8px; background:var(--surface-2); color:var(--text-1); }
   input:focus { outline:none; border-color:var(--dorado); }
   button { width:100%; margin-top:18px; padding:13px; font-size:16px; font-weight:bold;
-           color:#221703; background:var(--dorado); border:none; border-radius:8px;
+           color:#ffffff; background:var(--dorado); border:none; border-radius:8px;
            cursor:pointer; }
   button:hover { filter:brightness(1.08); }
   #msg { font-size:13px; text-align:center; margin-top:12px; min-height:18px; }
-  .err { color:#f36a6a; } .ok { color:#34d17a; }
-  .beta { background:rgba(57,135,229,.12); border:1px solid rgba(57,135,229,.4); border-radius:8px;
-          padding:10px 12px; font-size:12px; color:#9cc4f2; margin-top:16px; }
+  .err { color:#b5544b; } .ok { color:#4f8a5c; }
+  .beta { background:rgba(91,132,166,.10); border:1px solid rgba(91,132,166,.38); border-radius:8px;
+          padding:10px 12px; font-size:12px; color:#3d5266; margin-top:16px; }
   .pie { text-align:center; font-size:12px; color:var(--text-3); margin-top:18px; }
   .pie a { color:var(--dorado); }
+  h1,h2,h3 { font-family:'Space Grotesk','Segoe UI',Arial,sans-serif;
+             letter-spacing:-0.01em; }
 </style>
 </head>
 <body>
@@ -67,10 +72,10 @@
     nueva — quedará activa al momento.
   </div>
 
-  <div style="text-align:center;font-size:11px;color:#999;margin-top:16px">
-    <a href="aviso-legal.html" style="color:#888">Aviso legal</a> ·
-    <a href="privacidad.html" style="color:#888">Privacidad</a> ·
-    <a href="cookies.html" style="color:#888">Cookies</a>
+  <div style="text-align:center;font-size:11px;color:#8b98a3;margin-top:16px">
+    <a href="aviso-legal.html" style="color:#7c8b98">Aviso legal</a> ·
+    <a href="privacidad.html" style="color:#7c8b98">Privacidad</a> ·
+    <a href="cookies.html" style="color:#7c8b98">Cookies</a>
   </div>
 </div>
 
@@ -191,5 +196,7 @@ document.getElementById("clave").addEventListener("keydown",
   e => { if (e.key === "Enter") entrar(); });
 </script>
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");</script>
+<script>window.REO_ASISTENTE = { contexto: "acceso" };</script>
+<script src="asistente.js" defer></script>
 </body>
 </html>

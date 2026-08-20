@@ -5,22 +5,25 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Generador de enlaces — Scanner REO (privado)</title>
 <meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --azul:#141d33; --azul2:#1b2540; --dorado:#d9a53d;
-    --bg:#070b14; --surface:#111827; --surface-2:#161f33;
-    --border:rgba(255,255,255,.08); --border-strong:rgba(255,255,255,.16);
-    --text-1:#f4f6fb; --text-2:#9aa5b8; --text-3:#64708a;
+    --azul:#e9f0f6; --azul2:#f5f8fb; --dorado:#5b84a6;
+    --bg:#f5f8fb; --surface:#ffffff; --surface-2:#eef4f9;
+    --border:#e2e9f0; --border-strong:#cfdbe6;
+    --text-1:#233140; --text-2:#4a5a68; --text-3:#7c8b98;
   }
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family:'Segoe UI',Arial,sans-serif; background:var(--bg); min-height:100vh;
+  body { font-family:'Work Sans','Segoe UI',Arial,sans-serif; background:var(--bg); min-height:100vh;
          display:flex; align-items:center; justify-content:center; padding:20px; }
   .caja { background:var(--surface); border:1px solid var(--border); border-radius:14px;
-          box-shadow:0 6px 26px rgba(0,0,0,.5); padding:34px 30px; max-width:520px; width:100%; }
+          box-shadow:0 6px 26px rgba(35,49,64,.12); padding:34px 30px; max-width:520px; width:100%; }
   h1 { color:var(--text-1); font-size:20px; text-align:center; margin-bottom:6px; }
   .sub { text-align:center; color:var(--text-2); font-size:13px; margin-bottom:8px; }
-  .aviso { background:rgba(243,106,106,.12); border:1px solid rgba(243,106,106,.4); border-radius:8px;
-           padding:10px 12px; font-size:12px; color:#f7a8a8; margin-bottom:14px; }
+  .aviso { background:rgba(181,84,75,.09); border:1px solid rgba(181,84,75,.32); border-radius:8px;
+           padding:10px 12px; font-size:12px; color:#8c463f; margin-bottom:14px; }
   label { display:block; font-size:11px; font-weight:bold; color:var(--text-3);
           text-transform:uppercase; letter-spacing:.4px; margin:14px 0 4px; }
   input, select { width:100%; padding:11px; font-size:15px; border:1.5px solid var(--border-strong);
@@ -29,17 +32,19 @@
   input:focus, select:focus { outline:none; border-color:var(--dorado); }
   .hint { font-size:11px; color:var(--text-3); margin-top:3px; }
   button { width:100%; margin-top:16px; padding:12px; font-size:15px; font-weight:bold;
-           color:#221703; background:var(--dorado); border:none; border-radius:8px;
+           color:#ffffff; background:var(--dorado); border:none; border-radius:8px;
            cursor:pointer; }
   button.sec { background:var(--surface-2); color:var(--text-1); border:1px solid var(--border-strong); }
   button:hover { filter:brightness(1.08); }
   #salida { display:none; margin-top:18px; }
-  #enlace { width:100%; font-size:12px; padding:10px; border:1.5px solid rgba(57,135,229,.4);
-            border-radius:8px; background:rgba(57,135,229,.1); color:#9cc4f2; word-break:break-all; }
+  #enlace { width:100%; font-size:12px; padding:10px; border:1.5px solid rgba(91,132,166,.38);
+            border-radius:8px; background:rgba(91,132,166,.09); color:#3d5266; word-break:break-all; }
   #msg { font-size:13px; text-align:center; margin-top:10px; min-height:18px; }
-  .ok { color:#34d17a; } .err { color:#f36a6a; }
+  .ok { color:#4f8a5c; } .err { color:#b5544b; }
   .pie { text-align:center; font-size:12px; color:var(--text-3); margin-top:16px; }
   .pie a { color:var(--dorado); }
+  h1,h2,h3 { font-family:'Space Grotesk','Segoe UI',Arial,sans-serif;
+             letter-spacing:-0.01em; }
 </style>
 </head>
 <body>

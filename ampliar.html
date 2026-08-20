@@ -5,25 +5,28 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Ampliar provincias — Scanner REO</title>
 <meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --azul:#141d33; --azul2:#1b2540; --dorado:#d9a53d;
-    --bg:#070b14; --surface:#111827; --surface-2:#161f33;
-    --border:rgba(255,255,255,.08); --border-strong:rgba(255,255,255,.16);
-    --text-1:#f4f6fb; --text-2:#9aa5b8; --text-3:#64708a;
+    --azul:#e9f0f6; --azul2:#f5f8fb; --dorado:#5b84a6;
+    --bg:#f5f8fb; --surface:#ffffff; --surface-2:#eef4f9;
+    --border:#e2e9f0; --border-strong:#cfdbe6;
+    --text-1:#233140; --text-2:#4a5a68; --text-3:#7c8b98;
   }
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family:'Segoe UI',Arial,sans-serif; background:var(--bg); min-height:100vh;
+  body { font-family:'Work Sans','Segoe UI',Arial,sans-serif; background:var(--bg); min-height:100vh;
          display:flex; align-items:center; justify-content:center; padding:20px; }
   .caja { background:var(--surface); border:1px solid var(--border); border-radius:14px;
-          box-shadow:0 6px 26px rgba(0,0,0,.5); padding:34px 30px; max-width:460px; width:100%; }
+          box-shadow:0 6px 26px rgba(35,49,64,.12); padding:34px 30px; max-width:460px; width:100%; }
   h1 { color:var(--text-1); font-size:21px; text-align:center; margin-bottom:6px; }
   .sub { text-align:center; color:var(--text-2); font-size:13px; margin-bottom:18px; }
-  .destacado { background:rgba(217,165,61,.12); border:1px solid rgba(217,165,61,.4); border-radius:8px;
-               padding:12px 14px; font-size:13px; color:#e8c877; margin-bottom:16px;
+  .destacado { background:rgba(91,132,166,.10); border:1px solid rgba(91,132,166,.38); border-radius:8px;
+               padding:12px 14px; font-size:13px; color:#3d5266; margin-bottom:16px;
                text-align:center; display:none; }
-  .precio { background:rgba(57,135,229,.12); border:1px solid rgba(57,135,229,.4); border-radius:8px;
-            padding:12px 14px; font-size:13px; color:#9cc4f2; margin-bottom:16px; }
+  .precio { background:rgba(91,132,166,.10); border:1px solid rgba(91,132,166,.38); border-radius:8px;
+            padding:12px 14px; font-size:13px; color:#3d5266; margin-bottom:16px; }
   .precio b { color:var(--text-1); }
   label { display:block; font-size:11px; font-weight:bold; color:var(--text-3);
           text-transform:uppercase; letter-spacing:.4px; margin:14px 0 4px; }
@@ -31,12 +34,14 @@
           border-radius:8px; background:var(--surface-2); color:var(--text-1); }
   input:focus, select:focus { outline:none; border-color:var(--dorado); }
   button { width:100%; margin-top:18px; padding:13px; font-size:16px; font-weight:bold;
-           color:#221703; background:var(--dorado); border:none; border-radius:8px;
+           color:#ffffff; background:var(--dorado); border:none; border-radius:8px;
            cursor:pointer; }
   button:hover { filter:brightness(1.08); }
   .mini { font-size:12px; color:var(--text-3); margin-top:14px; line-height:1.5; }
   .pie { text-align:center; font-size:12px; color:var(--text-3); margin-top:18px; }
   .pie a { color:var(--dorado); }
+  h1,h2,h3 { font-family:'Space Grotesk','Segoe UI',Arial,sans-serif;
+             letter-spacing:-0.01em; }
 </style>
 </head>
 <body>
@@ -127,5 +132,7 @@ function slugify(s) {
   if (ult && !campo.value) campo.value = ult;
 })();
 </script>
+<script>window.REO_ASISTENTE = { contexto: "generico" };</script>
+<script src="asistente.js" defer></script>
 </body>
 </html>
