@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Scanner">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Scanner REO — Explorador interactivo · 19/08/2026</title>
+<title>Scanner REO — Explorador interactivo · 21/08/2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -174,7 +174,7 @@
 
 <header>
   <h1>Scanner REO — Explorador interactivo · Bizkaia</h1>
-  <div class="sub">Bizkaia · Informe del 19/08/2026 · usa los filtros y haz clic en las cabeceras para ordenar</div>
+  <div class="sub">Bizkaia · Informe del 21/08/2026 · usa los filtros y haz clic en las cabeceras para ordenar</div>
 </header>
 
 <button id="toggle-filtros">☰ Mostrar filtros</button>
@@ -276,12 +276,12 @@
 </table>
 <div id="vacio">Ningún inmueble cumple los filtros actuales.</div>
 
-<div style="text-align:center;font-size:11px;color:#888;padding:22px 20px 0;line-height:1.7">
+<div style="text-align:center;font-size:11px;color:#7c8b98;padding:22px 20px 0;line-height:1.7">
   Cifras estimadas a partir de fuentes públicas — no son asesoramiento financiero,
   inmobiliario ni legal. Verifica cada caso antes de ofertar o pujar.<br>
-  <a href="aviso-legal.html" style="color:#888">Aviso legal</a> ·
-  <a href="privacidad.html" style="color:#888">Privacidad</a> ·
-  <a href="cookies.html" style="color:#888">Cookies</a>
+  <a href="aviso-legal.html" style="color:#7c8b98">Aviso legal</a> ·
+  <a href="privacidad.html" style="color:#7c8b98">Privacidad</a> ·
+  <a href="cookies.html" style="color:#7c8b98">Cookies</a>
 </div>
 
 <script>
@@ -525,12 +525,12 @@ function pintar() {
   document.getElementById("vacio").style.display = rows.length ? "none" : "block";
   const destacados = rows.filter(r => r.coc >= 10).length;
   const aviso = rows.length > TOPE
-    ? ` · <span style="color:#f0d9d7">en pantalla los ${TOPE} de mejor rentabilidad — afina los filtros para acotar</span>`
+    ? ` · <span style="color:#b5544b">en pantalla los ${TOPE} de mejor rentabilidad — afina los filtros para acotar</span>`
     : "";
   document.getElementById("resumen").innerHTML =
     `<b>${rows.length}</b> de ${DATA.length} inmuebles cumplen tus filtros${aviso} · ` +
     `<b>${destacados}</b> con cash-on-cash ≥ 10% ★ · ` +
-    `<span style="color:#888">💾 tus parámetros se guardan solos para tu próxima visita</span>`;
+    `<span style="color:#7c8b98">💾 tus parámetros se guardan solos para tu próxima visita</span>`;
 }
 
 // init
