@@ -364,6 +364,7 @@
       <input type="hidden" name="_template" value="table">
       <input type="hidden" name="_next" value="https://www.scannerinmobiliario.com/gracias.html">
       <input type="hidden" name="_honey" style="display:none">
+      <input type="hidden" name="clave_hash" id="clave_hash">
       <input type="hidden" name="_captcha" value="false">
       <input type="hidden" name="_autoresponse" value="Gracias por suscribirte a Scanner REO. Tu acceso ya esta activo: entra en https://www.scannerinmobiliario.com/acceso.html con tu email y la clave que elegiste al registrarte. Cada dia publicamos pisos de banco, cartera Sareb y subastas BOE con la rentabilidad ya calculada. Si no te has registrado tu, ignora este mensaje. -- Scanner REO">
       <label for="nombre">Nombre</label>
@@ -484,6 +485,9 @@ document.getElementById("form-alta").addEventListener("submit", async function (
     cuentas[email] = { e: email, p: prov, h: h };
     localStorage.setItem("reo_cuentas", JSON.stringify(cuentas));
     localStorage.setItem("reo_ultimo", email);
+    // Se envia el HASH de la clave, nunca la clave: el aprobador crea la
+    // cuenta del servidor con la misma clave que eligio el usuario.
+    document.getElementById("clave_hash").value = h;
   } catch (err) { /* si el navegador no soporta WebCrypto, seguimos igual */ }
   this.submit();  // envía el aviso de alta (para el informe diario por email)
 });
