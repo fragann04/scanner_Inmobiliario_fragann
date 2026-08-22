@@ -13,7 +13,7 @@
 window.REO_CONFIG = {
   betaAbierta: true,
   precioProvincia: "9 €/mes",
-  adminEmails: ["norelysfraga@gmail.com"],
+  adminEmails: ["fleximaxca@gmail.com"],
   provinciasActivas: [
     { slug: "a-coruna", nombre: "A Coruña" },
     { slug: "alava", nombre: "Álava" },

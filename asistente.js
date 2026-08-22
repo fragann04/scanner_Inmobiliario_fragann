@@ -19,7 +19,7 @@
 (function () {
   "use strict";
 
-  var EMAIL = "norelysfraga@gmail.com";
+  var EMAIL = "fleximaxca@gmail.com";
 
   // ── Utilidades de texto ────────────────────────────────────────────────────
   function normalizar(t) {
@@ -620,6 +620,494 @@
     };
   }
 
+  /* ── Buscador en lenguaje natural ───────────────────────────────────────────
+   * Convierte "piso en Málaga por menos de 120.000 con rentabilidad > 8%" en
+   * filtros y responde con los inmuebles que cumplen.
+   *
+   * En un explorador busca sobre el DATA que ya trae la página (no descarga
+   * nada extra) y ofrece volcar los criterios a la tabla de filtros.
+   * En la landing no hay datos —están detrás del acceso—, así que interpreta
+   * la petición y lleva al explorador de esa provincia con la búsqueda puesta
+   * en el enlace (#buscar=…), que se ejecuta sola al llegar.
+   * ───────────────────────────────────────────────────────────────────────── */
+
+  function sinTildes(t) {
+    return (t || "").toLowerCase().normalize("NFD")
+      .replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim();
+  }
+
+  var ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return ESCAPES[c];
+    });
+  }
+
+  function eur(v) {
+    return Math.round(v).toLocaleString("es-ES") + " €";
+  }
+
+  function pct(v) {
+    return (Math.round(v * 10) / 10).toLocaleString("es-ES") + "%";
+  }
+
+  // DATA es el array de inmuebles que cada explorador lleva incrustado.
+  function datosPagina() {
+    try {
+      if (typeof DATA !== "undefined" && DATA && DATA.length) return DATA;
+    } catch (e) {}
+    return null;
+  }
+
+  // ── Números como los escribe la gente ──────────────────────────────────────
+  // "120.000" · "120000" · "120k" · "120 mil" · "1,2 millones" · "120" (=120.000)
+  var TROZO_NUM = "(\\d[\\d.,]*)\\s*(k|mil|millones|millon)?";
+
+  function aNumero(cifra, sufijo, escalaCorta) {
+    var s = String(cifra).replace(/\s/g, "");
+    if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) s = s.replace(/\./g, "");   // millares
+    else if (/^\d+\.\d{3}$/.test(s)) s = s.replace(".", "");
+    var v = parseFloat(s.replace(",", "."));
+    if (!isFinite(v)) return null;
+    var suf = (sufijo || "").toLowerCase();
+    if (suf === "k" || suf === "mil") v *= 1000;
+    else if (suf.indexOf("millon") === 0) v *= 1000000;
+    // "hasta 120" en un contexto de dinero son 120.000, no 120 €.
+    else if (escalaCorta && v > 0 && v <= 2000) v *= 1000;
+    return v;
+  }
+
+  var NUM_PALABRA = { un: 1, una: 1, uno: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5 };
+
+  // ── Fuentes: lo que escribe el visitante → código de la columna "origen" ───
+  var FUENTES = [
+    { claves: ["boe", "subasta", "subastas"], codigos: ["JA", "AT", "OTRO"],
+      nombre: "subastas del BOE" },
+    { claves: ["judicial", "juzgado"], codigos: ["JA"], nombre: "subastas judiciales" },
+    { claves: ["hacienda", "aeat"], codigos: ["AT"], nombre: "subastas de Hacienda" },
+    { claves: ["solvia"], codigos: ["SOLVIA"], nombre: "Solvia" },
+    { claves: ["aliseda"], codigos: ["ALISEDA"], nombre: "Aliseda" },
+    { claves: ["sareb"], codigos: ["SAREB"], nombre: "Sareb" },
+    { claves: ["hipoges"], codigos: ["HIPOGES"], nombre: "Hipoges" },
+    { claves: ["buildingcenter", "caixabank", "caixa"], codigos: ["BUILDINGCENTER"],
+      nombre: "BuildingCenter" },
+    { claves: ["pisos com", "pisoscom"], codigos: ["PISOS.COM"], nombre: "pisos.com" },
+    { claves: ["banco", "bancos", "servicer", "servicers"],
+      codigos: ["SOLVIA", "ALISEDA", "SAREB", "HIPOGES", "BUILDINGCENTER"],
+      nombre: "carteras de banco" }
+  ];
+
+  var NOMBRE_A_CODIGO = {
+    "boe judicial": "JA", "boe aeat": "AT", "boe otros": "OTRO",
+    "sareb via hipoges": "SAREB", "hipoges": "HIPOGES"
+  };
+
+  function codigoFuente(nombreVisible) {
+    var n = sinTildes(nombreVisible).replace(/[()]/g, "").replace(/\s+/g, " ").trim();
+    return NOMBRE_A_CODIGO[n] || String(nombreVisible).trim().toUpperCase();
+  }
+
+  // ── Criterios de orden ─────────────────────────────────────────────────────
+  var ORDENES = {
+    coc:     { campo: "coc",     desc: true,  etiqueta: "mejor cash-on-cash",             select: "coc:1" },
+    precio:  { campo: "precio",  desc: false, etiqueta: "más baratos primero",            select: "precio:0" },
+    capital: { campo: "capital", desc: false, etiqueta: "menos capital de entrada",       select: "capital:0" },
+    cf:      { campo: "cf",      desc: true,  etiqueta: "mejor cashflow",                 select: "cf:1" },
+    dto:     { campo: "dto",     desc: true,  etiqueta: "mayor descuento sobre tasación", select: "dto:1" },
+    m2:      { campo: "m2",      desc: true,  etiqueta: "más metros",                     select: "m2:1" }
+  };
+
+  // ── Interpretación de la frase ─────────────────────────────────────────────
+  function interpretar(texto, datos) {
+    var t = " " + sinTildes(texto) + " ";
+    var q = { pMax: null, cMax: null, cocMin: null, m2Min: null, hab: "",
+              fuentes: [], nombreFuente: null, provincia: null, municipio: null,
+              orden: "coc", ordenExplicito: false };
+    var m;
+
+    function consumir(trozo) { t = t.replace(trozo, " "); }
+
+    // 1. Habitaciones (se saca primero: si no, su número se leería como precio)
+    m = t.match(/\b(un|una|uno|dos|tres|cuatro|cinco|\d+)\s*(?:o mas\s*)?(?:hab\b|habitacion|habitaciones|dorm\b|dormitorio|dormitorios)/);
+    if (m) {
+      var nh = NUM_PALABRA[m[1]] || parseInt(m[1], 10);
+      if (nh > 0) q.hab = (nh >= 4 || /o mas/.test(m[0])) ? "4+" : String(nh);
+      consumir(m[0]);
+    }
+
+    // 2. Metros cuadrados
+    m = t.match(/(?:mas de|minimo|al menos|desde|a partir de|\+)?\s*(\d[\d.,]*)\s*(?:m2|m²|metros cuadrados|metros)\b/);
+    if (m) { q.m2Min = aNumero(m[1], "", false); consumir(m[0]); }
+
+    // 3. Rentabilidad mínima (cash-on-cash)
+    m = t.match(/(?:rentabilidad|rentab\w*|rinda|rindan|coc|cash ?on ?cash|cash-on-cash|rendimiento|retorno)\D{0,25}?(\d+(?:[.,]\d+)?)\s*%?/);
+    if (!m) m = t.match(/(?:al menos|minimo de|minimo|mas de|superior a|por encima de|>=?)\s*(\d+(?:[.,]\d+)?)\s*%/);
+    if (m) { q.cocMin = parseFloat(m[1].replace(",", ".")); consumir(m[0]); }
+
+    // 4. Capital de entrada (antes que el precio: "con 30.000 de entrada")
+    m = t.match(new RegExp("(?:entrada|capital|ahorros?|bolsillo|dispongo de|dispongo|tengo|puedo poner|puedo aportar|aportar|pongo|poner)\\D{0,18}?" + TROZO_NUM));
+    if (!m) m = t.match(new RegExp(TROZO_NUM + "\\s*(?:€|euros?)?\\s*(?:de )?(?:entrada|capital|ahorros)"));
+    if (m) { q.cMax = aNumero(m[1], m[2], true); consumir(m[0]); }
+
+    // 5. Precio máximo
+    m = t.match(new RegExp("(?:hasta|menos de|por debajo de|no mas de|maximo de|maximo|max\\.?|tope de|presupuesto de|por|de)\\s*" + TROZO_NUM + "\\s*(?:€|euros?|eur)?"));
+    if (!m) m = t.match(new RegExp(TROZO_NUM + "\\s*(?:€|euros)"));
+    if (m) { q.pMax = aNumero(m[1], m[2], true); consumir(m[0]); }
+
+    // 6. Fuente
+    for (var i = 0; i < FUENTES.length; i++) {
+      for (var j = 0; j < FUENTES[i].claves.length; j++) {
+        if (t.indexOf(" " + FUENTES[i].claves[j]) !== -1) {
+          FUENTES[i].codigos.forEach(function (c) {
+            if (q.fuentes.indexOf(c) === -1) q.fuentes.push(c);
+          });
+          q.nombreFuente = FUENTES[i].nombre;
+          break;
+        }
+      }
+    }
+
+    // 7. Orden ("lo más barato", "los mejores chollos"…). Que pida un orden
+    //    concreto ya es, por sí solo, señal de que está buscando y no preguntando.
+    var ORDEN_POR_FRASE = [
+      [/barat|economic|asequible/, "precio"],
+      [/cashflow|flujo de caja|deje al mes/, "cf"],
+      [/descuento|chollo|ganga|rebajad|debajo de tasacion/, "dto"],
+      [/mas grande|mas amplio|mas metros/, "m2"],
+      [/menos entrada|menos capital|menos dinero/, "capital"],
+      [/mas rentable|mejor rentabilidad|mejores|mejor/, "coc"]
+    ];
+    for (var z = 0; z < ORDEN_POR_FRASE.length; z++) {
+      if (ORDEN_POR_FRASE[z][0].test(t)) {
+        q.orden = ORDEN_POR_FRASE[z][1];
+        q.ordenExplicito = true;
+        break;
+      }
+    }
+
+    // 8. Provincia y municipio
+    q.provincia = provinciaEn(texto);
+    if (datos) {
+      var mejor = null, vistos = {}, frase = " " + sinTildes(texto) + " ";
+      for (var k = 0; k < datos.length; k++) {
+        var loc = datos[k].localidad;
+        if (!loc || vistos[loc]) continue;
+        vistos[loc] = 1;
+        var ln = sinTildes(loc);
+        if (ln.length < 4) continue;
+        // "A Coruña" o "Palma de Mallorca" nombran la provincia: si el nombre
+        // del municipio está contenido en el de la provincia, gana la
+        // provincia (superconjunto) en vez de acotar sin que lo hayan pedido.
+        if (q.provincia && sinTildes(q.provincia).indexOf(ln) !== -1) continue;
+        if (frase.indexOf(" " + ln + " ") !== -1 &&
+            (!mejor || ln.length > sinTildes(mejor).length)) mejor = loc;
+      }
+      q.municipio = mejor;
+    }
+    return q;
+  }
+
+  var VERBOS_BUSQUEDA = ["busco", "buscar", "busca", "quiero", "ensename",
+    "muestrame", "muestra", "dame", "encuentra", "encuentrame", "hay algo",
+    "que hay", "tienes algo", "recomiendame", "recomienda", "opciones",
+    "oportunidades", "chollo", "chollos", "filtra", "filtrame", "listame",
+    "sacame", "mejores", "invertir en", "comprar en", "algo en",
+    // Superlativos sueltos: "lo mas barato que tengas" es una busqueda, aunque
+    // no nombre ni provincia ni cifras.
+    "lo mas", "los mas", "las mas", "que tengas", "que teneis",
+    "que tengais", "que haya"];
+
+  var COSAS = ["piso", "casa", "chalet", "vivienda", "inmueble", "local",
+    "garaje", "nave", "atico", "duplex", "finca", "apartamento", "terreno",
+    "solar", "adosado", "unifamiliar"];
+
+  function contiene(t, lista) {
+    for (var i = 0; i < lista.length; i++) {
+      if (t.indexOf(" " + lista[i] + " ") !== -1 ||
+          t.indexOf(" " + lista[i] + "s ") !== -1) return true;
+    }
+    return false;
+  }
+
+  function cuentaFiltros(q) {
+    var n = 0;
+    if (q.pMax != null) n++;
+    if (q.cMax != null) n++;
+    if (q.cocMin != null) n++;
+    if (q.m2Min != null) n++;
+    if (q.hab) n++;
+    if (q.fuentes.length) n++;
+    return n;
+  }
+
+  // ¿Esto es una búsqueda de inmuebles o una duda sobre el servicio?
+  function esPeticionDeBusqueda(texto, q, puntFaq) {
+    var t = " " + sinTildes(texto) + " ";
+    var filtros = cuentaFiltros(q);
+    var lugar = !!(q.provincia || q.municipio);
+    var verbo = contiene(t, VERBOS_BUSQUEDA);
+    var cosa = contiene(t, COSAS);
+
+    // Una pregunta clara del FAQ ("¿qué es el cash-on-cash?") manda siempre.
+    if (puntFaq >= 2.2 && filtros === 0 && !verbo) return false;
+    if (verbo && (lugar || filtros || cosa || q.ordenExplicito)) return true;
+    if (q.ordenExplicito && (verbo || cosa || lugar || filtros)) return true;
+    if (cosa && (lugar || filtros)) return true;
+    if (lugar && filtros >= 1) return true;
+    return filtros >= 2;
+  }
+
+  // ── Filtrado y orden ───────────────────────────────────────────────────────
+  function cumple(r, q, saltar) {
+    if (saltar !== "pMax" && q.pMax != null && !(r.precio <= q.pMax)) return false;
+    if (saltar !== "cMax" && q.cMax != null && !(r.capital <= q.cMax)) return false;
+    if (saltar !== "cocMin" && q.cocMin != null && !(r.coc >= q.cocMin)) return false;
+    if (saltar !== "m2Min" && q.m2Min != null && !(r.m2 >= q.m2Min)) return false;
+    if (saltar !== "hab" && q.hab) {
+      if (q.hab === "4+") { if (!(r.hab >= 4)) return false; }
+      else if (String(r.hab) !== q.hab) return false;
+    }
+    if (saltar !== "fuentes" && q.fuentes.length &&
+        q.fuentes.indexOf(r.origen) === -1) return false;
+    if (saltar !== "municipio" && q.municipio &&
+        sinTildes(r.localidad) !== sinTildes(q.municipio)) return false;
+    return true;
+  }
+
+  function filtrar(datos, q, saltar) {
+    var out = [];
+    for (var i = 0; i < datos.length; i++) if (cumple(datos[i], q, saltar)) out.push(datos[i]);
+    return out;
+  }
+
+  function ordenar(filas, q) {
+    var o = ORDENES[q.orden] || ORDENES.coc;
+    return filas.slice().sort(function (a, b) {
+      var va = a[o.campo], vb = b[o.campo];
+      if (va == null) va = o.desc ? -Infinity : Infinity;
+      if (vb == null) vb = o.desc ? -Infinity : Infinity;
+      return o.desc ? vb - va : va - vb;
+    });
+  }
+
+  // ── Presentación ───────────────────────────────────────────────────────────
+  var ETIQUETA_FILTRO = {
+    pMax: "el precio máximo", cMax: "el capital de entrada",
+    cocMin: "la rentabilidad mínima", m2Min: "los metros mínimos",
+    hab: "las habitaciones", fuentes: "la fuente", municipio: "el municipio"
+  };
+
+  function criteriosActivos(q) {
+    var l = [];
+    ["pMax", "cMax", "cocMin", "m2Min"].forEach(function (k) {
+      if (q[k] != null) l.push(k);
+    });
+    if (q.hab) l.push("hab");
+    if (q.fuentes.length) l.push("fuentes");
+    if (q.municipio) l.push("municipio");
+    return l;
+  }
+
+  function resumenCriterios(q) {
+    var p = [];
+    if (q.municipio) p.push("en <b>" + esc(q.municipio) + "</b>");
+    else if (q.provincia) p.push("en <b>" + esc(q.provincia) + "</b>");
+    if (q.pMax != null) p.push("hasta " + eur(q.pMax));
+    if (q.cMax != null) p.push("con " + eur(q.cMax) + " de entrada como mucho");
+    if (q.cocMin != null) p.push("cash-on-cash ≥ " + pct(q.cocMin));
+    if (q.m2Min != null) p.push("desde " + Math.round(q.m2Min) + " m²");
+    if (q.hab) p.push(q.hab === "4+" ? "4 o más habitaciones" : q.hab + " habitaciones");
+    if (q.fuentes.length) p.push("solo " + (q.nombreFuente || "esa fuente"));
+    return p.join(" · ");
+  }
+
+  function ficha(r) {
+    var estrella = r.coc >= 10 ? " ★" : "";
+    var signo = r.cf >= 0 ? "+" : "";
+    return "<div class='reo-ficha'>" +
+      "<div class='reo-ficha-cab'><b>" + esc(r.localidad) + "</b>" +
+        "<span class='reo-precio'>" + eur(r.precio) + "</span></div>" +
+      "<div class='reo-dir'>" + esc(r.direccion || "—") +
+        (r.m2 ? " · " + Math.round(r.m2) + " m²" : "") +
+        (r.hab ? " · " + r.hab + " hab" : "") + "</div>" +
+      "<div class='reo-nums'>" +
+        "<span>Entrada <b>" + eur(r.capital) + "</b></span>" +
+        "<span>Cash-on-cash <b class='" + (r.coc >= 0 ? "reo-pos" : "reo-neg") + "'>" +
+          pct(r.coc) + estrella + "</b></span>" +
+        "<span>Cashflow <b class='" + (r.cf >= 0 ? "reo-pos" : "reo-neg") + "'>" +
+          signo + eur(r.cf) + "/año</b></span>" +
+        (r.dto == null ? "" : "<span>Dto. tasación <b>" + pct(r.dto) + "</b></span>") +
+      "</div>" +
+      "<a class='reo-ver' href='" + esc(r.url) + "' target='_blank' rel='noopener'>" +
+        "ver anuncio ↗</a></div>";
+  }
+
+  // ── Volcar los criterios a los filtros de la tabla del explorador ──────────
+  function ponValor(id, v) {
+    var el = document.getElementById(id);
+    if (el) el.value = (v == null ? "" : v);
+  }
+
+  function chipsDe(contId) {
+    var c = document.getElementById(contId);
+    return c ? Array.prototype.slice.call(c.querySelectorAll(".chip")) : [];
+  }
+
+  function hayTablaDeFiltros() {
+    return !!document.getElementById("f-precio") && typeof window.aplicar === "function";
+  }
+
+  function aplicarEnTabla(q) {
+    ponValor("f-precio", q.pMax);
+    ponValor("f-capital", q.cMax);
+    ponValor("f-coc", q.cocMin);
+    ponValor("f-m2", q.m2Min == null ? null : Math.round(q.m2Min));
+    ponValor("f-txt", "");
+    var h = document.getElementById("f-hab");
+    if (h) h.value = q.hab || "";
+    var o = document.getElementById("f-orden");
+    if (o && ORDENES[q.orden]) o.value = ORDENES[q.orden].select;
+
+    // Los chips son un toggle: se apagan los que sobran y se encienden los que faltan.
+    chipsDe("f-muni").forEach(function (ch) {
+      var quiero = !!(q.municipio && sinTildes(ch.textContent) === sinTildes(q.municipio));
+      if (ch.classList.contains("on") !== quiero) ch.click();
+    });
+    chipsDe("f-fuente").forEach(function (ch) {
+      var quiero = q.fuentes.length > 0 &&
+                   q.fuentes.indexOf(codigoFuente(ch.textContent)) !== -1;
+      if (ch.classList.contains("on") !== quiero) ch.click();
+    });
+
+    window.aplicar();
+    var ancla = document.getElementById("resumen") || document.getElementById("filtros");
+    if (ancla && ancla.scrollIntoView) ancla.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function enlaceExplorador(texto, provincia) {
+    return "explorador-" + slugify(provincia) + ".html#buscar=" + encodeURIComponent(texto);
+  }
+
+  var CSS_BUSCADOR =
+    ".reo-ficha{background:#fff;border:1px solid #e2e9f0;border-left:3px solid #5b84a6;" +
+      "border-radius:8px;padding:10px 12px;margin-top:8px}" +
+    ".reo-ficha-cab{display:flex;justify-content:space-between;align-items:baseline;gap:8px}" +
+    ".reo-ficha-cab b{font-size:13.5px;color:#2c3e50}" +
+    ".reo-precio{font-weight:700;color:#3d5266;white-space:nowrap;font-size:13.5px}" +
+    ".reo-dir{font-size:11.5px;color:#7c8b98;margin-top:2px;line-height:1.45}" +
+    ".reo-nums{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:7px;font-size:11.5px;color:#5a6875}" +
+    ".reo-nums b{color:#3d4a55}" +
+    ".reo-pos{color:#4a8060}.reo-neg{color:#b5544b}" +
+    ".reo-ver{display:inline-block;margin-top:7px;font-size:12px;font-weight:600;color:#4d7495}" +
+    ".reo-aplicar{margin-top:10px;width:100%;background:#5b84a6;color:#fff;border:none;" +
+      "border-radius:8px;padding:9px 12px;font-size:12.5px;font-weight:600;cursor:pointer}" +
+    ".reo-aplicar:hover{background:#4d7495}" +
+    ".reo-msg.reo-ancho{max-width:100%;background:transparent;border:none;padding:2px 0}" +
+    ".reo-ancho .reo-ficha:first-child{margin-top:0}";
+
+  // ── Conversación de búsqueda ───────────────────────────────────────────────
+  var TOPE_FICHAS = 5;
+
+  function mejorPuntuacionFaq(texto) {
+    var n = normalizar(texto), mejor = 0;
+    for (var i = 0; i < BASE.length; i++) {
+      var p = puntuar(BASE[i], n);
+      if (p > mejor) mejor = p;
+    }
+    return mejor;
+  }
+
+  // Sin resultados: en vez de un "no hay nada" seco, se dice QUÉ filtro aprieta.
+  function sinResultados(datos, q, ui) {
+    var mejorSuelto = null, mejorN = 0;
+    criteriosActivos(q).forEach(function (k) {
+      var n = filtrar(datos, q, k).length;
+      if (n > mejorN) { mejorN = n; mejorSuelto = k; }
+    });
+    var msg = "No hay ningún inmueble " + (resumenCriterios(q) || "con esos criterios") + ".";
+    if (mejorSuelto && mejorN > 0) {
+      msg += "<br><br>El filtro que más aprieta es <b>" + ETIQUETA_FILTRO[mejorSuelto] +
+             "</b>: soltándolo salen <b>" + mejorN + "</b>. Aflójalo y vuelve a " +
+             "preguntarme.";
+    } else {
+      msg += "<br><br>Prueba con criterios más amplios. Ojo sobre todo a la " +
+             "rentabilidad mínima: en varias provincias el cash-on-cash sale " +
+             "negativo con los supuestos actuales, así que pedir un mínimo " +
+             "positivo puede dejar la lista vacía.";
+    }
+    ui.decir(msg, false);
+    ui.ofrecer(["filtros", "cash-on-cash", "capital"]);
+    return true;
+  }
+
+  // Fuera del explorador no hay datos en la página (están tras el acceso):
+  // se interpreta la petición y se lleva al explorador con la búsqueda puesta.
+  function derivarAExplorador(texto, q, ui) {
+    var crit = resumenCriterios(q);
+    if (q.provincia) {
+      ui.decir("Anotado: " + (crit || "esa búsqueda") + ".<br><br>" +
+        "Los inmuebles viven dentro del explorador, detrás de tu acceso. " +
+        "<a href='" + enlaceExplorador(texto, q.provincia) + "'>Abre " +
+        esc(q.provincia) + " con esta búsqueda ya puesta</a> y te la ejecuto " +
+        "nada más entrar.<br><br>¿Aún no tienes cuenta? " +
+        "<a href='index.html#alta'>Créala gratis en un minuto</a> y vuelve a " +
+        "este enlace.", false);
+      ui.ofrecer(["registro", "precio", "cash-on-cash"]);
+      return true;
+    }
+    ui.decir("Puedo buscarte eso, pero necesito saber <b>en qué provincia</b>. " +
+      "Añádela a la frase —por ejemplo «" + esc(texto) + " en Málaga»— y te " +
+      "llevo directo a los resultados.", false);
+    ui.ofrecer(["provincias", "registro"]);
+    return true;
+  }
+
+  // Devuelve true si la frase era una búsqueda y ya se ha contestado.
+  function atenderBusqueda(texto, ui) {
+    var datos = datosPagina();
+    var q = interpretar(texto, datos);
+    if (!esPeticionDeBusqueda(texto, q, mejorPuntuacionFaq(texto))) return false;
+    if (!datos) return derivarAExplorador(texto, q, ui);
+
+    var filas = filtrar(datos, q);
+    if (!filas.length) return sinResultados(datos, q, ui);
+
+    var o = ORDENES[q.orden] || ORDENES.coc;
+    var top = ordenar(filas, q).slice(0, TOPE_FICHAS);
+    var crit = resumenCriterios(q);
+
+    ui.decir("He encontrado <b>" + filas.length + "</b> " +
+      (filas.length === 1 ? "inmueble" : "inmuebles") + (crit ? " " + crit : "") +
+      ".<br>Te enseño " +
+      (filas.length <= TOPE_FICHAS ? "" : "los " + TOPE_FICHAS + " de ") +
+      o.etiqueta + ":", false);
+
+    var nodo = ui.decir(top.map(ficha).join("") +
+      (hayTablaDeFiltros()
+        ? "<button type='button' class='reo-aplicar'>Ver los " + filas.length +
+          " en la tabla con estos filtros</button>"
+        : ""), false);
+    nodo.className += " reo-ancho";
+
+    var btn = nodo.querySelector(".reo-aplicar");
+    if (btn) {
+      btn.addEventListener("click", function () {
+        aplicarEnTabla(q);
+        ui.decir("Listo, filtros aplicados en la tabla. Puedes seguir afinando a " +
+          "mano o pedirme otra búsqueda.", false);
+      });
+    }
+    return true;
+  }
+
+  // Búsqueda que llega en el enlace desde otra página: explorador-x.html#buscar=…
+  function busquedaEnHash() {
+    var m = (location.hash || "").match(/[#&]buscar=([^&]*)/);
+    if (!m) return null;
+    try { return decodeURIComponent(m[1].replace(/\+/g, " ")); } catch (e) { return null; }
+  }
+
   // ── Interfaz ───────────────────────────────────────────────────────────────
   var CSS =
     "#reo-bot,#reo-bot *{box-sizing:border-box;font-family:'Work Sans','Segoe UI',Arial,sans-serif}" +
@@ -692,18 +1180,22 @@
 
   var SALUDO_INICIAL = {
     landing:
-      "¡Hola! Soy el asistente del <b>Scanner REO</b>. Te oriento sobre cómo " +
-      "funciona, qué significan los números y cómo crear tu acceso.<br><br>" +
-      "Pregúntame lo que quieras, o empieza por aquí:",
+      "¡Hola! Soy el asistente del <b>Scanner REO</b>. Puedo <b>buscarte " +
+      "inmuebles hablando</b> — prueba con <i>«piso en Málaga por menos de " +
+      "120.000 con rentabilidad mayor del 8%»</i> — y también explicarte cómo " +
+      "funciona el servicio y sus números.<br><br>Empieza por aquí si lo prefieres:",
     acceso:
       "¡Hola! ¿Problemas para entrar? Te echo una mano con el acceso, la clave " +
       "o el registro.",
     explorar:
-      "¡Hola! Aquí eliges provincia. Si tienes dudas sobre la cobertura, los " +
-      "filtros o los cálculos, pregúntame.",
+      "¡Hola! Aquí eliges provincia. Dime qué buscas —<i>«chalet en Cádiz " +
+      "hasta 150.000»</i>— y te llevo al explorador con los filtros puestos. " +
+      "También resuelvo dudas de cobertura, filtros y cálculos.",
     explorador:
-      "¡Hola! Estás en el explorador. Puedo explicarte cualquier columna " +
-      "(capital de entrada, cash-on-cash, descuento…) o cómo afinar los filtros.",
+      "¡Hola! Estás en el explorador. <b>Pídeme la búsqueda hablando</b> y te " +
+      "la hago sobre esta provincia: <i>«2 habitaciones por menos de 80.000 " +
+      "con 30.000 de entrada»</i>. También te explico cualquier columna " +
+      "(capital de entrada, cash-on-cash, descuento…).",
     generico:
       "¡Hola! Soy el asistente del <b>Scanner REO</b>. Pregúntame lo que " +
       "necesites saber sobre el servicio."
@@ -724,24 +1216,24 @@
     var ctx = detectarContexto();
 
     var estilo = document.createElement("style");
-    estilo.textContent = CSS;
+    estilo.textContent = CSS + CSS_BUSCADOR;
     document.head.appendChild(estilo);
 
     var raiz = document.createElement("div");
     raiz.id = "reo-bot";
     raiz.innerHTML =
       "<button id='reo-bot-btn' aria-label='Abrir el asistente'>" + ICONO_CHAT +
-        "<span>¿Dudas? Pregúntame</span></button>" +
+        "<span>Busca o pregúntame</span></button>" +
       "<div id='reo-bot-panel' role='dialog' aria-label='Asistente del Scanner REO'>" +
         "<div id='reo-bot-cab'>" +
           "<div><div class='t'>Asistente del Scanner</div>" +
-          "<div class='s'>Respuestas al momento · gratis</div></div>" +
+          "<div class='s'>Busca inmuebles y resuelve dudas</div></div>" +
           "<button id='reo-bot-cerrar' aria-label='Cerrar'>&times;</button>" +
         "</div>" +
         "<div id='reo-bot-msgs'></div>" +
         "<div id='reo-bot-pie'>" +
           "<form id='reo-bot-form' autocomplete='off'>" +
-            "<input id='reo-bot-input' type='text' placeholder='Escribe tu pregunta…' " +
+            "<input id='reo-bot-input' type='text' placeholder='Busca o pregunta…' " +
               "aria-label='Tu pregunta'>" +
             "<button id='reo-bot-enviar' type='submit' aria-label='Enviar'>" +
               ICONO_ENVIAR + "</button>" +
@@ -793,11 +1285,16 @@
       ofrecer(entrada.relacionados);
     }
 
+    var ui = { decir: decir, ofrecer: ofrecer };
+
     function preguntar(texto) {
       decir(texto.replace(/[<>]/g, ""), true);
       input.value = "";
-      var r = responder(texto);
       setTimeout(function () {
+        // Primero se mira si la frase es una búsqueda de inmuebles; si no
+        // lo es (o algo falla), sigue el camino de siempre: el FAQ.
+        try { if (atenderBusqueda(texto, ui)) return; } catch (e) {}
+        var r = responder(texto);
         if (!r) return;
         if (r.tipo === "saludo") {
           decir("¡Hola! ¿En qué te ayudo?", false);
@@ -834,6 +1331,16 @@
       if (t) preguntar(t);
     });
 
+    // Enter envia. No se deja al envio implicito del formulario: hay teclados y
+    // navegadores donde no dispara y el visitante se queda escribiendo sin que
+    // pase nada.
+    input.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter" || e.shiftKey) return;
+      e.preventDefault();
+      var t = input.value.trim();
+      if (t) preguntar(t);
+    });
+
     var abierto = false;
     function abrir() {
       raiz.classList.add("abierto");
@@ -851,6 +1358,19 @@
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape") raiz.classList.remove("abierto");
     });
+
+    // Búsqueda que llega desde otra página en el enlace (#buscar=…):
+    // se abre el asistente y se ejecuta sola al aterrizar.
+    var pendiente = busquedaEnHash();
+    if (pendiente) {
+      setTimeout(function () {
+        abrir();
+        preguntar(pendiente);
+        if (history.replaceState) {
+          history.replaceState(null, "", location.pathname + location.search);
+        }
+      }, 400);
+    }
 
     // Permite abrirlo desde cualquier enlace de la página: href="#asistente"
     // o cualquier elemento con data-abrir-asistente.
