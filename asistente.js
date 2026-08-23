@@ -82,7 +82,8 @@
         "El <b>Scanner REO</b> es un radar automático de oportunidades " +
         "inmobiliarias en España. Cada pocos días rastrea el Portal de Subastas " +
         "del BOE, los portales de los bancos (Solvia, Aliseda, Altamira, " +
-        "Servihabitat), la cartera de Sareb y algunos portales, y para cada " +
+        "BuildingCenter), la cartera de Sareb y portales como Fotocasa, y " +
+        "para cada " +
         "inmueble calcula los números que importan a un inversor: <b>capital de " +
         "entrada, cashflow y cash-on-cash apalancado</b>.<br><br>" +
         "Lo ves todo en un explorador web con filtros por provincia y municipio.",
@@ -185,12 +186,12 @@
       titulo: "¿De dónde salen los inmuebles?",
       claves: ["de donde salen", "fuentes", "de donde sacais", "origen",
                "que portales", "que bancos", "quien publica", "procedencia",
-               "idealista", "habitaclia", "fotocasa", "servicers"],
+               "idealista", "habitaclia", "fotocasa", "altamira", "servicers"],
       respuesta:
         "Todo de <b>fuentes públicas</b>, y cada ficha enlaza a su web oficial:<br>" +
         "• <b>BOE</b> — Portal de Subastas judiciales y notariales.<br>" +
         "• <b>Servicers bancarios</b>: Solvia (Sabadell), Aliseda (Santander), " +
-        "Altamira (doValue), Servihabitat (CaixaBank), BuildingCenter.<br>" +
+        "Altamira (doValue/Santander), BuildingCenter (CaixaBank).<br>" +
         "• <b>Sareb</b>, a través de Hipoges, su comercializadora minorista.<br>" +
         "• <b>Portales</b>: Fotocasa y pisos.com.<br><br>" +
         "Idealista y Habitaclia <b>no</b> se rastrean: sus condiciones de uso y " +
@@ -688,13 +689,16 @@
     { claves: ["hacienda", "aeat"], codigos: ["AT"], nombre: "subastas de Hacienda" },
     { claves: ["solvia"], codigos: ["SOLVIA"], nombre: "Solvia" },
     { claves: ["aliseda"], codigos: ["ALISEDA"], nombre: "Aliseda" },
+    { claves: ["altamira", "dovalue"], codigos: ["ALTAMIRA"], nombre: "Altamira" },
+    { claves: ["fotocasa"], codigos: ["FOTOCASA"], nombre: "Fotocasa" },
     { claves: ["sareb"], codigos: ["SAREB"], nombre: "Sareb" },
     { claves: ["hipoges"], codigos: ["HIPOGES"], nombre: "Hipoges" },
     { claves: ["buildingcenter", "caixabank", "caixa"], codigos: ["BUILDINGCENTER"],
       nombre: "BuildingCenter" },
     { claves: ["pisos com", "pisoscom"], codigos: ["PISOS.COM"], nombre: "pisos.com" },
     { claves: ["banco", "bancos", "servicer", "servicers"],
-      codigos: ["SOLVIA", "ALISEDA", "SAREB", "HIPOGES", "BUILDINGCENTER"],
+      codigos: ["SOLVIA", "ALISEDA", "ALTAMIRA", "SAREB", "HIPOGES",
+                "BUILDINGCENTER"],
       nombre: "carteras de banco" }
   ];
 
