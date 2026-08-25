@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mapa de precios de vivienda por provincia — Scanner REO</title>
+<meta name="description" content="Precio del metro cuadrado del stock bancario y de subastas en las 52 provincias de España, y en qué provincias renta de verdad el dinero.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="estilo-zona.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="inner">
+    <a class="marca" href="index.html">Scanner<span>REO</span></a>
+    <nav>
+      <a class="ppal" href="explorar.html">Scanner</a>
+      <span class="nav-sep" aria-hidden="true"></span>
+      <a href="precios.html" aria-current="page">Mapa de precios</a>
+      <a href="valorar.html">Valorar mi piso</a>
+      <a href="acceso.html">Acceder</a>
+    </nav>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="intro">
+    <h1>Mapa de precios por provincia</h1>
+    <p>Qué cuesta el metro cuadrado del stock de banco y de subastas en cada
+       provincia — y, en la segunda capa, algo que ningún portal enseña:
+       <b>dónde rinde de verdad el dinero</b>.</p>
+  </div>
+
+  <div class="panel">
+    <section>
+      <div class="capas-btn" role="group" aria-label="Capa del mapa">
+        <button type="button" class="cb on" data-capa="precio">Precio €/m²</button>
+        <button type="button" class="cb" data-capa="renta">Rentabilidad</button>
+      </div>
+
+      <div class="mapa-caja">
+        <svg id="svg-mapa" role="img" aria-label="Mapa de España por provincias">
+          <g id="g-prov"></g>
+        </svg>
+        <div class="tip" id="tip" hidden></div>
+      </div>
+
+      <div class="leyenda" id="leyenda"></div>
+
+      <div class="detalle" id="detalle">
+        <h3>Pulsa una provincia</h3>
+        <div class="lin" id="det-lin">Cargando…</div>
+      </div>
+
+      <div class="fuente"><b>Qué mide y qué no.</b> Es la mediana del
+        <b>stock bancario y de subastas</b>, no del mercado abierto: es
+        sistemáticamente más barato. Es la cifra correcta para decidir una compra
+        de inversión, y la equivocada para tasar una vivienda —para eso está
+        <a href="valorar.html">Valorar mi piso</a>.<br>
+        <b>El mapa</b> son límites provinciales simplificados dibujados dentro de
+        esta misma página: sin librería de mapas, sin servidor de teselas y sin
+        ninguna petición a terceros.</div>
+    </section>
+
+    <section>
+      <div class="rot">Lo caro y lo rentable no coinciden</div>
+      <p class="sub">Las seis provincias más caras y las cuatro más baratas</p>
+      <div class="tabla-scroll">
+        <table>
+          <thead><tr><th>Provincia</th><th class="num">€/m²</th>
+            <th class="num">Inmuebles medidos</th>
+            <th class="num">Cash-on-cash mediano</th></tr></thead>
+          <tbody id="tabla-extremos"></tbody>
+        </table>
+      </div>
+      <div class="fuente">Un portal te dice dónde es caro. Aquí ves además
+        <b>dónde renta</b>, que casi nunca es el mismo sitio: en las provincias
+        más caras el cash-on-cash sale más negativo, porque el alquiler no sigue
+        al precio de compra.</div>
+    </section>
+  </div>
+
+  <div class="cta-scanner">
+    <div>
+      <h2>Y para ver los inmuebles, uno a uno</h2>
+      <p>Los <b id="cta-n">—</b> inmuebles que hay detrás de este mapa, con su
+         capital de entrada, su cashflow y su rentabilidad ya calculados.</p>
+    </div>
+    <a class="btn" href="explorar.html">Entrar al Scanner</a>
+  </div>
+
+</div>
+
+<footer>
+  Cifras estimadas a partir de fuentes públicas — no son asesoramiento financiero,
+  inmobiliario ni legal. Verifica cada caso antes de ofertar o pujar.<br>
+  <a href="index.html">Inicio</a> · <a href="aviso-legal.html">Aviso legal</a> ·
+  <a href="privacidad.html">Privacidad</a> · <a href="cookies.html">Cookies</a> ·
+  Contacto: <a href="mailto:fleximaxca@gmail.com">fleximaxca@gmail.com</a>
+</footer>
+
+<script src="datos-zona.js"></script>
+<script src="mapa-zona.js" defer></script>
+<script>window.REO_ASISTENTE = { contexto: "explorar" };</script>
+<script src="asistente.js" defer></script>
+</body>
+</html>

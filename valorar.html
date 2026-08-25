@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Valorar mi piso: precio mínimo, medio y máximo — Scanner REO</title>
+<meta name="description" content="Precio mínimo, medio y máximo de una vivienda en España a partir de comparables reales, diciendo siempre cuántos lo sostienen.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="estilo-zona.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="inner">
+    <a class="marca" href="index.html">Scanner<span>REO</span></a>
+    <nav>
+      <a class="ppal" href="explorar.html">Scanner</a>
+      <span class="nav-sep" aria-hidden="true"></span>
+      <a href="precios.html">Mapa de precios</a>
+      <a href="valorar.html" aria-current="page">Valorar mi piso</a>
+      <a href="acceso.html">Acceder</a>
+    </nav>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="intro">
+    <h1>Valorar mi piso</h1>
+    <p>Precio mínimo, medio y máximo de una vivienda a partir de comparables
+       reales — diciendo siempre <b>cuántos lo sostienen</b>, y avisando cuando
+       no son suficientes.</p>
+  </div>
+
+  <div class="panel">
+    <section>
+      <div class="rot">Datos del inmueble</div>
+      <p class="sub">No se guarda nada: el cálculo ocurre en tu navegador</p>
+      <div class="campos">
+        <div class="campo"><label for="v-prov">Provincia</label>
+          <select id="v-prov"></select></div>
+        <div class="campo"><label for="v-muni">Municipio</label>
+          <select id="v-muni"></select></div>
+        <div class="campo"><label for="v-m2">Superficie (m²)</label>
+          <input id="v-m2" type="number" value="87" min="20" max="600"></div>
+        <div class="campo"><label for="v-estado">Estado</label>
+          <select id="v-estado">
+            <option value="0.85">A reformar</option>
+            <option value="1" selected>Habitable</option>
+            <option value="1.15">Reformado</option>
+          </select></div>
+      </div>
+      <button class="btn" type="button" id="v-calc" style="margin-top:16px">Valorar</button>
+    </section>
+
+    <section>
+      <div class="rot">Resultado</div>
+      <p class="sub" id="v-base">—</p>
+
+      <div class="tres">
+        <div class="t-col"><div class="t-et">Precio mínimo</div>
+          <div class="t-n" id="v-min">—</div>
+          <div class="t-c">lo que busca pagar un comprador</div></div>
+        <div class="t-col destaca"><div class="t-et">Precio medio</div>
+          <div class="t-n" id="v-med">—</div>
+          <div class="t-c">donde se cierran las operaciones</div></div>
+        <div class="t-col"><div class="t-et">Precio máximo</div>
+          <div class="t-n" id="v-max">—</div>
+          <div class="t-c">lo que pide un vendedor sin prisa</div></div>
+      </div>
+
+      <div class="barra-conf">
+        <div class="bc-et">Comparables que lo sostienen</div>
+        <div class="bc"><i id="v-barra"></i></div>
+        <div class="bc-n" id="v-conf">—</div>
+      </div>
+
+      <div id="v-alerta"></div>
+    </section>
+
+    <section>
+      <div class="rot">De dónde sale este número, y qué le falta</div>
+      <p class="sub">Tres capas de referencia, por orden de lo que cuesta conseguirlas</p>
+
+      <div class="capas">
+        <div class="capa lista">
+          <div class="cp-k">1 · Comparables del Scanner <span class="pill ok">Activa</span></div>
+          <div class="cp-v">Cuartiles de €/m² del stock bancario y de subastas:
+            <b id="c-muni">—</b> municipios con 12 o más comparables, y las 52
+            provincias como respaldo.</div>
+          <div class="cp-c">Es un <b>suelo</b> fiable: el precio al que se mueve el
+            stock en dificultades. Pero está por debajo del mercado abierto.</div>
+        </div>
+        <div class="capa falta">
+          <div class="cp-k">2 · Precio real de escritura <span class="pill wip">Por integrar</span></div>
+          <div class="cp-v">El <b>Consejo General del Notariado</b> abrió en noviembre
+            de 2025 su Portal de la Vivienda con <b>precios reales de compraventa</b>
+            —lo que se pagó, no lo que se pide— de acceso público y gratuito, y
+            actualización mensual. Como respaldo, el precio medio por municipio del
+            <b>Ministerio de Vivienda</b>.</div>
+          <div class="cp-c">Es la capa que convierte este suelo en una valoración de
+            mercado. Y la diferencia entre ambas pasa a ser el dato: <b>cuánto por
+            debajo del mercado está el stock de banco</b> en esa zona.</div>
+        </div>
+        <div class="capa ext">
+          <div class="cp-k">3 · Contraste externo <span class="pill link">Enlace</span></div>
+          <div class="cp-v">Los portales publican su propia estimación para cada
+            dirección. Se consulta en su web, no se copia aquí.</div>
+          <div class="cp-c">Sus valoraciones son suyas y sus condiciones de uso
+            prohíben la extracción automatizada. Se enlaza y punto.</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="cta-scanner">
+    <div>
+      <h2>¿Y si en vez de vender quieres comprar?</h2>
+      <p>El Scanner rastrea pisos de banco, cartera Sareb y subastas del BOE con
+         el capital de entrada, el cashflow y la rentabilidad ya calculados.</p>
+    </div>
+    <a class="btn" href="explorar.html">Entrar al Scanner</a>
+  </div>
+
+</div>
+
+<footer>
+  Valoración orientativa a partir de fuentes públicas. <b>No sustituye una
+  tasación</b> ni es asesoramiento financiero, inmobiliario o legal.<br>
+  <a href="index.html">Inicio</a> · <a href="aviso-legal.html">Aviso legal</a> ·
+  <a href="privacidad.html">Privacidad</a> · <a href="cookies.html">Cookies</a> ·
+  Contacto: <a href="mailto:fleximaxca@gmail.com">fleximaxca@gmail.com</a>
+</footer>
+
+<script src="datos-zona.js"></script>
+<script src="valorar-zona.js" defer></script>
+<script>window.REO_ASISTENTE = { contexto: "explorar" };</script>
+<script src="asistente.js" defer></script>
+</body>
+</html>
