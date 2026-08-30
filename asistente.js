@@ -186,14 +186,16 @@
       titulo: "¿De dónde salen los inmuebles?",
       claves: ["de donde salen", "fuentes", "de donde sacais", "origen",
                "que portales", "que bancos", "quien publica", "procedencia",
-               "idealista", "habitaclia", "fotocasa", "altamira", "servicers"],
+               "idealista", "habitaclia", "fotocasa", "altamira", "donpiso",
+               "servicers"],
       respuesta:
         "Todo de <b>fuentes públicas</b>, y cada ficha enlaza a su web oficial:<br>" +
         "• <b>BOE</b> — Portal de Subastas judiciales y notariales.<br>" +
         "• <b>Servicers bancarios</b>: Solvia (Sabadell), Aliseda (Santander), " +
         "Altamira (doValue/Santander), BuildingCenter (CaixaBank).<br>" +
         "• <b>Sareb</b>, a través de Hipoges, su comercializadora minorista.<br>" +
-        "• <b>Portales</b>: Fotocasa y pisos.com.<br><br>" +
+        "• <b>Portales</b>: Fotocasa y pisos.com.<br>" +
+        "• <b>Agencias</b>: donpiso, con su cartera propia en 40 provincias.<br><br>" +
         "Idealista y Habitaclia <b>no</b> se rastrean: sus condiciones de uso y " +
         "sus sistemas anti-bot lo impiden, y preferimos no construir sobre eso.",
       relacionados: ["sareb", "boe", "actualizacion"]
@@ -691,6 +693,7 @@
     { claves: ["aliseda"], codigos: ["ALISEDA"], nombre: "Aliseda" },
     { claves: ["altamira", "dovalue"], codigos: ["ALTAMIRA"], nombre: "Altamira" },
     { claves: ["fotocasa"], codigos: ["FOTOCASA"], nombre: "Fotocasa" },
+    { claves: ["donpiso", "don piso"], codigos: ["DONPISO"], nombre: "donpiso" },
     { claves: ["sareb"], codigos: ["SAREB"], nombre: "Sareb" },
     { claves: ["hipoges"], codigos: ["HIPOGES"], nombre: "Hipoges" },
     { claves: ["buildingcenter", "caixabank", "caixa"], codigos: ["BUILDINGCENTER"],
