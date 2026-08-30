@@ -31,7 +31,6 @@
       <span class="nav-sep" aria-hidden="true"></span>
       <a href="precios.html">Mapa de precios</a>
       <a href="valorar.html" aria-current="page">Valorar mi piso</a>
-      <a href="acceso.html">Acceder</a>
     </nav>
   </div>
 </div>
@@ -49,6 +48,25 @@
     <section>
       <div class="rot">Datos del inmueble</div>
       <p class="sub">No se guarda nada: el cálculo ocurre en tu navegador</p>
+
+      <div class="cat-caja">
+        <div class="cat-t">Traer los datos del Catastro</div>
+        <p class="cat-s">Pon la <b>referencia catastral</b> y se rellena todo:
+           dirección, municipio, superficie, año y uso. Si no la tienes, busca
+           por dirección eligiendo antes provincia y municipio abajo.</p>
+        <div class="cat-fila">
+          <input id="cat-rc" type="text" spellcheck="false" autocomplete="off"
+                 placeholder="Referencia catastral (20 caracteres)">
+          <button class="btn btn-sec" type="button" id="cat-btn-rc">Buscar</button>
+        </div>
+        <div class="cat-fila">
+          <input id="cat-dir" type="text" autocomplete="off"
+                 placeholder="O una dirección: Calle Gloria 51">
+          <button class="btn btn-sec" type="button" id="cat-btn-dir">Buscar</button>
+        </div>
+        <div id="cat-res" class="cat-res"></div>
+      </div>
+
       <div class="campos">
         <div class="campo"><label for="v-prov">Provincia</label>
           <select id="v-prov"></select></div>
@@ -104,23 +122,48 @@
           <div class="cp-c">Es un <b>suelo</b> fiable: el precio al que se mueve el
             stock en dificultades. Pero está por debajo del mercado abierto.</div>
         </div>
-        <div class="capa falta">
-          <div class="cp-k">2 · Precio real de escritura <span class="pill wip">Por integrar</span></div>
-          <div class="cp-v">El <b>Consejo General del Notariado</b> abrió en noviembre
-            de 2025 su Portal de la Vivienda con <b>precios reales de compraventa</b>
-            —lo que se pagó, no lo que se pide— de acceso público y gratuito, y
-            actualización mensual. Como respaldo, el precio medio por municipio del
-            <b>Ministerio de Vivienda</b>.</div>
+        <div class="capa">
+          <div class="cp-k">2 · Precio oficial de mercado <span class="pill ok">Activa</span></div>
+          <div class="cp-v">El <b>valor tasado medio de vivienda libre</b> del
+            Ministerio de Transportes y Movilidad Sostenible, que sale de las
+            tasaciones hipotecarias reales. Ya no solo por provincia: se usa el
+            detalle <b>por municipio</b> en los de más de 25.000 habitantes
+            (<b id="c-mkt">—</b> municipios), y los más pequeños siguen con la
+            referencia de su provincia.</div>
           <div class="cp-c">Es la capa que convierte este suelo en una valoración de
-            mercado. Y la diferencia entre ambas pasa a ser el dato: <b>cuánto por
-            debajo del mercado está el stock de banco</b> en esa zona.</div>
+            mercado, y la diferencia entre ambas es el dato de verdad: <b>cuánto por
+            debajo del mercado está el stock de banco</b> en esa zona. Importa
+            afinarlo: Barcelona capital está un <b>46 % por encima</b> de la media de
+            su provincia y Manresa un <b>52 % por debajo</b>, así que medir un
+            municipio contra su provincia desvía muchísimo.</div>
+        </div>
+        <div class="capa falta">
+          <div class="cp-k">2b · Precio real de escritura <span class="pill wip">Por integrar</span></div>
+          <div class="cp-v">El <b>Consejo General del Notariado</b> abrió su Portal
+            Estadístico con <b>precios reales de compraventa</b> —lo que se pagó, no
+            lo que se pide—, gratuito y con detalle hasta el código postal.</div>
+          <div class="cp-c">Es el mejor dato que existe para esto. Pendiente: el
+            portal estaba <b>en mantenimiento</b> la última vez que se comprobó
+            (30/08/2026), así que todavía no se puede conectar.</div>
         </div>
         <div class="capa ext">
           <div class="cp-k">3 · Contraste externo <span class="pill link">Enlace</span></div>
           <div class="cp-v">Los portales publican su propia estimación para cada
-            dirección. Se consulta en su web, no se copia aquí.</div>
-          <div class="cp-c">Sus valoraciones son suyas y sus condiciones de uso
-            prohíben la extracción automatizada. Se enlaza y punto.</div>
+            dirección. Se consulta en su web, no se copia aquí:
+            <span class="cp-enl">
+              <a href="https://www.idealista.com/valorar-vivienda/" target="_blank"
+                 rel="noopener noreferrer">idealista</a>
+              <a href="https://www.fotocasa.es/es/valoracion-inmuebles/" target="_blank"
+                 rel="noopener noreferrer">Fotocasa</a>
+              <a href="https://www.pisos.com/valoracion-inmuebles/" target="_blank"
+                 rel="noopener noreferrer">pisos.com</a>
+              <a href="https://www.tinsa.es/vivienda/" target="_blank"
+                 rel="noopener noreferrer">Tinsa</a>
+            </span></div>
+          <div class="cp-c">Se abren en su web con tu dirección: sus valoraciones son
+            suyas y sus condiciones de uso prohíben la extracción automatizada, así
+            que aquí solo se enlaza. Contrastar dos o tres da una horquilla más
+            honesta que fiarse de una sola.</div>
         </div>
       </div>
     </section>
@@ -146,6 +189,7 @@
 </footer>
 
 <script src="datos-zona.js"></script>
+<script src="catastro.js"></script>
 <script src="valorar-zona.js" defer></script>
 <script>window.REO_ASISTENTE = { contexto: "explorar" };</script>
 <script src="asistente.js" defer></script>

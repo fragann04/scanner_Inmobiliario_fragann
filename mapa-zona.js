@@ -101,26 +101,40 @@
     var mkt = PROV[slug] && PROV[slug].mkt;
     return "<div class='muni-cab'><b>" + filas.length + " municipios</b> con 12 o más " +
       "comparables, ordenados por precio del stock" +
-      (mkt ? " · referencia de mercado de la provincia: <b>" + eur(mkt) + " €/m²</b>" : "") +
+      (mkt ? " · media de mercado de la provincia: <b>" + eur(mkt) + " €/m²</b>" : "") +
       "</div>" +
       "<div class='tabla-scroll'><table class='t-muni'><thead><tr>" +
       "<th>Municipio</th><th class='num'>€/m² stock</th>" +
       "<th class='num'>Rango (p25–p75)</th><th class='num'>Comparables</th>" +
-      (mkt ? "<th class='num'>vs mercado</th>" : "") + "</tr></thead><tbody>" +
+      (mkt ? "<th class='num'>Mercado</th><th class='num'>vs mercado</th>" : "") +
+      "</tr></thead><tbody>" +
       filas.map(function (f) {
-        var d = f[1], gap = mkt ? Math.round((d.q[1] / mkt - 1) * 100) : null;
+        // Referencia propia del municipio si el ministerio la publica; si no,
+        // la de su provincia. Se marca cuál es cada una: comparar un municipio
+        // contra la media de su provincia desvía muchisimo (Barcelona ciudad
+        // esta un 46 % por encima de la media de su provincia, y Manresa un
+        // 52 % por debajo), asi que el usuario tiene que poder distinguirlo.
+        var d = f[1], ref = (typeof d.mkt === "number") ? d.mkt : mkt;
+        var propia = d.mfuente === "muni";
+        var gap = ref ? Math.round((d.q[1] / ref - 1) * 100) : null;
         return "<tr><td>" + f[0] + "</td>" +
           "<td class='num'><b>" + eur(d.q[1]) + "</b></td>" +
           "<td class='num'>" + eur(d.q[0]) + " – " + eur(d.q[2]) + "</td>" +
           "<td class='num'>" + d.c.toLocaleString("es-ES") + "</td>" +
+          (mkt ? "<td class='num'>" + (ref ? eur(ref) : "—") +
+                 (ref ? "<span class='ref-t' title='" +
+                        (propia ? "Valor tasado del propio municipio"
+                                : "Sin dato municipal: se usa la media de la provincia") +
+                        "'>" + (propia ? " muni" : " prov") + "</span>" : "") +
+                 "</td>" : "") +
           (mkt ? "<td class='num " + (gap <= 0 ? "pos" : "neg") + "'>" +
                  (gap > 0 ? "+" : "") + gap + " %</td>" : "") + "</tr>";
       }).join("") + "</tbody></table></div>" +
-      "<div class='fuente'>La columna «vs mercado» compara cada municipio con la " +
-      "media provincial de mercado, no con la suya: el ministerio solo publica el " +
-      "detalle municipal para municipios de más de 25.000 habitantes, y esa serie " +
-      "todavía no está integrada. Tómala como orientación de la distancia, no como " +
-      "un dato del municipio.</div>";
+      "<div class='fuente'>La columna «mercado» es el <b>valor tasado oficial</b> " +
+      "del Ministerio. Los municipios marcados <b>muni</b> se comparan con su " +
+      "propio valor; los marcados <b>prov</b> no llegan a 25.000 habitantes —el " +
+      "ministerio no los publica por separado— y usan la media de su provincia, " +
+      "que en municipios pequeños puede desviarse bastante.</div>";
   }
 
   function ficha(slug) {

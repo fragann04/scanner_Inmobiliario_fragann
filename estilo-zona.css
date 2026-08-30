@@ -179,3 +179,46 @@ table.t-muni tbody tr:hover td{background:var(--surface)}
 .muni .tabla-scroll{max-height:340px;overflow-y:auto;border:1px solid var(--border-2);
   border-radius:9px;background:var(--blanco)}
 .cb:disabled{opacity:.45;cursor:not-allowed}
+
+/* Distintivo de la columna «Mercado»: si el valor es del propio municipio
+   (muni) o prestado de su provincia (prov). La diferencia entre ambos es
+   grande y el usuario tiene que verla de un vistazo. */
+.ref-t { font-size: 10px; font-weight: 700; letter-spacing: .04em;
+         color: #7d8b98; margin-left: 4px; text-transform: uppercase; }
+
+/* ─── Bloque de consulta al Catastro (página de valoración) ─────────────── */
+.cat-caja { background: var(--surface-2, #eef4f9); border: 1px solid #dfe7ee;
+            border-radius: 10px; padding: 14px 16px; margin-bottom: 18px; }
+.cat-t { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+.cat-s { font-size: 12.5px; color: #5c6a77; margin: 0 0 10px; line-height: 1.5; }
+.cat-fila { display: flex; gap: 8px; margin-bottom: 8px; }
+.cat-fila input { flex: 1; min-width: 0; padding: 9px 11px; font-size: 13.5px;
+                  border: 1px solid #dfe7ee; border-radius: 8px;
+                  background: #fff; font-family: inherit; }
+.cat-fila input:focus { outline: 2px solid #b9d2e4; outline-offset: -1px; }
+.btn-sec { background: #fff; color: #3d5266; border: 1px solid #cfdce7;
+           padding: 9px 15px; font-size: 13.5px; white-space: nowrap; }
+.cat-res:empty { display: none; }
+.cat-ok { font-size: 11px; font-weight: 700; letter-spacing: .05em;
+          text-transform: uppercase; color: #4f8a5c; margin: 10px 0 6px; }
+.cat-dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 14px;
+          margin: 0; font-size: 13px; }
+.cat-dl dt { color: #6b7885; }
+.cat-dl dd { margin: 0; font-weight: 600; }
+.cat-el { font-size: 12px; color: #6b7885; margin-top: 8px; }
+.cat-msg { font-size: 12.5px; margin-top: 9px; color: #5c6a77; line-height: 1.5; }
+.cat-msg.error { color: #b5544b; }
+.cat-msg.aviso { color: #8a6d3b; }
+/* Enlaces de contraste externo (capa 3) */
+.cp-enl { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
+.cp-enl a { font-size: 12.5px; font-weight: 600; text-decoration: none;
+            color: #3d5266; background: #fff; border: 1px solid #cfdce7;
+            border-radius: 999px; padding: 4px 12px; }
+.cp-enl a:hover { border-color: #5b84a6; color: #5b84a6; }
+.pill.ok { background: #dff0e3; color: #3f6f4b; }
+
+.cat-lista { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
+.cat-op { text-align: left; font-size: 12.5px; font-family: inherit; cursor: pointer;
+          background: #fff; border: 1px solid #dfe7ee; border-radius: 7px;
+          padding: 7px 11px; color: #3d5266; }
+.cat-op:hover { border-color: #5b84a6; background: #f7fbfe; }

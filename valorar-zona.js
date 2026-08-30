@@ -85,11 +85,145 @@
         "aquí abajo.</div>";
   }
 
+  /* ── Catastro: rellenar el formulario con datos oficiales ─────────────── */
+  var cRC  = document.getElementById("cat-rc");
+  var cDir = document.getElementById("cat-dir");
+  var cRes = document.getElementById("cat-res");
+
+  function aviso(html, clase) {
+    if (cRes) cRes.innerHTML = "<div class='cat-msg " + (clase || "") + "'>" + html + "</div>";
+  }
+
+  /* El Catastro escribe los municipios en mayúsculas y a su manera ("MADRID",
+     "CORUÑA (A)"); nuestros selects usan la grafía de los anuncios. Se compara
+     sin acentos, sin artículo y en minúsculas para que se encuentren. */
+  function normaliza(t) {
+    var n = (t || "").trim().toLowerCase();
+    var m = n.match(/^(.*?),?\s*\((el|la|els|les|a|o|os|as|l')\)$/);
+    if (m) n = m[2] + " " + m[1];
+    return n.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9 ]+/g, "").trim();
+  }
+
+  function seleccionar(sel, texto) {
+    var objetivo = normaliza(texto);
+    for (var i = 0; i < sel.options.length; i++) {
+      if (normaliza(sel.options[i].textContent) === objetivo) {
+        sel.selectedIndex = i;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function volcar(d) {
+    var notas = [];
+    if (seleccionar(selP, d.provincia)) {
+      pintarMunicipios();
+      if (!seleccionar(selM, d.municipio)) {
+        notas.push("de <b>" + d.municipio + "</b> no hay comparables suficientes, " +
+                   "así que se valora con toda la provincia");
+      }
+    } else {
+      notas.push("la provincia <b>" + d.provincia + "</b> no está entre las escaneadas");
+    }
+
+    // Superficie: la de la vivienda si el Catastro la desglosa; si no, la
+    // construida total, avisando de que incluye garaje y trastero.
+    var m2 = d.m2_vivienda || d.m2;
+    if (m2) {
+      document.getElementById("v-m2").value = Math.round(m2);
+      if (!d.m2_vivienda && d.elementos.length > 1) {
+        notas.push("los <b>" + Math.round(d.m2) + " m²</b> son la superficie " +
+                   "construida total e incluyen anejos; ajústala si quieres solo " +
+                   "la vivienda");
+      }
+    }
+
+    var filas = [
+      ["Dirección", d.direccion],
+      ["Referencia catastral", d.rc],
+      ["Uso", d.uso],
+      ["Superficie construida", d.m2 ? d.m2 + " m²" : ""],
+      ["Superficie de vivienda", d.m2_vivienda ? Math.round(d.m2_vivienda) + " m²" : ""],
+      ["Año de construcción", d.anio || ""],
+      ["Código postal", d.cp]
+    ].filter(function (f) { return f[1]; });
+
+    var elem = d.elementos.filter(function (e) { return e.m2; });
+    cRes.innerHTML =
+      "<div class='cat-ok'>Datos del Catastro</div>" +
+      "<dl class='cat-dl'>" + filas.map(function (f) {
+        return "<dt>" + f[0] + "</dt><dd>" + f[1] + "</dd>";
+      }).join("") + "</dl>" +
+      (elem.length > 1
+        ? "<div class='cat-el'>Elementos: " + elem.map(function (e) {
+            return e.clase.toLowerCase() + " " + e.m2 + " m²";
+          }).join(" · ") + "</div>"
+        : "") +
+      (notas.length ? "<div class='cat-msg aviso'>" + notas.join(". ") + ".</div>" : "");
+
+    valorar();
+  }
+
+  /* Una dirección con varios inmuebles (un portal de pisos) devuelve la lista
+     del edificio, no una ficha. Se enseñan para que se elija el suyo: sin
+     esto, buscar cualquier calle con bloques de viviendas no daba nada. */
+  function elegir(lista) {
+    cRes.innerHTML =
+      "<div class='cat-ok'>" + lista.length + " inmuebles en esa dirección</div>" +
+      "<div class='cat-lista'>" + lista.map(function (it, i) {
+        return "<button type='button' class='cat-op' data-rc='" + it.rc + "'>" +
+          "<b>" + it.sitio + "</b>" +
+          (it.uso ? " · " + it.uso : "") +
+          (it.m2 ? " · " + it.m2 + " m²" : "") + "</button>";
+      }).join("") + "</div>" +
+      "<div class='cat-msg'>Elige el tuyo y se traen todos sus datos.</div>";
+    Array.prototype.forEach.call(cRes.querySelectorAll(".cat-op"), function (b) {
+      b.addEventListener("click", function () {
+        buscar(REO_CATASTRO.porReferencia(b.getAttribute("data-rc")));
+      });
+    });
+  }
+
+  function buscar(promesa) {
+    aviso("Consultando el Catastro…");
+    promesa.then(function (r) {
+      if (r && r.lista) return elegir(r.lista);
+      volcar(r && r.unico ? r.unico : r);
+    }).catch(function (e) {
+      aviso("No se pudo: " + e.message, "error");
+    });
+  }
+
+  if (cRC) {
+    document.getElementById("cat-btn-rc").addEventListener("click", function () {
+      buscar(REO_CATASTRO.porReferencia(cRC.value));
+    });
+    cRC.addEventListener("keydown", function (ev) {
+      if (ev.key === "Enter") document.getElementById("cat-btn-rc").click();
+    });
+  }
+  if (cDir) {
+    document.getElementById("cat-btn-dir").addEventListener("click", function () {
+      var prov = selP.options[selP.selectedIndex];
+      if (!prov) return aviso("Elige antes la provincia", "error");
+      // El Catastro necesita el municipio concreto, no vale "toda la provincia".
+      var muni = selM.value || prov.textContent;
+      buscar(REO_CATASTRO.porDireccion(prov.textContent, muni, cDir.value));
+    });
+    cDir.addEventListener("keydown", function (ev) {
+      if (ev.key === "Enter") document.getElementById("cat-btn-dir").click();
+    });
+  }
+
   document.getElementById("v-calc").addEventListener("click", valorar);
   ["v-m2", "v-estado", "v-muni"].forEach(function (id) {
     document.getElementById(id).addEventListener("change", valorar);
   });
   selP.addEventListener("change", valorar);
+
+  var cmkt = document.getElementById("c-mkt");
+  if (cmkt) cmkt.textContent = (Z.muni_con_mercado || 0).toLocaleString("es-ES");
 
   var cm = document.getElementById("c-muni");
   if (cm) {
