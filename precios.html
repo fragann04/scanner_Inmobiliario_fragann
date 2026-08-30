@@ -29,15 +29,17 @@
 
   <div class="intro">
     <h1>Mapa de precios por provincia</h1>
-    <p>Qué cuesta el metro cuadrado del stock de banco y de subastas en cada
-       provincia — y, en la segunda capa, algo que ningún portal enseña:
+    <p>Qué cuesta el metro cuadrado en cada provincia según el <b>valor tasado
+       oficial</b>, cuánto se separa de él el stock de banco y subastas, y
+       —en la tercera capa— algo que ningún portal enseña:
        <b>dónde rinde de verdad el dinero</b>.</p>
   </div>
 
   <div class="panel">
     <section>
       <div class="capas-btn" role="group" aria-label="Capa del mapa">
-        <button type="button" class="cb on" data-capa="precio">Precio €/m²</button>
+        <button type="button" class="cb" data-capa="mercado">Precio de mercado</button>
+        <button type="button" class="cb" data-capa="stock">Stock del Scanner</button>
         <button type="button" class="cb" data-capa="renta">Rentabilidad</button>
       </div>
 
@@ -51,35 +53,38 @@
       <div class="leyenda" id="leyenda"></div>
 
       <div class="detalle" id="detalle">
-        <h3>Pulsa una provincia</h3>
+        <h3>Pulsa una provincia para abrirla</h3>
         <div class="lin" id="det-lin">Cargando…</div>
       </div>
 
-      <div class="fuente"><b>Qué mide y qué no.</b> Es la mediana del
-        <b>stock bancario y de subastas</b>, no del mercado abierto: es
-        sistemáticamente más barato. Es la cifra correcta para decidir una compra
-        de inversión, y la equivocada para tasar una vivienda —para eso está
-        <a href="valorar.html">Valorar mi piso</a>.<br>
+      <div class="fuente" id="pie-fuente"></div>
+      <div class="fuente"><b>Las tres capas no miden lo mismo.</b>
+        <i>Precio de mercado</i> es el valor tasado oficial: lo que cuesta comprar
+        en esa provincia. <i>Stock del Scanner</i> es la mediana de los pisos de
+        banco, Sareb y subastas que rastreamos — sirve para ver la distancia con
+        el mercado, no para tasar una vivienda. <i>Rentabilidad</i> es el
+        cash-on-cash mediano de ese stock.<br>
         <b>El mapa</b> son límites provinciales simplificados dibujados dentro de
         esta misma página: sin librería de mapas, sin servidor de teselas y sin
         ninguna petición a terceros.</div>
     </section>
 
     <section>
-      <div class="rot">Lo caro y lo rentable no coinciden</div>
-      <p class="sub">Las seis provincias más caras y las cuatro más baratas</p>
+      <div class="rot">Dónde el stock de banco se aleja más del mercado</div>
+      <p class="sub">Las seis con más descuento y las cuatro donde sale por encima</p>
       <div class="tabla-scroll">
         <table>
-          <thead><tr><th>Provincia</th><th class="num">€/m²</th>
-            <th class="num">Inmuebles medidos</th>
-            <th class="num">Cash-on-cash mediano</th></tr></thead>
+          <thead><tr><th>Provincia</th><th class="num">Mercado €/m²</th>
+            <th class="num">Stock €/m²</th>
+            <th class="num">Diferencia</th></tr></thead>
           <tbody id="tabla-extremos"></tbody>
         </table>
       </div>
-      <div class="fuente">Un portal te dice dónde es caro. Aquí ves además
-        <b>dónde renta</b>, que casi nunca es el mismo sitio: en las provincias
-        más caras el cash-on-cash sale más negativo, porque el alquiler no sigue
-        al precio de compra.</div>
+      <div class="fuente">La intuición de que el stock de banco siempre es más
+        barato <b>no se sostiene con los datos</b>: en unas provincias está muy por
+        debajo del mercado y en otras sale por encima, porque lo que sale a la venta
+        en cada zona no es la misma clase de inmueble. Por eso la comparación se
+        enseña provincia a provincia y no como una regla general.</div>
     </section>
   </div>
 
