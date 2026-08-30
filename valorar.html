@@ -9,6 +9,17 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="estilo-zona.css">
+<script src="config.js"></script>
+<script>
+// Puerta de sesion: estas herramientas viven dentro del acceso, igual que los
+// exploradores. Sin sesion se manda al login. En uso local (file://) no aplica.
+(function () {
+  if (location.protocol === "file:") return;
+  var s = null;
+  try { s = JSON.parse(sessionStorage.getItem("reo_session") || "null"); } catch (e) {}
+  if (!s) location.replace("acceso.html");
+})();
+</script>
 </head>
 <body>
 

@@ -1254,6 +1254,22 @@ document.addEventListener("DOMContentLoaded", function () {
     else location.href = "explorador-" + sel.value + ".html";
   });
   head.appendChild(sel);
+
+  // Herramientas de zona: viven DENTRO del acceso, no en la web publica.
+  var hs = document.createElement("div");
+  hs.id = "reo-herramientas";
+  hs.style.cssText = "display:flex;gap:8px;flex-wrap:wrap;margin-top:10px";
+  [["precios.html", "\uD83D\uDDFA\uFE0F Mapa de precios"],
+   ["valorar.html", "\uD83D\uDCB6 Valorar un piso"]].forEach(function (h) {
+    var a = document.createElement("a");
+    a.href = h[0];
+    a.textContent = h[1];
+    a.style.cssText = "font-size:13px;font-weight:600;text-decoration:none;" +
+      "color:#4a5a68;background:#eef4f9;border:1px solid #dfe7ee;" +
+      "border-radius:999px;padding:6px 14px";
+    hs.appendChild(a);
+  });
+  head.appendChild(hs);
 });
 </script>
 <script>window.REO_ASISTENTE = { contexto: "explorador" };</script>
