@@ -95,6 +95,136 @@
     };
   }
 
+  /* ─── Validar la direccion antes de preguntar al Catastro ──────────────
+   *
+   * Se usa CartoCiudad, el geocodificador oficial del Instituto Geografico
+   * Nacional. Por que este y no Google Maps: esta web son ficheros estaticos
+   * en GitHub Pages, asi que una clave de API iria dentro del JavaScript y la
+   * veria cualquiera que abriese el codigo fuente — el mismo motivo por el que
+   * el asistente de dudas es de reglas y no llama a ninguna IA. CartoCiudad no
+   * pide clave, es gratuito, manda Access-Control-Allow-Origin: * y ademas
+   * conoce el callejero espanol oficial, que para direcciones de aqui es mejor
+   * fuente que Google.
+   *
+   * Devuelve la direccion normalizada y sus coordenadas.
+   */
+  var URL_IGN = "https://www.cartociudad.es/geocoder/api/geocoder/findJsonp";
+
+  /* Google Maps como geocodificador, si hay clave.
+   *
+   * Se activa poniendo la clave en la propia pagina, antes de cargar este
+   * fichero:
+   *
+   *     <script>window.REO_GOOGLE_KEY = "AIza...";</script>
+   *
+   * La clave va en el navegador porque es el modelo de Google para su API web:
+   * lo que la protege NO es esconderla —es imposible en una web estatica— sino
+   * RESTRINGIRLA. En Google Cloud Console, en la clave:
+   *   · Restriccion de aplicacion: "Sitios web (referente HTTP)" con
+   *     https://www.scannerinmobiliario.com/*
+   *   · Restriccion de API: solo "Geocoding API"
+   *   · Y ponle un limite de cuota diario, para que un abuso no dispare la
+   *     factura.
+   * Sin esas dos restricciones cualquiera puede copiar la clave y gastarte el
+   * credito, asi que no la subas hasta tenerlas puestas.
+   *
+   * Sin clave se usa CartoCiudad (IGN), que no la necesita y conoce el
+   * callejero oficial espanol.
+   */
+  function _google(texto) {
+    var key = global.REO_GOOGLE_KEY;
+    if (!key) return Promise.reject(new Error("sin clave"));
+    var u = "https://maps.googleapis.com/maps/api/geocode/json?address=" +
+            encodeURIComponent(texto) + "&components=country:ES&language=es&key=" + key;
+    return fetch(u, { mode: "cors" })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (j.status !== "OK" || !j.results.length) {
+          throw new Error("Google no encuentra esa direccion (" + j.status + ")");
+        }
+        var g = j.results[0], c = {};
+        (g.address_components || []).forEach(function (x) {
+          x.types.forEach(function (t) { c[t] = x.long_name; });
+        });
+        return {
+          direccion: g.formatted_address,
+          municipio: c.locality || c.administrative_area_level_2 || "",
+          provincia: c.administrative_area_level_2 || "",
+          cp: c.postal_code || "",
+          lat: g.geometry.location.lat,
+          lng: g.geometry.location.lng,
+          // ROOFTOP = el portal exacto; el resto es aproximado.
+          precision: g.geometry.location_type === "ROOFTOP" ? "portal" : "aproximada",
+          fuente: "Google Maps"
+        };
+      });
+  }
+
+  function validarDireccion(texto) {
+    if (!(texto || "").trim()) {
+      return Promise.reject(new Error("escribe una direccion"));
+    }
+    if (global.REO_GOOGLE_KEY) {
+      // Con clave manda Google; si falla (cuota agotada, clave mal
+      // restringida) NO se deja al usuario sin validar: se cae al IGN.
+      return _google(texto).catch(function (e) {
+        if (global.console) console.warn("Google geocoding fallo:", e.message);
+        return _cartociudad(texto);
+      });
+    }
+    return _cartociudad(texto);
+  }
+
+  function _cartociudad(texto) {
+    return fetch(URL_IGN + "?q=" + encodeURIComponent(texto), { mode: "cors" })
+      .then(function (r) {
+        if (!r.ok) throw new Error("el geocodificador respondio " + r.status);
+        return r.text();
+      })
+      .then(function (txt) {
+        // La respuesta viene envuelta en callback(...) aunque se pida JSON.
+        var m = txt.match(/^[^(]*\((.*)\)\s*;?\s*$/s);
+        var j = JSON.parse(m ? m[1] : txt);
+        if (!j || (!j.lat && !j.lng)) {
+          throw new Error("no se ha encontrado esa direccion");
+        }
+        return {
+          direccion: [j.tip_via, j.address, j.portalNumber].filter(Boolean).join(" "),
+          municipio: j.muni || "",
+          provincia: j.province || "",
+          cp: j.postalCode || "",
+          lat: j.lat,
+          lng: j.lng,
+          // "portal" = numero exacto; "callejero"/"via" = solo la calle, el
+          // punto cae en algun sitio de ella y el contraste puede desviarse.
+          precision: j.type || "",
+          fuente: "IGN · CartoCiudad"
+        };
+      });
+  }
+
+  /* Referencia catastral que hay en unas coordenadas. OJO: los parametros son
+     CoorX / CoorY. Con Coordenada_X responde "LA COORDENADA X OBLIGATORIA"
+     aunque la mandes, que despista bastante. */
+  function porCoordenadas(lat, lng) {
+    var base = "https://ovc.catastro.meh.es/OVCServWeb/OVCWcfCallejero/" +
+               "COVCCoordenadas.svc/json/Consulta_RCCOOR";
+    var q = "SRS=EPSG:4326&CoorX=" + encodeURIComponent(lng) +
+            "&CoorY=" + encodeURIComponent(lat);
+    return fetch(base + "?" + q, { mode: "cors" })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        var res = j.Consulta_RCCOORResult || {};
+        if (res.control && res.control.cuerr && res.lerr && res.lerr.length) {
+          throw new Error(res.lerr[0].des || "el Catastro no reconoce ese punto");
+        }
+        var c = ((res.coordenadas || {}).coord || [])[0];
+        if (!c) throw new Error("no hay ninguna finca catastrada en ese punto");
+        var pc = c.pc || {};
+        return { rc: (pc.pc1 || "") + (pc.pc2 || ""), descripcion: c.ldt || "" };
+      });
+  }
+
   function porReferencia(refcat) {
     var rc = (refcat || "").replace(/[\s.-]/g, "").toUpperCase();
     if (rc.length < 14) {
@@ -202,6 +332,8 @@
   global.REO_CATASTRO = {
     porReferencia: porReferencia,
     porDireccion: porDireccion,
-    partirDireccion: partirDireccion
+    partirDireccion: partirDireccion,
+    validarDireccion: validarDireccion,
+    porCoordenadas: porCoordenadas
   };
 })(window);

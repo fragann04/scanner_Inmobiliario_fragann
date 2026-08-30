@@ -90,8 +90,14 @@
   var cDir = document.getElementById("cat-dir");
   var cRes = document.getElementById("cat-res");
 
+  // Lo que dijo el callejero oficial, para que NO se pierda al pintar despues
+  // los datos del Catastro. El contraste entre ambos es justo lo que permite
+  // ver que el punto ha caido en la finca de al lado.
+  var contexto = "";
+
   function aviso(html, clase) {
-    if (cRes) cRes.innerHTML = "<div class='cat-msg " + (clase || "") + "'>" + html + "</div>";
+    if (cRes) cRes.innerHTML = contexto +
+      "<div class='cat-msg " + (clase || "") + "'>" + html + "</div>";
   }
 
   /* El Catastro escribe los municipios en mayúsculas y a su manera ("MADRID",
@@ -150,7 +156,7 @@
     ].filter(function (f) { return f[1]; });
 
     var elem = d.elementos.filter(function (e) { return e.m2; });
-    cRes.innerHTML =
+    cRes.innerHTML = contexto +
       "<div class='cat-ok'>Datos del Catastro</div>" +
       "<dl class='cat-dl'>" + filas.map(function (f) {
         return "<dt>" + f[0] + "</dt><dd>" + f[1] + "</dd>";
@@ -197,6 +203,7 @@
 
   if (cRC) {
     document.getElementById("cat-btn-rc").addEventListener("click", function () {
+      contexto = "";   // la referencia es exacta: no hay nada que contrastar
       buscar(REO_CATASTRO.porReferencia(cRC.value));
     });
     cRC.addEventListener("keydown", function (ev) {
@@ -205,11 +212,58 @@
   }
   if (cDir) {
     document.getElementById("cat-btn-dir").addEventListener("click", function () {
-      var prov = selP.options[selP.selectedIndex];
-      if (!prov) return aviso("Elige antes la provincia", "error");
-      // El Catastro necesita el municipio concreto, no vale "toda la provincia".
-      var muni = selM.value || prov.textContent;
-      buscar(REO_CATASTRO.porDireccion(prov.textContent, muni, cDir.value));
+      var texto = cDir.value;
+      aviso("Validando la dirección…");
+
+      /* Dos pasos, y se enseñan los dos:
+         1) el callejero oficial del IGN normaliza lo que se ha escrito y da
+            sus coordenadas;
+         2) el Catastro dice qué finca hay en ese punto.
+         Si las dos coinciden, la dirección está contrastada de verdad. Si el
+         IGN solo ha sabido situar la calle y no el portal, se avisa, porque
+         entonces el punto cae en cualquier sitio de la vía. */
+      REO_CATASTRO.validarDireccion(texto).then(function (d) {
+        var exacta = /portal/i.test(d.precision);
+        // Se enseña SIEMPRE lo que se pidió junto a lo que devolvió cada
+        // fuente. Un aviso condicional se puede quedar callado por un fallo
+        // de la comparación y entonces das por buena la finca equivocada;
+        // poniendo las dos líneas a la vista, la discrepancia se ve sola.
+        // Caso real: "carrer harmonia 35" -> el callejero devuelve el 37,
+        // porque el 35 no existe en su base y engancha al portal más cercano.
+        contexto =
+          "<div class='cat-ok'>Dirección validada · " + (d.fuente || "IGN") + "</div>" +
+          "<dl class='cat-dl'>" +
+          "<dt>Has pedido</dt><dd>" + texto + "</dd>" +
+          "<dt>El callejero encuentra</dt><dd>" + d.direccion + "</dd>" +
+          "<dt>Municipio</dt><dd>" + d.municipio + " (" + d.provincia + ")</dd>" +
+          (d.cp ? "<dt>Código postal</dt><dd>" + d.cp + "</dd>" : "") +
+          "</dl>";
+        if (!exacta) {
+          contexto += "<div class='cat-msg aviso'>El callejero ha situado la " +
+            "<b>vía</b> pero no el portal exacto: la finca del Catastro puede " +
+            "no ser la tuya.</div>";
+        }
+        aviso("Contrastando con el Catastro…");
+
+        return REO_CATASTRO.porCoordenadas(d.lat, d.lng).then(function (c) {
+          contexto += "<div class='cat-msg'>En ese punto el Catastro tiene " +
+            "<b>" + c.rc + "</b>" +
+            (c.descripcion ? " — " + c.descripcion : "") + "</div>";
+          return REO_CATASTRO.porReferencia(c.rc);
+        }).catch(function (e) {
+          // Sin finca en el punto se recurre a la búsqueda por calle+número,
+          // que es la que funciona en portales de pisos.
+          aviso("El Catastro no da finca en ese punto (" + e.message +
+                "). Se busca por calle y número…");
+          return REO_CATASTRO.porDireccion(d.provincia, d.municipio, texto);
+        });
+      }).then(function (r) {
+        if (!r) return;
+        if (r.lista) return elegir(r.lista);
+        volcar(r.unico ? r.unico : r);
+      }).catch(function (e) {
+        aviso("No se pudo: " + e.message, "error");
+      });
     });
     cDir.addEventListener("keydown", function (ev) {
       if (ev.key === "Enter") document.getElementById("cat-btn-dir").click();
