@@ -508,6 +508,27 @@
       relacionados: ["exactitud", "privacidad"]
     },
     {
+      id: "comparador",
+      titulo: "Comparar inmuebles",
+      claves: ["comparar", "comparador", "comparacion", "lado a lado",
+               "cual es mejor", "cual me conviene", "enfrentar", "versus",
+               "dos pisos", "varios pisos", "elegir entre"],
+      respuesta:
+        "Dentro del explorador, cada fila tiene una <b>casilla</b> a la " +
+        "izquierda. Marca hasta <b>4 inmuebles</b> y abajo aparece el botón " +
+        "<b>Comparar</b>.<br><br>" +
+        "Se abren en columnas, una métrica por fila — precio, €/m², capital de " +
+        "entrada, cuota, renta estimada, cashflow, cash-on-cash, descuento — y " +
+        "el <b>mejor valor de cada fila se marca en verde</b>.<br><br>" +
+        "Arriba tienes un <b>simulador</b>: cambias el porcentaje que financias, " +
+        "el tipo de interés, el plazo y la reforma, y los números se recalculan " +
+        "al momento con <i>tus</i> condiciones, no con las del ejemplo.<br><br>" +
+        "La selección te sigue si cambias de provincia, así que puedes comparar " +
+        "un piso de Valencia con otro de Sevilla. Y con <b>Guardar en PDF</b> te " +
+        "lo llevas.",
+      relacionados: ["cash-on-cash", "capital", "hipoteca", "filtros"]
+    },
+    {
       id: "contacto",
       titulo: "Hablar con una persona",
       claves: ["contacto", "hablar con alguien", "persona", "humano", "email",
@@ -1181,7 +1202,7 @@
     landing:    ["precio", "provincias", "cash-on-cash", "registro", "fuentes"],
     acceso:     ["clave-olvidada", "no-encuentra-cuenta", "registro", "precio"],
     explorar:   ["provincias", "filtros", "cash-on-cash", "actualizacion"],
-    explorador: ["filtros", "cash-on-cash", "capital", "estrella", "comprar"],
+    explorador: ["comparador", "filtros", "cash-on-cash", "capital", "estrella"],
     generico:   ["que-es", "precio", "provincias", "cash-on-cash", "contacto"]
   };
 
@@ -1380,11 +1401,31 @@
     }
 
     // Permite abrirlo desde cualquier enlace de la página: href="#asistente"
-    // o cualquier elemento con data-abrir-asistente.
+    // o cualquier elemento con data-abrir-asistente. Si ese atributo lleva el
+    // id de una respuesta ("cash-on-cash", "capital"…), el asistente se abre
+    // directamente en ella — asi el comparador puede explicar cada metrica sin
+    // duplicar los textos.
     document.addEventListener("click", function (e) {
       var t = e.target.closest ? e.target.closest("[data-abrir-asistente],a[href='#asistente']") : null;
-      if (t) { e.preventDefault(); abrir(); }
+      if (!t) return;
+      e.preventDefault();
+      abrir();
+      var tema = t.getAttribute("data-abrir-asistente");
+      if (tema && POR_ID[tema]) {
+        decir(POR_ID[tema].titulo, true);
+        setTimeout(function () { mostrar(POR_ID[tema]); }, 180);
+      }
     });
+
+    // Misma puerta, para quien prefiera llamarla desde JS.
+    window.reoAsistente = {
+      abrir: abrir,
+      tema: function (id) {
+        abrir();
+        if (POR_ID[id]) { decir(POR_ID[id].titulo, true); mostrar(POR_ID[id]); }
+      },
+      preguntar: function (txt) { abrir(); preguntar(txt); }
+    };
   }
 
   if (document.readyState === "loading") {

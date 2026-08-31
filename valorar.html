@@ -107,6 +107,22 @@
       </div>
 
       <div id="v-alerta"></div>
+
+      <div class="emisor">
+        <div class="cat-t">Descargar el informe</div>
+        <p class="cat-s">Tus datos salen en el informe como quien lo emite. Se
+           guardan <b>solo en este navegador</b>: no se envían a ningún sitio.</p>
+        <div class="cat-fila">
+          <input id="em-nombre" type="text" autocomplete="name"
+                 placeholder="Tu nombre o el de tu empresa">
+        </div>
+        <div class="cat-fila">
+          <input id="em-contacto" type="text" autocomplete="email"
+                 placeholder="Teléfono o email de contacto (opcional)">
+        </div>
+        <button class="btn" type="button" id="v-pdf" style="margin-top:4px">
+          Descargar informe en PDF</button>
+      </div>
     </section>
 
     <section>
@@ -179,6 +195,8 @@
   </div>
 
 </div>
+
+<div id="hoja" aria-hidden="true"></div>
 
 <footer>
   Valoración orientativa a partir de fuentes públicas. <b>No sustituye una

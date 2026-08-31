@@ -270,6 +270,96 @@
     });
   }
 
+  /* ── Informe descargable ────────────────────────────────────────────────
+   *
+   * Se genera con la impresion del navegador ("Guardar como PDF"), no con una
+   * libreria externa: la web es estatica y meter un jsPDF de CDN significaria
+   * depender de un tercero para algo que el navegador ya hace bien, ademas de
+   * cargar 300 KB a todo el que entre. Asi el informe sale con las fuentes y
+   * los colores de la propia pagina y funciona sin conexion.
+   *
+   * Los datos del emisor se guardan en este navegador (localStorage) para no
+   * tener que reescribirlos: no viajan a ningun servidor porque no hay ninguno.
+   */
+  var emN = document.getElementById("em-nombre");
+  var emC = document.getElementById("em-contacto");
+
+  try {
+    if (emN) emN.value = localStorage.getItem("reo_emisor_nombre") || "";
+    if (emC) emC.value = localStorage.getItem("reo_emisor_contacto") || "";
+  } catch (e) { /* navegador con el almacenamiento capado: se sigue igual */ }
+
+  function guardarEmisor() {
+    try {
+      localStorage.setItem("reo_emisor_nombre", emN ? emN.value : "");
+      localStorage.setItem("reo_emisor_contacto", emC ? emC.value : "");
+    } catch (e) {}
+  }
+  [emN, emC].forEach(function (i) {
+    if (i) i.addEventListener("change", guardarEmisor);
+  });
+
+  function txt(id) {
+    var e = document.getElementById(id);
+    return e ? e.textContent.trim() : "";
+  }
+
+  function informe() {
+    if (txt("v-med") === "—") {
+      return alert("Primero valora un inmueble: elige provincia y superficie, "
+                 + "o trae los datos del Catastro.");
+    }
+    guardarEmisor();
+
+    var hoy = new Date().toLocaleDateString("es-ES",
+      { day: "2-digit", month: "long", year: "numeric" });
+    var nombre = (emN && emN.value.trim()) || "";
+    var contacto = (emC && emC.value.trim()) || "";
+
+    // Ficha del Catastro, si se ha consultado. Se copia tal cual: es el dato
+    // oficial y es justo lo que hace fiable la valoracion.
+    var cat = document.getElementById("cat-res");
+    var ficha = (cat && cat.querySelector(".cat-dl"))
+      ? "<h2>Datos del inmueble · Catastro</h2>" + cat.innerHTML : "";
+
+    var mercado = "";
+    var m = (Z.mercado || {});
+    if (m.fuente) {
+      mercado = "<p class='pie'>Referencia de mercado: " + m.fuente +
+                (m.periodo ? " · " + m.periodo : "") + ".</p>";
+    }
+
+    document.getElementById("hoja").innerHTML =
+      "<div class='hoja-cab'>" +
+        "<div class='hoja-marca'>Scanner<span>REO</span></div>" +
+        "<div class='hoja-fecha'>Informe de valoración · " + hoy + "</div>" +
+      "</div>" +
+      (nombre
+        ? "<div class='hoja-emisor'><b>Emitido por</b><br>" + nombre +
+          (contacto ? "<br>" + contacto : "") + "</div>"
+        : "") +
+      "<h2>Valoración estimada</h2>" +
+      "<p class='hoja-base'>" + txt("v-base") + "</p>" +
+      "<table class='hoja-tres'><tr>" +
+        "<th>Precio mínimo</th><th>Precio medio</th><th>Precio máximo</th></tr><tr>" +
+        "<td>" + txt("v-min") + "</td>" +
+        "<td class='destaca'>" + txt("v-med") + "</td>" +
+        "<td>" + txt("v-max") + "</td></tr></table>" +
+      "<p class='pie'>" + txt("v-conf") + "</p>" +
+      ficha +
+      mercado +
+      "<p class='pie aviso-legal'>Valoración orientativa calculada a partir de " +
+      "fuentes públicas (Catastro, valor tasado del Ministerio de Transportes y " +
+      "Movilidad Sostenible, y precios de oferta recogidos por el Scanner). " +
+      "<b>No sustituye a una tasación</b> homologada ni constituye asesoramiento " +
+      "financiero, inmobiliario o legal.</p>";
+
+    window.print();
+  }
+
+  var bPdf = document.getElementById("v-pdf");
+  if (bPdf) bPdf.addEventListener("click", informe);
+
   document.getElementById("v-calc").addEventListener("click", valorar);
   ["v-m2", "v-estado", "v-muni"].forEach(function (id) {
     document.getElementById(id).addEventListener("change", valorar);

@@ -222,3 +222,50 @@ table.t-muni tbody tr:hover td{background:var(--surface)}
           background: #fff; border: 1px solid #dfe7ee; border-radius: 7px;
           padding: 7px 11px; color: #3d5266; }
 .cat-op:hover { border-color: #5b84a6; background: #f7fbfe; }
+
+/* ─── Bloque del emisor y hoja del informe ──────────────────────────────── */
+.emisor { margin-top: 20px; padding-top: 16px; border-top: 1px solid #dfe7ee; }
+.emisor .cat-fila { max-width: 420px; }
+
+/* La hoja solo existe al imprimir: en pantalla estorbaria. */
+#hoja { display: none; }
+
+@media print {
+  /* Se imprime la hoja y nada mas: ni barra, ni formularios, ni asistente. */
+  body > *:not(#hoja) { display: none !important; }
+  #hoja { display: block; font-size: 11pt; color: #1d2b36; }
+
+  .hoja-cab { display: flex; justify-content: space-between; align-items: baseline;
+              border-bottom: 2px solid #5b84a6; padding-bottom: 8px; margin-bottom: 18px; }
+  .hoja-marca { font-size: 17pt; font-weight: 700; letter-spacing: -.01em; }
+  .hoja-marca span { color: #5b84a6; }
+  .hoja-fecha { font-size: 9.5pt; color: #5c6a77; }
+
+  .hoja-emisor { background: #eef4f9; border: 1px solid #dfe7ee; border-radius: 6px;
+                 padding: 10px 13px; font-size: 10pt; margin-bottom: 18px; }
+
+  #hoja h2 { font-size: 12pt; margin: 20px 0 8px; padding-bottom: 4px;
+             border-bottom: 1px solid #dfe7ee; }
+  .hoja-base { font-size: 10pt; color: #5c6a77; margin: 0 0 12px; }
+
+  .hoja-tres { width: 100%; border-collapse: collapse; margin: 10px 0 6px; }
+  .hoja-tres th { font-size: 8.5pt; text-transform: uppercase; letter-spacing: .05em;
+                  color: #6b7885; font-weight: 600; padding-bottom: 4px; }
+  .hoja-tres td { font-size: 16pt; font-weight: 700; text-align: center;
+                  padding: 8px 4px; border: 1px solid #dfe7ee; }
+  .hoja-tres td.destaca { background: #eef4f9; color: #3d5266; }
+
+  #hoja .cat-dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 14px;
+                  font-size: 10pt; }
+  #hoja .cat-dl dt { color: #6b7885; }
+  #hoja .cat-dl dd { margin: 0; font-weight: 600; }
+  #hoja .cat-ok { font-size: 8.5pt; text-transform: uppercase; letter-spacing: .05em;
+                  color: #4f8a5c; font-weight: 700; margin: 12px 0 5px; }
+  #hoja .cat-msg, #hoja .cat-el { font-size: 9pt; color: #5c6a77; margin-top: 6px; }
+  #hoja .cat-lista, #hoja .cat-op { display: none; }
+
+  .pie { font-size: 8.5pt; color: #6b7885; line-height: 1.5; margin-top: 10px; }
+  .aviso-legal { margin-top: 20px; padding-top: 10px; border-top: 1px solid #dfe7ee; }
+
+  @page { margin: 16mm 15mm; }
+}

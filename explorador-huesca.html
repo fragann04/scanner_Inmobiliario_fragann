@@ -152,6 +152,120 @@
     td:first-child { text-align: left; }
     a { padding: 4px 0; display: inline-block; }
   }
+
+  /* ── Comparador de inmuebles ───────────────────────────────────────────── */
+  th.sel, td.sel { width: 32px; text-align: center; padding-left: 10px; }
+  td.sel input { width: 17px; height: 17px; cursor: pointer; accent-color: #5b84a6; }
+  tr.comparando td { background: #eaf1f7; }
+
+  #barra-comp { position: fixed; left: 50%; transform: translateX(-50%);
+      bottom: 18px; z-index: 60; display: none; align-items: center; gap: 12px;
+      background: #233140; color: #fff; border-radius: 28px;
+      padding: 9px 10px 9px 20px; font-size: 13px;
+      box-shadow: 0 6px 24px rgba(35,49,64,.30); }
+  #barra-comp.on { display: flex; }
+  #barra-comp .n { font-weight: 700; }
+  #barra-comp button { border: none; border-radius: 20px; padding: 9px 18px;
+      font-weight: 600; font-size: 13px; font-family: inherit; cursor: pointer; }
+  #comp-abrir { background: #5b84a6; color: #fff; }
+  #comp-abrir:hover:not(:disabled) { background: #6d95b5; }
+  #comp-abrir:disabled { background: #46586b; color: #91a2b3; cursor: default; }
+  #comp-limpiar { background: transparent; color: #b9c7d4; padding: 9px 8px; }
+  #comp-limpiar:hover { color: #fff; }
+
+  #comp-fondo { position: fixed; inset: 0; background: rgba(35,49,64,.45);
+      z-index: 70; display: none; overflow: auto; padding: 20px; }
+  #comp-fondo.on { display: block; }
+  #comp-caja { background: #f5f8fb; max-width: 1120px; margin: 0 auto;
+      border-radius: 8px; box-shadow: 0 18px 50px rgba(35,49,64,.30);
+      overflow: hidden; }
+  #comp-cab { display: flex; align-items: center; justify-content: space-between;
+      gap: 14px; padding: 16px 22px; background: #eef4f9;
+      border-bottom: 1px solid #dfe7ee; }
+  #comp-cab h2 { font-family: 'Space Grotesk','Segoe UI',sans-serif;
+      font-size: 17px; margin: 0; color: #233140; }
+  #comp-cab .sub { font-size: 11.5px; color: #7c8b98; margin-top: 2px; }
+  #comp-cab .acciones { display: flex; gap: 8px; align-items: center; }
+  #comp-cab button { border: 1px solid #cfdbe6; background: #fff; color: #3d5266;
+      border-radius: 20px; padding: 8px 15px; font-size: 12.5px; font-weight: 600;
+      cursor: pointer; font-family: inherit; white-space: nowrap; }
+  #comp-cab button:hover { background: #eef4f9; }
+  #comp-cerrar { border: none !important; background: none !important;
+      font-size: 24px; line-height: 1; color: #5a6875; padding: 0 4px !important; }
+
+  #comp-sim { padding: 14px 22px; background: #fff;
+      border-bottom: 1px solid #dfe7ee; display: flex; flex-wrap: wrap;
+      gap: 16px 22px; align-items: flex-end; }
+  #comp-sim .campo label { font-size: 10px; }
+  #comp-sim input { width: 92px; padding: 6px 8px; border: 1px solid #cfdbe6;
+      border-radius: 4px; font-size: 13px; background: #fff; color: #233140;
+      font-family: inherit; }
+  #comp-sim .aviso { font-size: 11.5px; color: #7c8b98; flex: 1 1 200px;
+      line-height: 1.5; min-width: 180px; }
+  #comp-sim button { border: 1px solid #cfdbe6; background: #eef4f9;
+      color: #3d5266; border-radius: 18px; padding: 7px 14px; font-size: 12px;
+      font-weight: 600; cursor: pointer; font-family: inherit; }
+
+  #comp-tabla { width: 100%; border-collapse: collapse; margin: 0;
+      background: #fff; box-shadow: none; }
+  #comp-tabla th, #comp-tabla td { padding: 10px 14px; text-align: left;
+      border-bottom: 1px solid #eef1f4; font-size: 13px; vertical-align: top; }
+  #comp-tabla thead th { background: #fff; position: static; cursor: default;
+      border-bottom: 1px solid #dfe7ee; color: #233140; white-space: normal;
+      font-size: 13px; }
+  #comp-tabla thead th .loc { font-weight: 700; display: block; }
+  #comp-tabla thead th .meta { font-weight: 400; color: #7c8b98; font-size: 11.5px;
+      display: block; margin-top: 2px; }
+  #comp-tabla thead th .quitar { border: none; background: none; color: #8b98a3;
+      cursor: pointer; font-size: 11.5px; padding: 3px 0 0; font-family: inherit; }
+  #comp-tabla thead th .quitar:hover { color: #b5544b; text-decoration: underline; }
+  #comp-tabla tbody th { background: #f8fafc; color: #4a5a68; font-weight: 500;
+      white-space: nowrap; position: static; cursor: default; font-size: 12.5px;
+      width: 190px; }
+  #comp-tabla tbody th .ayuda { border: none; background: none; color: #5b84a6;
+      cursor: pointer; font-size: 11px; padding: 0 0 0 3px; vertical-align: super; }
+  #comp-tabla td.gana { background: #e8f2ea; color: #33604a; font-weight: 700; }
+  #comp-tabla td .marca { font-size: 10.5px; color: #4f8a5c; font-weight: 600;
+      display: block; }
+  #comp-tabla tr.separa th, #comp-tabla tr.separa td {
+      background: #eef4f9; font-family: 'Space Grotesk','Segoe UI',sans-serif;
+      font-weight: 600; color: #3d5266; font-size: 11.5px;
+      text-transform: uppercase; letter-spacing: .04em; }
+  #comp-pie { padding: 14px 22px 20px; font-size: 11.5px; color: #7c8b98;
+      line-height: 1.6; background: #f5f8fb; }
+
+  @media (max-width: 820px) {
+    #barra-comp { left: 12px; right: 12px; transform: none; justify-content: space-between; }
+    #comp-fondo { padding: 0; }
+    #comp-caja { margin: 0; border-radius: 0; min-height: 100vh; }
+    #comp-cab { flex-wrap: wrap; }
+    #comp-tabla, #comp-tabla thead, #comp-tabla tbody, #comp-tabla tr { display: block; }
+    #comp-tabla thead { display: none; }
+    #comp-tabla tbody th { width: auto; display: block; background: #eef4f9;
+        border: none; padding: 9px 14px 4px; }
+    #comp-tabla td { display: flex; justify-content: space-between; gap: 12px;
+        text-align: right; padding: 7px 14px; }
+    #comp-tabla td::before { content: attr(data-inm); font-size: 11px;
+        color: #7c8b98; text-align: left; font-weight: 500; }
+    #comp-tabla tr { background: none; margin: 0; padding: 0;
+        box-shadow: none; border-radius: 0; }
+    #comp-tabla tr.separa th { margin-top: 8px; }
+    #comp-tabla tr.no-movil { display: none; }
+  }
+
+  /* Al imprimir (o "guardar como PDF") sale solo la comparación. */
+  @media print {
+    body > *:not(#comp-fondo) { display: none !important; }
+    #comp-fondo { position: static !important; padding: 0 !important;
+        background: none !important; display: block !important; overflow: visible !important; }
+    #comp-caja { box-shadow: none; max-width: none; margin: 0; }
+    #comp-cab .acciones, #comp-tabla .quitar, #comp-tabla .ayuda { display: none !important; }
+    #comp-sim input { border: none; padding: 0; }
+    #comp-tabla td.gana { background: #e8f2ea !important; -webkit-print-color-adjust: exact;
+        print-color-adjust: exact; }
+    #comp-tabla tr.separa th, #comp-tabla tr.separa td { background: #eef4f9 !important;
+        -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
 </style>
 </head>
 <body>
@@ -832,6 +946,51 @@
 <tr><td data-label="Localidad / Dirección"><b>Benasque</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d8e6f3'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/casa-benasque_centro_urbano-65834429110_100500/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">3.500.000 €</td><td data-label="Capital entrada" class="num"><b>1.047.500 €</b></td><td data-label="m²" class="num">54</td><td data-label="Hab" class="num">40</td><td data-label="Rent. bruta" class="num">0,1%</td><td data-label="Rent. neta" class="num">-0,4%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-20,0%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-209.334 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr></tbody>
 </table>
 <div id="vacio">Ningún inmueble cumple los filtros actuales.</div>
+<div id="barra-comp">
+  <span><span class="n" id="comp-n">0</span> marcados <span id="comp-pista" style="color:#b9c7d4"></span></span>
+  <button id="comp-abrir" disabled>Comparar</button>
+  <button id="comp-limpiar">Quitar</button>
+</div>
+
+<div id="comp-fondo">
+  <div id="comp-caja">
+    <div id="comp-cab">
+      <div>
+        <h2>Comparación de inmuebles</h2>
+        <div class="sub">El mejor valor de cada fila va en verde. Las cifras son estimaciones.</div>
+      </div>
+      <div class="acciones">
+        <button id="comp-copiar">Copiar enlace</button>
+        <button id="comp-pdf">Guardar en PDF</button>
+        <button id="comp-cerrar" title="Cerrar">&times;</button>
+      </div>
+    </div>
+    <div id="comp-sim">
+      <div class="campo"><label for="s-fin">Financias (%)</label>
+        <input type="number" id="s-fin" min="0" max="100" step="5" value="80"></div>
+      <div class="campo"><label for="s-tipo">Interés (%)</label>
+        <input type="number" id="s-tipo" min="0" max="15" step="0.1" value="3.5"></div>
+      <div class="campo"><label for="s-anos">Plazo (años)</label>
+        <input type="number" id="s-anos" min="5" max="40" step="1" value="20"></div>
+      <div class="campo"><label for="s-reforma">Reforma (€)</label>
+        <input type="number" id="s-reforma" min="0" step="1000" value="15000"></div>
+      <div class="campo"><label>&nbsp;</label>
+        <button id="s-reset">Volver a los supuestos del informe</button></div>
+      <div class="aviso">Cambia tus condiciones y las cifras se recalculan al momento.
+        El ITP de cada inmueble se respeta, porque depende de su comunidad.</div>
+    </div>
+    <table id="comp-tabla"><thead><tr id="comp-cabecera"></tr></thead>
+      <tbody id="comp-cuerpo"></tbody></table>
+    <div id="comp-pie">
+      Renta estimada por zona; gastos = IBI (0,5%) + comunidad (960 €) + seguro
+      (300 €) + 10% para vacíos y averías. El capital incluye entrada, ITP de la
+      comunidad, notaría y registro (1,5%), reforma y cargas que subsistan.
+      Son estimaciones para comparar rápido — antes de ofertar o pujar hay que
+      verificar cada caso. No es asesoramiento financiero ni inmobiliario.
+    </div>
+  </div>
+</div>
+
 
 <div style="text-align:center;font-size:11px;color:#7c8b98;padding:22px 20px 0;line-height:1.7">
   Cifras estimadas a partir de fuentes públicas — no son asesoramiento financiero,
@@ -1055,7 +1214,8 @@ function pintar() {
     return orden.desc ? vb - va : va - vb;
   });
 
-  document.getElementById("cabecera").innerHTML = COLS.map(c =>
+  document.getElementById("cabecera").innerHTML =
+    '<th class="sel" title="Marca hasta 4 inmuebles y compáralos"></th>' + COLS.map(c =>
     `<th data-c="${c.id}" ${c.num ? 'class="num"' : ""}` +
     (c.tip ? ` title="${esc(c.tip)}"` : "") + `>${c.label}` +
     (c.tip ? ` <span class="info-i" title="${esc(c.tip)}">ⓘ</span>` : "") + " " +
@@ -1075,7 +1235,7 @@ function pintar() {
   const TOPE = 400;
   const visibles = rows.length > TOPE ? rows.slice(0, TOPE) : rows;
   document.getElementById("cuerpo").innerHTML = visibles.map(r =>
-    "<tr>" + COLS.map(c =>
+    "<tr>" + celdaSel(r) + COLS.map(c =>
       `<td data-label="${esc(c.label)}"${c.num ? ' class="num"' : ""}>${c.html(r)}</td>`
     ).join("") + "</tr>"
   ).join("");
@@ -1148,8 +1308,310 @@ document.getElementById("limpiar").onclick = () => {
   try { localStorage.removeItem(CLAVE_FILTROS); } catch (e) {}
   aplicar();   // limpiar sí re-renderiza al momento
 };
+
+/* ── Comparador de inmuebles ──────────────────────────────────────────────────
+   Se marcan hasta 4 filas y se enfrentan lado a lado, con un simulador de
+   hipoteca que recalcula capital, cashflow y cash-on-cash con las condiciones
+   de quien mira. Todo ocurre en el navegador: los datos ya están en la página.
+
+   La selección se guarda en sessionStorage con el registro entero, no con un
+   índice, así que sobrevive al cambio de provincia — se puede comparar un piso
+   de Valencia con otro de Sevilla. */
+const COMP_MAX = 4;
+const COMP_CLAVE = "reo_comparar";
+const claveComp = r => [r.origen, r.precio, r.m2 || "", r.localidad].join("|");
+
+let comparados = [];
+try { comparados = JSON.parse(sessionStorage.getItem(COMP_CLAVE) || "[]"); } catch (e) {}
+if (!Array.isArray(comparados)) comparados = [];
+
+function guardarComp() {
+  try { sessionStorage.setItem(COMP_CLAVE, JSON.stringify(comparados)); } catch (e) {}
+}
+const enComp = r => comparados.some(x => claveComp(x) === claveComp(r));
+
+function marcarComp(r, on) {
+  if (on) {
+    if (enComp(r)) return true;
+    if (comparados.length >= COMP_MAX) return false;
+    comparados.push(r);
+  } else {
+    comparados = comparados.filter(x => claveComp(x) !== claveComp(r));
+  }
+  guardarComp();
+  barraComp();
+  return true;
+}
+
+function celdaSel(r) {
+  return '<td class="sel" data-label="Comparar"><input type="checkbox" class="chk-comp"' +
+         ' data-k="' + esc(claveComp(r)) + '"' + (enComp(r) ? " checked" : "") +
+         ' aria-label="Marcar para comparar"></td>';
+}
+
+function engancharSel() {
+  document.querySelectorAll(".chk-comp").forEach(chk => {
+    const fila = chk.closest("tr");
+    fila.classList.toggle("comparando", chk.checked);
+    chk.onchange = () => {
+      const r = DATA.find(x => claveComp(x) === chk.dataset.k);
+      if (!r) return;
+      if (!marcarComp(r, chk.checked)) {   // se ha llegado al tope
+        chk.checked = false;
+        const p = document.getElementById("comp-pista");
+        p.textContent = "· ya son " + COMP_MAX + ", quita uno";
+        setTimeout(barraComp, 2400);
+        return;
+      }
+      fila.classList.toggle("comparando", chk.checked);
+    };
+  });
+}
+
+function sincronizarCasillas() {
+  document.querySelectorAll(".chk-comp").forEach(chk => {
+    const on = comparados.some(x => claveComp(x) === chk.dataset.k);
+    chk.checked = on;
+    chk.closest("tr").classList.toggle("comparando", on);
+  });
+}
+
+function barraComp() {
+  const n = comparados.length;
+  document.getElementById("barra-comp").classList.toggle("on", n > 0);
+  document.getElementById("comp-n").textContent = n;
+  document.getElementById("comp-pista").textContent =
+    n < 2 ? "· marca otro para comparar" : "";
+  document.getElementById("comp-abrir").disabled = n < 2;
+}
+
+/* ── El simulador ────────────────────────────────────────────────────────────
+   Supuestos del informe: 20% de entrada, 15.000 € de reforma, hipoteca del 80%
+   a 20 años al 3,5%. El ITP no viaja en el registro, pero se puede despejar del
+   capital publicado, así que cada inmueble conserva el tipo real de SU comunidad
+   en vez de uno inventado. */
+const BASE_SIM = { fin: 80, tipo: 3.5, anos: 20, reforma: 15000 };
+
+function itpDe(r) {
+  const resto = 0.20 * r.precio + 0.015 * r.precio + BASE_SIM.reforma + (r.cargas || 0);
+  const itp = (r.capital - resto) / (r.precio || 1);
+  return (isFinite(itp) && itp > 0.03 && itp < 0.20) ? itp : 0.08;
+}
+
+function cuotaAnual(principal, tipo, anos) {
+  if (principal <= 0 || anos <= 0) return 0;
+  const i = tipo / 100 / 12, n = anos * 12;
+  const mes = i === 0 ? principal / n : principal * i / (1 - Math.pow(1 + i, -n));
+  return mes * 12;
+}
+
+function simular(r, p) {
+  const renta = r.precio * (r.rb / 100);          // rb = renta anual ÷ precio
+  const gastos = 0.005 * r.precio + 960 + 300 + 0.10 * renta;
+  const prestamo = r.precio * (p.fin / 100);
+  const capital = (r.precio - prestamo) + itpDe(r) * r.precio +
+                  0.015 * r.precio + p.reforma + (r.cargas || 0);
+  const cuota = cuotaAnual(prestamo, p.tipo, p.anos);
+  const cf = renta - gastos - cuota;
+  return { renta, gastos, prestamo, capital, cuota, cf,
+           coc: capital > 0 ? cf / capital * 100 : 0 };
+}
+
+function paramsSim() {
+  const num = (id, def) => {
+    const v = parseFloat(document.getElementById(id).value);
+    return isFinite(v) ? v : def;
+  };
+  return { fin: Math.min(100, Math.max(0, num("s-fin", BASE_SIM.fin))),
+           tipo: Math.max(0, num("s-tipo", BASE_SIM.tipo)),
+           anos: Math.max(1, num("s-anos", BASE_SIM.anos)),
+           reforma: Math.max(0, num("s-reforma", BASE_SIM.reforma)) };
+}
+
+/* Las filas de la comparación. `mejor` dice hacia dónde está lo bueno; sin él,
+   la fila es informativa y no corona a nadie. `tema` engancha la ⓘ con la
+   respuesta del asistente, para no repetir las explicaciones aquí. */
+const FILAS_COMP = [
+  { sec: "El inmueble" },
+  { et: "Localidad", cls: "no-movil", txt: r => esc(r.localidad) },
+  { et: "Fuente", tema: "fuentes",
+    txt: r => esc(NOMBRE_FUENTE[r.origen] || r.origen) +
+              (r.tipo_subasta === "SUBASTA" ? " (subasta)" : "") },
+  { et: "Superficie",       mejor: "max", v: r => r.m2,
+    txt: r => r.m2 ? fmt(r.m2, 0) + " m&sup2;" : "&mdash;" },
+  { et: "Habitaciones",     mejor: "max", v: r => r.hab,
+    txt: r => r.hab != null ? r.hab : "&mdash;" },
+  { et: "Precio",           mejor: "min", v: r => r.precio, txt: r => eur(r.precio) },
+  { et: "Precio por m&sup2;", mejor: "min", v: r => r.m2 ? r.precio / r.m2 : null,
+    txt: r => r.m2 ? eur(r.precio / r.m2) : "&mdash;" },
+  { et: "Dto. tasaci&oacute;n", mejor: "max", v: r => r.dto, tema: "descuento",
+    txt: r => r.dto == null ? "~ N/D" : pct(r.dto) },
+
+  { sec: "Lo que pones t&uacute;" },
+  { et: "Capital de entrada", mejor: "min", tema: "capital",
+    v: (r, s) => s.capital, txt: (r, s) => eur(s.capital) },
+  { et: "Hipoteca", tema: "hipoteca",
+    v: (r, s) => s.prestamo, txt: (r, s) => eur(s.prestamo) },
+  { et: "Cuota al mes", mejor: "min", tema: "hipoteca",
+    v: (r, s) => s.cuota / 12, txt: (r, s) => eur(s.cuota / 12) },
+
+  { sec: "Lo que deja" },
+  { et: "Renta estimada/mes", mejor: "max",
+    v: (r, s) => s.renta / 12, txt: (r, s) => eur(s.renta / 12) },
+  { et: "Gastos al a&ntilde;o", mejor: "min",
+    v: (r, s) => s.gastos, txt: (r, s) => eur(s.gastos) },
+  { et: "Cashflow al a&ntilde;o", mejor: "max", tema: "cashflow", v: (r, s) => s.cf,
+    txt: (r, s) => '<span class="' + (s.cf >= 0 ? "pos" : "neg") + '">' +
+                   (s.cf >= 0 ? "+" : "") + eur(s.cf) + "</span>" },
+  { et: "Cash-on-cash", mejor: "max", tema: "cash-on-cash", v: (r, s) => s.coc,
+    txt: (r, s) => '<span class="' + (s.coc >= 0 ? "pos" : "neg") + '">' +
+                   pct(s.coc) + (s.coc >= 10 ? " &#9733;" : "") + "</span>" },
+  { et: "Rent. bruta", mejor: "max", tema: "rentabilidad", v: r => r.rb, txt: r => pct(r.rb) },
+  { et: "Rent. neta",  mejor: "max", tema: "rentabilidad", v: r => r.rn, txt: r => pct(r.rn) },
+
+  { sec: "Antes de decidir" },
+  { et: "Cargas que subsisten",
+    txt: r => r.cargas > 0 ? eur(r.cargas) : "sin cargas conocidas" },
+  { et: "Zona tensionada", tema: "tensionada",
+    txt: r => r.tensionada ? "S&iacute; &mdash; renta limitada" : "No" },
+  { et: "Posesi&oacute;n", txt: r => r.posesion ? esc(r.posesion) : "&mdash;" },
+  { et: "Cierre",          txt: r => r.cierre ? esc(r.cierre) : "&mdash;" },
+  { et: "Ficha oficial", tema: "comprar",
+    txt: r => r.url ? '<a href="' + esc(r.url) + '" target="_blank" rel="noopener">ver anuncio &#8599;</a>' : "&mdash;" },
+];
+
+function pintarComp() {
+  const p = paramsSim();
+  const sims = comparados.map(r => simular(r, p));
+
+  document.getElementById("comp-cabecera").innerHTML = "<th></th>" +
+    comparados.map((r, i) =>
+      '<th><span class="loc">' + esc(r.localidad) + "</span>" +
+      '<span class="meta">' + esc(r.direccion || "sin direcci&oacute;n") + "</span>" +
+      '<button class="quitar" data-i="' + i + '">quitar</button></th>').join("");
+
+  document.getElementById("comp-cuerpo").innerHTML = FILAS_COMP.map(f => {
+    if (f.sec) {
+      return '<tr class="separa"><th>' + f.sec + "</th>" +
+             comparados.map(() => "<td></td>").join("") + "</tr>";
+    }
+    // ¿quién gana esta fila? Si todos empatan, no se corona a nadie.
+    let ganador = -1;
+    if (f.mejor && f.v) {
+      let tope = null;
+      const vistos = new Set();
+      comparados.forEach((r, i) => {
+        const v = f.v(r, sims[i]);
+        if (v == null || !isFinite(v)) return;
+        vistos.add(Math.round(v * 100));
+        if (tope === null || (f.mejor === "max" ? v > tope : v < tope)) { tope = v; ganador = i; }
+      });
+      if (vistos.size <= 1) ganador = -1;
+    }
+    const ayuda = f.tema
+      ? ' <button class="ayuda" data-abrir-asistente="' + f.tema +
+        '" title="Qu&eacute; significa">&#9432;</button>'
+      : "";
+    return "<tr" + (f.cls ? ' class="' + f.cls + '"' : "") + "><th>" + f.et + ayuda + "</th>" + comparados.map((r, i) =>
+      '<td data-inm="' + esc(r.localidad) + '"' + (i === ganador ? ' class="gana"' : "") + ">" +
+      f.txt(r, sims[i]) +
+      (i === ganador ? '<span class="marca">mejor</span>' : "") + "</td>").join("") + "</tr>";
+  }).join("");
+
+  document.querySelectorAll("#comp-cabecera .quitar").forEach(b => b.onclick = () => {
+    comparados.splice(+b.dataset.i, 1);
+    guardarComp();
+    barraComp();
+    sincronizarCasillas();
+    if (comparados.length < 2) cerrarComp(); else pintarComp();
+  });
+}
+
+function abrirComp() {
+  if (comparados.length < 2) return;
+  document.getElementById("comp-fondo").classList.add("on");
+  document.body.style.overflow = "hidden";
+  pintarComp();
+}
+function cerrarComp() {
+  document.getElementById("comp-fondo").classList.remove("on");
+  document.body.style.overflow = "";
+}
+
+document.getElementById("comp-abrir").onclick = abrirComp;
+document.getElementById("comp-cerrar").onclick = cerrarComp;
+document.getElementById("comp-limpiar").onclick = () => {
+  comparados = [];
+  guardarComp();
+  barraComp();
+  sincronizarCasillas();
+  cerrarComp();
+};
+document.getElementById("comp-fondo").addEventListener("click", e => {
+  if (e.target.id === "comp-fondo") cerrarComp();
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") cerrarComp();
+});
+["s-fin", "s-tipo", "s-anos", "s-reforma"].forEach(id =>
+  document.getElementById(id).addEventListener("input", () => {
+    if (document.getElementById("comp-fondo").classList.contains("on")) pintarComp();
+  }));
+document.getElementById("s-reset").onclick = () => {
+  document.getElementById("s-fin").value = BASE_SIM.fin;
+  document.getElementById("s-tipo").value = BASE_SIM.tipo;
+  document.getElementById("s-anos").value = BASE_SIM.anos;
+  document.getElementById("s-reforma").value = BASE_SIM.reforma;
+  pintarComp();
+};
+document.getElementById("comp-pdf").onclick = () => window.print();
+
+// Enlace compartible: los inmuebles van en el hash, no en el servidor.
+document.getElementById("comp-copiar").onclick = () => {
+  const btn = document.getElementById("comp-copiar");
+  let url;
+  try {
+    const claves = comparados.map(claveComp).join("~");
+    url = location.origin + location.pathname + "#comparar=" +
+          encodeURIComponent(btoa(unescape(encodeURIComponent(claves))));
+  } catch (e) { return; }
+  const ok = () => {
+    btn.textContent = "Enlace copiado";
+    setTimeout(() => { btn.textContent = "Copiar enlace"; }, 2200);
+  };
+  if (navigator.clipboard && location.protocol !== "file:") {
+    navigator.clipboard.writeText(url).then(ok, () => prompt("Copia el enlace:", url));
+  } else {
+    prompt("Copia el enlace:", url);
+  }
+};
+
+// Al aterrizar con un enlace compartido, se abre la comparación sola.
+function comparadorDesdeEnlace() {
+  const m = location.hash.match(/comparar=([^&]+)/);
+  if (!m) return;
+  let claves = [];
+  try {
+    claves = decodeURIComponent(escape(atob(decodeURIComponent(m[1])))).split("~");
+  } catch (e) { return; }
+  const hallados = claves.map(k => DATA.find(r => claveComp(r) === k)).filter(Boolean);
+  if (hallados.length < 2) return;
+  comparados = hallados.slice(0, COMP_MAX);
+  guardarComp();
+  if (history.replaceState) {
+    history.replaceState(null, "", location.pathname + location.search);
+  }
+  setTimeout(() => { sincronizarCasillas(); barraComp(); abrirComp(); }, 350);
+}
+
+// Cada repintado de la tabla vuelve a colgar los manejadores de las casillas.
+const _pintarSinComp = pintar;
+pintar = function () { _pintarSinComp(); engancharSel(); };
+barraComp();
+
 restaurarFiltros();  // parámetros guardados del usuario cargados en los controles
 aplicar();           // ...y aplicados desde el primer segundo
+comparadorDesdeEnlace();   // ¿venimos de una comparación compartida?
 if ("serviceWorker" in navigator && location.protocol !== "file:")
   navigator.serviceWorker.register("sw.js");
 </script>
