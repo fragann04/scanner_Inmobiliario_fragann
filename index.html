@@ -100,6 +100,7 @@
 
   /* Tarjetas */
   .cols { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+  .cols.cuatro { grid-template-columns:repeat(2,1fr); }
   .card { background:var(--surface); border-radius:4px; padding:28px; }
   .banda .card { background:var(--blanco); }
   .card svg { margin-bottom:16px; display:block; }
@@ -243,7 +244,7 @@
 <section class="banda">
   <div class="wrap">
     <h2>Qué encuentras dentro</h2>
-    <div class="cols">
+    <div class="cols cuatro">
       <div class="card">
         <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#5b84a6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.4"/></svg>
         <h3>Toda España, por municipio</h3>
