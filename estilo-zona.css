@@ -313,3 +313,6 @@ table.t-muni tbody tr:hover td{background:var(--surface)}
                   border: 1px solid #dfe7ee; border-radius: 8px; background: #fff;
                   resize: vertical; }
 .pegar textarea:focus { outline: 2px solid #b9d2e4; outline-offset: -1px; }
+
+.cat-foto { width: 100%; max-height: 170px; object-fit: cover;
+            border-radius: 8px; margin-bottom: 10px; }

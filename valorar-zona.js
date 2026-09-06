@@ -514,6 +514,10 @@
           if (normalizarUrl(datos[i].url) === objetivo) { enc = datos[i]; break; }
         }
         if (!enc) {
+          // No esta guardado: si hay lector de anuncios desplegado, se lee la
+          // ficha directamente del portal. Sin el, no hay nada que hacer desde
+          // una pagina estatica y se explica por que.
+          if (window.REO_API) return leerConElServicio(bruta);
           throw new Error("ese anuncio no está en el inventario de " + nombreProv +
             ". Puede que sea de otra provincia —elígela arriba y reinténtalo— o " +
             "de un portal que no se rastrea");
@@ -622,6 +626,45 @@
              "dice si eso está por encima o por debajo de la zona.</div>" : "");
 
     valorar();
+  }
+
+  /* Lee la ficha con el servicio (api/extraer-anuncio.js). Solo si esta
+     desplegado: la pagina funciona igual sin el, con menos alcance. */
+  function leerConElServicio(url) {
+    aviso("Leyendo la ficha del anuncio…");
+    return fetch(window.REO_API + "?url=" + encodeURIComponent(url))
+      .then(function (r) {
+        return r.json().then(function (j) {
+          if (!r.ok) throw new Error(j.motivo || j.error || "no se pudo leer");
+          return j;
+        });
+      })
+      .then(function (d) {
+        if (d.m2) document.getElementById("v-m2").value = Math.round(d.m2);
+        if (d.provincia && seleccionar(selP, d.provincia)) {
+          pintarMunicipios();
+          if (d.localidad) seleccionar(selM, d.localidad);
+        }
+        var filas = [
+          ["Precio del anuncio", d.precio ? d.precio.toLocaleString("es-ES") + " €" : ""],
+          ["Superficie", d.m2 ? d.m2 + " m²" : ""],
+          ["Precio por m²", d.eur_m2 ? d.eur_m2.toLocaleString("es-ES") + " €/m²" : ""],
+          ["Habitaciones", d.hab || ""],
+          ["Municipio", d.localidad || ""],
+          ["Dirección", d.direccion || ""]
+        ].filter(function (f) { return f[1]; });
+        contexto = "";
+        cRes.innerHTML =
+          (d.foto ? "<img class='cat-foto' src='" + d.foto + "' alt=''>" : "") +
+          "<div class='cat-ok'>Leído del anuncio</div>" +
+          "<dl class='cat-dl'>" + filas.map(function (f) {
+            return "<dt>" + f[0] + "</dt><dd>" + f[1] + "</dd>";
+          }).join("") + "</dl>" +
+          "<div class='cat-msg'>Comprueba las cifras y ajusta el municipio si " +
+          "no se ha reconocido. La valoración de abajo ya usa estos datos.</div>";
+        valorar();
+      })
+      .catch(function (e) { aviso("No se pudo: " + e.message, "error"); });
   }
 
   if (cTexto) {

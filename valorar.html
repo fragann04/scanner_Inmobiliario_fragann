@@ -271,6 +271,11 @@
      linea de abajo con tu clave RESTRINGIDA por referente HTTP a este dominio
      y limitada a la Geocoding API (ver el encabezado de catastro.js). -->
 <!-- <script>window.REO_GOOGLE_KEY = "TU_CLAVE_AQUI";</script> -->
+<!-- Lector de anuncios. Sin esto, pegar un enlace solo funciona con los
+     anuncios que ya estan en los datos del Scanner. Con el Worker desplegado
+     (api/extraer-anuncio.js), tambien se leen fichas que no esten guardadas.
+     Descomenta y pon la URL que te de Cloudflare al desplegarlo. -->
+<!-- <script>window.REO_API = "https://TU-WORKER.workers.dev";</script> -->
 <script src="catastro.js"></script>
 <script src="valorar-zona.js" defer></script>
 <script>window.REO_ASISTENTE = { contexto: "explorar" };</script>
