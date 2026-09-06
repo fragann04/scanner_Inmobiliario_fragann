@@ -69,6 +69,18 @@
                  placeholder="O el enlace de un anuncio (Solvia, pisos.com, donpiso…)">
           <button class="btn btn-sec" type="button" id="cat-btn-url">Analizar</button>
         </div>
+
+        <details class="pegar">
+          <summary>¿El anuncio es de idealista u otro portal que no se rastrea?</summary>
+          <p class="cat-s">Tu navegador <b>no puede leer otra web</b> —lo impide él
+             mismo, no es una decisión nuestra—, así que un enlace de idealista no
+             se puede descargar. Pero <b>copia el anuncio y pégalo aquí</b>: se
+             sacan el precio, la superficie y las habitaciones y se valora igual.</p>
+          <textarea id="cat-texto" rows="4" spellcheck="false"
+                    placeholder="Selecciona el anuncio en el portal, cópialo (Ctrl+C) y pégalo aquí (Ctrl+V)"></textarea>
+          <button class="btn btn-sec" type="button" id="cat-btn-texto"
+                  style="margin-top:8px">Leer el anuncio pegado</button>
+        </details>
         <div id="cat-res" class="cat-res"></div>
       </div>
 

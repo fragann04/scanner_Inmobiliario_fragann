@@ -558,6 +558,77 @@
     valorar();
   }
 
+  /* ── Leer un anuncio PEGADO, venga del portal que venga ─────────────────
+   *
+   * Para idealista y cualquier otro que no se rastree. El navegador no puede
+   * descargar otra web (CORS), asi que el enlace por si solo no sirve de nada.
+   * Pero el texto lo trae la persona, que si puede leer el anuncio, y de ahi
+   * salen las tres cifras que hacen falta.
+   *
+   * No se descarga nada, no se guarda nada y no se consulta ningun portal:
+   * esto es leer un texto que ya esta en la pagina.
+   */
+  var cTexto = document.getElementById("cat-texto");
+
+  function leerAnuncioPegado() {
+    var t = (cTexto && cTexto.value || "").replace(/ /g, " ");
+    if (!t.trim()) return aviso("Pega antes el texto del anuncio", "error");
+
+    // Precio: el importe mas grande del texto. Los anuncios llevan otras
+    // cifras con euros (gastos, hipoteca al mes, precio por m2) y el precio de
+    // venta es, con diferencia, la mayor de todas.
+    var precios = (t.match(/(\d{1,3}(?:[.\s]\d{3})+|\d{5,})\s*€/g) || [])
+      .map(function (x) { return parseInt(x.replace(/[^\d]/g, ""), 10); })
+      .filter(function (n) { return n >= 5000; });
+    var precio = precios.length ? Math.max.apply(null, precios) : null;
+
+    // Superficie construida. Se descarta la parcela, que en chalets es mucho
+    // mayor y falsearia el precio por m2.
+    var m2 = null;
+    var mSup = t.match(/(\d{2,4})\s*m²?\s*(?:construidos?)?/i);
+    if (mSup) m2 = parseInt(mSup[1], 10);
+
+    var hab = null;
+    var mHab = t.match(/(\d{1,2})\s*(?:hab|dorm)/i);
+    if (mHab) hab = parseInt(mHab[1], 10);
+
+    if (!precio && !m2) {
+      return aviso("No he encontrado ni precio ni superficie en ese texto. " +
+                   "Copia la parte del anuncio donde salen el precio y los m².",
+                   "error");
+    }
+
+    if (m2) document.getElementById("v-m2").value = m2;
+
+    var eur = (precio && m2) ? Math.round(precio / m2) : null;
+    var filas = [
+      ["Precio del anuncio", precio ? precio.toLocaleString("es-ES") + " €" : "no encontrado"],
+      ["Superficie", m2 ? m2 + " m²" : "no encontrada"],
+      ["Precio por m²", eur ? eur.toLocaleString("es-ES") + " €/m²" : ""],
+      ["Habitaciones", hab || ""]
+    ].filter(function (f) { return f[1]; });
+
+    contexto = "";
+    cRes.innerHTML =
+      "<div class='cat-ok'>Leído del anuncio que has pegado</div>" +
+      "<dl class='cat-dl'>" + filas.map(function (f) {
+        return "<dt>" + f[0] + "</dt><dd>" + f[1] + "</dd>";
+      }).join("") + "</dl>" +
+      "<div class='cat-msg'>Comprueba que las cifras son las correctas: salen de " +
+      "leer el texto, no del portal. <b>Elige arriba la provincia y el municipio</b> " +
+      "del inmueble para que la valoración use sus comparables.</div>" +
+      (eur ? "<div class='cat-msg'>Con el precio del anuncio sale a <b>" +
+             eur.toLocaleString("es-ES") + " €/m²</b>; la valoración de abajo te " +
+             "dice si eso está por encima o por debajo de la zona.</div>" : "");
+
+    valorar();
+  }
+
+  if (cTexto) {
+    document.getElementById("cat-btn-texto")
+      .addEventListener("click", leerAnuncioPegado);
+  }
+
   if (cUrl) {
     document.getElementById("cat-btn-url").addEventListener("click", analizarAnuncio);
     cUrl.addEventListener("keydown", function (ev) {

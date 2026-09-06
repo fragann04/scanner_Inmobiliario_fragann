@@ -302,3 +302,14 @@ table.t-muni tbody tr:hover td{background:var(--surface)}
 .pasos li { margin-bottom: 5px; }
 .pasos li::marker { color: #5b84a6; font-weight: 700; }
 .pasos-nota { margin-top: 0; }
+
+/* Pegar el texto de un anuncio externo */
+.pegar { margin-top: 4px; }
+.pegar summary { cursor: pointer; font-size: 12.5px; font-weight: 600;
+                 color: #5b84a6; padding: 4px 0; }
+.pegar summary:hover { text-decoration: underline; }
+.pegar textarea { width: 100%; box-sizing: border-box; padding: 10px 12px;
+                  font-size: 13px; font-family: inherit; line-height: 1.5;
+                  border: 1px solid #dfe7ee; border-radius: 8px; background: #fff;
+                  resize: vertical; }
+.pegar textarea:focus { outline: 2px solid #b9d2e4; outline-offset: -1px; }
