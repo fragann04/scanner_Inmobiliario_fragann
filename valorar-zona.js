@@ -436,6 +436,135 @@
              e.addEventListener("change", pintarEscritura); }
   });
 
+  /* ── Analizar un anuncio a partir de su enlace ──────────────────────────
+   *
+   * El anuncio se busca EN LOS DATOS DEL PROPIO SCANNER, no se descarga del
+   * portal. Dos razones, y las dos mandan:
+   *   · Un navegador no puede leer otra web: el propio navegador lo impide
+   *     (CORS). Una pagina estatica no tiene forma de traerse el HTML de
+   *     fotocasa o de idealista, ni aunque quisiera.
+   *   · Y aunque pudiera, las condiciones de esos portales prohiben la
+   *     extraccion automatizada.
+   * Como el Scanner ya guarda la URL de cada inmueble que rastrea, pegar el
+   * enlace es buscar en casa. Sale gratis, es instantaneo y no depende de
+   * nadie.
+   */
+  var cUrl = document.getElementById("cat-url");
+
+  function normalizarUrl(u) {
+    return String(u || "").trim().toLowerCase()
+      .replace(/^https?:\/\//, "").replace(/^www\./, "")
+      .split("?")[0].split("#")[0].replace(/\/+$/, "");
+  }
+
+  /* Municipio que va dentro de la propia URL del anuncio. Cada portal lo
+     coloca en un sitio, y con el se deduce la provincia para no tener que
+     descargar los 52 exploradores. */
+  var EN_LA_URL = [
+    /\/es\/comprar\/vivienda\/([^\/]+)\//,        // fotocasa
+    /\/pisos-y-casas\/\d+_[\w-]*?-en-venta-([\w-]+)/, // donpiso
+    /\/venta-de-[\w-]+\/[\w-]+\/([\w-]+)\//,       // altamira
+    /\/comprar\/[\w-]+\/([\w-]+)\//                // pisos.com
+  ];
+
+  function municipioDeUrl(u) {
+    for (var i = 0; i < EN_LA_URL.length; i++) {
+      var m = u.match(EN_LA_URL[i]);
+      if (m && m[1] && m[1].length > 2) return m[1].replace(/-/g, " ");
+    }
+    return "";
+  }
+
+  /* Provincia a la que pertenece un municipio, mirando los que ya conocemos. */
+  function provinciaDeMunicipio(nombre) {
+    var objetivo = normaliza(nombre);
+    for (var slug in MUNI) {
+      for (var n in MUNI[slug]) {
+        if (normaliza(n) === objetivo) return slug;
+      }
+    }
+    return "";
+  }
+
+  function analizarAnuncio() {
+    var bruta = cUrl.value;
+    if (!bruta.trim()) return aviso("Pega el enlace de un anuncio", "error");
+    var objetivo = normalizarUrl(bruta);
+
+    // Provincia donde buscar: la del municipio del enlace, y si no se puede
+    // deducir, la que este elegida en el formulario.
+    var muni = municipioDeUrl(objetivo);
+    var slug = (muni && provinciaDeMunicipio(muni)) || selP.value;
+    var nombreProv = (PROV[slug] && PROV[slug].prov) || slug;
+
+    contexto = "";
+    aviso("Buscando el anuncio en el inventario de " + nombreProv + "…");
+
+    fetch("explorador-" + slug + ".html")
+      .then(function (r) {
+        if (!r.ok) throw new Error("no hay explorador de " + nombreProv);
+        return r.text();
+      })
+      .then(function (html) {
+        var m = html.match(/const DATA = (\[[\s\S]*?\]);/);
+        if (!m) throw new Error("no se pudieron leer los datos de la provincia");
+        var datos = JSON.parse(m[1]);
+        var enc = null;
+        for (var i = 0; i < datos.length; i++) {
+          if (normalizarUrl(datos[i].url) === objetivo) { enc = datos[i]; break; }
+        }
+        if (!enc) {
+          throw new Error("ese anuncio no está en el inventario de " + nombreProv +
+            ". Puede que sea de otra provincia —elígela arriba y reinténtalo— o " +
+            "de un portal que no se rastrea");
+        }
+        volcarAnuncio(enc, nombreProv);
+      })
+      .catch(function (e) { aviso("No se pudo: " + e.message, "error"); });
+  }
+
+  /* Vuelca el anuncio encontrado en el formulario y enseña lo que el Scanner
+     ya sabe de el, que es bastante mas que lo que se ve en el portal. */
+  function volcarAnuncio(r, nombreProv) {
+    if (r.localidad) {
+      if (seleccionar(selP, nombreProv)) pintarMunicipios();
+      seleccionar(selM, r.localidad);
+    }
+    if (r.m2) document.getElementById("v-m2").value = Math.round(r.m2);
+
+    var eur = (r.precio && r.m2) ? Math.round(r.precio / r.m2) : null;
+    var filas = [
+      ["Municipio", r.localidad || ""],
+      ["Dirección", r.direccion || ""],
+      ["Fuente", r.origen || ""],
+      ["Precio publicado", r.precio ? r.precio.toLocaleString("es-ES") + " €" : ""],
+      ["Superficie", r.m2 ? r.m2 + " m²" : ""],
+      ["Precio por m²", eur ? eur.toLocaleString("es-ES") + " €/m²" : ""],
+      ["Habitaciones", r.hab || ""],
+      ["Capital de entrada", r.capital ? Math.round(r.capital).toLocaleString("es-ES") + " €" : ""],
+      ["Cash-on-cash", (r.coc !== undefined && r.coc !== null) ? r.coc + " %" : ""],
+      ["Descuento sobre tasación", r.dto ? r.dto + " %" : ""]
+    ].filter(function (f) { return f[1] !== "" && f[1] !== null; });
+
+    cRes.innerHTML =
+      "<div class='cat-ok'>Anuncio encontrado en el Scanner</div>" +
+      "<dl class='cat-dl'>" + filas.map(function (f) {
+        return "<dt>" + f[0] + "</dt><dd>" + f[1] + "</dd>";
+      }).join("") + "</dl>" +
+      "<div class='cat-msg'>Se ha rellenado el municipio y la superficie. " +
+      "Puedes completar los datos del Catastro con su referencia si la tienes, " +
+      "para afinar la valoración.</div>";
+
+    valorar();
+  }
+
+  if (cUrl) {
+    document.getElementById("cat-btn-url").addEventListener("click", analizarAnuncio);
+    cUrl.addEventListener("keydown", function (ev) {
+      if (ev.key === "Enter") analizarAnuncio();
+    });
+  }
+
   var bPdf = document.getElementById("v-pdf");
   if (bPdf) bPdf.addEventListener("click", informe);
 

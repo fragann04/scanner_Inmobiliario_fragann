@@ -64,6 +64,11 @@
                  placeholder="O una dirección: Calle Gloria 51">
           <button class="btn btn-sec" type="button" id="cat-btn-dir">Buscar</button>
         </div>
+        <div class="cat-fila">
+          <input id="cat-url" type="url" spellcheck="false" autocomplete="off"
+                 placeholder="O el enlace de un anuncio (Solvia, pisos.com, donpiso…)">
+          <button class="btn btn-sec" type="button" id="cat-btn-url">Analizar</button>
+        </div>
         <div id="cat-res" class="cat-res"></div>
       </div>
 
@@ -212,23 +217,16 @@
             republicarlo, así que esta vía es mejor <i>y</i> gratuita.</div>
         </div>
         <div class="capa ext">
-          <div class="cp-k">3 · Contraste externo <span class="pill link">Enlace</span></div>
-          <div class="cp-v">Los portales publican su propia estimación para cada
-            dirección. Se consulta en su web, no se copia aquí:
-            <span class="cp-enl">
-              <a href="https://www.idealista.com/valorar-vivienda/" target="_blank"
-                 rel="noopener noreferrer">idealista</a>
-              <a href="https://www.fotocasa.es/es/valoracion-inmuebles/" target="_blank"
-                 rel="noopener noreferrer">Fotocasa</a>
-              <a href="https://www.pisos.com/valoracion-inmuebles/" target="_blank"
-                 rel="noopener noreferrer">pisos.com</a>
-              <a href="https://www.tinsa.es/vivienda/" target="_blank"
-                 rel="noopener noreferrer">Tinsa</a>
-            </span></div>
-          <div class="cp-c">Se abren en su web con tu dirección: sus valoraciones son
-            suyas y sus condiciones de uso prohíben la extracción automatizada, así
-            que aquí solo se enlaza. Contrastar dos o tres da una horquilla más
-            honesta que fiarse de una sola.</div>
+          <div class="cp-k">3 · Analizar un anuncio <span class="pill ok">Pega el enlace</span></div>
+          <div class="cp-v">Si el inmueble está anunciado, <b>pega aquí el enlace</b>
+            y se analiza igual que si dieras la dirección o la referencia catastral.
+            Funciona con los portales que el Scanner ya rastrea: Solvia, Aliseda,
+            Sareb/Hipoges, pisos.com, donpiso, BuildingCenter, Altamira y el BOE.</div>
+          <div class="cp-c">El anuncio se busca <b>en los datos del propio Scanner</b>,
+            no se descarga del portal: por eso funciona con los que se rastrean y no
+            con los que no. Si no aparece, es que no está en el inventario de esa
+            provincia —o que su portal no se rastrea, como idealista, cuyas
+            condiciones no lo permiten.</div>
         </div>
       </div>
     </section>
