@@ -271,3 +271,10 @@ table.t-muni tbody tr:hover td{background:var(--surface)}
 }
 
 .pill.no { background: #f0e4e2; color: #8a4f47; }
+
+/* Contraste con el precio de escritura */
+.escritura { margin-top: 20px; padding-top: 16px; border-top: 1px solid #dfe7ee; }
+.cp-dato:empty { display: none; }
+.cp-dato { font-size: 13px; background: #eef4f9; border: 1px solid #dfe7ee;
+           border-radius: 8px; padding: 9px 13px; margin: 0 0 10px; }
+.cp-dato b { font-size: 15px; letter-spacing: .02em; }

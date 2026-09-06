@@ -168,6 +168,18 @@
         : "") +
       (notas.length ? "<div class='cat-msg aviso'>" + notas.join(". ") + ".</div>" : "");
 
+    // Datos que hacen falta para buscar en el Notariado: alli se busca por
+    // codigo postal o municipio, y a estas alturas ya los tenemos del Catastro.
+    var cp = document.getElementById("v-cp");
+    if (cp) {
+      var partes = [];
+      if (d.cp) partes.push("código postal <b>" + d.cp + "</b>");
+      if (d.municipio) partes.push("municipio <b>" + d.municipio + "</b>");
+      cp.innerHTML = partes.length
+        ? "Para buscarlo allí: " + partes.join(" · ")
+        : "";
+    }
+
     valorar();
   }
 
@@ -348,6 +360,22 @@
       "<p class='pie'>" + txt("v-conf") + "</p>" +
       ficha +
       mercado +
+      // El informe deja constancia de que el valor tasado NO es el precio de
+      // escritura, y de donde se consulta ese otro dato. Quien lo lea sabe
+      // exactamente que tiene delante y que le falta por mirar.
+      "<h2>Contraste pendiente: precio de escritura</h2>" +
+      "<p class='pie'>Esta valoración parte del <b>valor tasado</b> oficial " +
+      "(tasaciones hipotecarias). El precio <b>realmente escriturado</b> lo " +
+      "publican en abierto el Portal Estadístico del Notariado " +
+      "(penotariado.com) y el Catastro a través de su valor de referencia " +
+      "(sedecatastro.gob.es). Las condiciones de uso de ambos no permiten " +
+      "reproducir sus datos aquí, por lo que se recomienda consultarlos " +
+      "directamente" +
+      (function () {
+        var cp = document.getElementById("v-cp");
+        var t = cp ? cp.textContent.replace(/^Para buscarlo allí:\s*/, "") : "";
+        return t ? " (" + t + ")" : "";
+      })() + ".</p>" +
       "<p class='pie aviso-legal'>Valoración orientativa calculada a partir de " +
       "fuentes públicas (Catastro, valor tasado del Ministerio de Transportes y " +
       "Movilidad Sostenible, y precios de oferta recogidos por el Scanner). " +
