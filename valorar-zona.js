@@ -682,6 +682,63 @@
   var bPdf = document.getElementById("v-pdf");
   if (bPdf) bPdf.addEventListener("click", informe);
 
+  /* ── Datos que llegan del marcador ──────────────────────────────────────
+   *
+   * El marcador (landing/marcador.js) lee la ficha del anuncio en la pestaña
+   * del portal y abre esta pagina con los datos en el #. Van en el # y no en
+   * la query a proposito: lo que va tras la almohadilla NO se envia al
+   * servidor, se queda en el navegador de quien pulsa.
+   */
+  (function desdeElMarcador() {
+    var h = location.hash.replace(/^#/, "");
+    if (!h) return;
+    var q = {};
+    h.split("&").forEach(function (par) {
+      var i = par.indexOf("=");
+      if (i > 0) q[par.slice(0, i)] = decodeURIComponent(par.slice(i + 1));
+    });
+    if (!q.precio && !q.m2) return;
+
+    if (q.m2) document.getElementById("v-m2").value = Math.round(parseFloat(q.m2));
+    if (q.muni) {
+      // Se busca el municipio en todas las provincias: el marcador lo saca del
+      // titulo del anuncio y no sabe a que provincia pertenece.
+      var slug = provinciaDeMunicipio(q.muni);
+      if (slug && seleccionar(selP, (PROV[slug] || {}).prov || slug)) {
+        pintarMunicipios();
+        seleccionar(selM, q.muni);
+      }
+    }
+
+    var precio = q.precio ? parseFloat(q.precio) : null;
+    var m2 = q.m2 ? parseFloat(q.m2) : null;
+    var eur = (precio && m2) ? Math.round(precio / m2) : null;
+    var filas = [
+      ["Precio del anuncio", precio ? precio.toLocaleString("es-ES") + " €" : ""],
+      ["Superficie", m2 ? Math.round(m2) + " m²" : ""],
+      ["Precio por m²", eur ? eur.toLocaleString("es-ES") + " €/m²" : ""],
+      ["Habitaciones", q.hab || ""],
+      ["Municipio", q.muni || ""],
+      ["Dirección", q.dir || ""],
+      ["Portal", q.de || ""]
+    ].filter(function (f) { return f[1]; });
+
+    cRes.innerHTML =
+      "<div class='cat-ok'>Traído del anuncio con el marcador</div>" +
+      "<dl class='cat-dl'>" + filas.map(function (f) {
+        return "<dt>" + f[0] + "</dt><dd>" + f[1] + "</dd>";
+      }).join("") + "</dl>" +
+      (q.url ? "<div class='cat-msg'><a href='" + q.url + "' target='_blank' " +
+               "rel='noopener noreferrer'>Ver el anuncio original</a></div>" : "") +
+      "<div class='cat-msg'>Comprueba las cifras y ajusta el municipio si no se " +
+      "ha reconocido. Si tienes la referencia catastral, añádela arriba para " +
+      "afinar con la superficie oficial.</div>";
+
+    // Se limpia el # para que al recargar no se repita ni quede en el historial.
+    history.replaceState(null, "", location.pathname + location.search);
+    valorar();
+  })();
+
   document.getElementById("v-calc").addEventListener("click", valorar);
   ["v-m2", "v-estado", "v-muni"].forEach(function (id) {
     document.getElementById(id).addEventListener("change", valorar);

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Valorar desde cualquier portal — Scanner REO</title>
+<link rel="stylesheet" href="estilo-zona.css">
+<style>
+  body { font-family: "Work Sans", system-ui, sans-serif; background: #f5f8fb;
+         color: #1d2b36; margin: 0; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 34px 20px 60px; }
+  h1 { font-family: "Space Grotesk", system-ui, sans-serif; font-size: 26px;
+       margin: 0 0 6px; }
+  .sub { color: #5c6a77; margin: 0 0 26px; line-height: 1.6; }
+  .caja { background: #fff; border: 1px solid #dfe7ee; border-radius: 12px;
+          padding: 22px 24px; margin-bottom: 18px; }
+  .arrastra { display: inline-block; background: #5b84a6; color: #fff;
+              text-decoration: none; font-weight: 700; font-size: 15px;
+              padding: 12px 22px; border-radius: 999px; cursor: grab; }
+  .arrastra:active { cursor: grabbing; }
+  ol { padding-left: 20px; line-height: 1.75; }
+  ol li { margin-bottom: 7px; }
+  .nota { font-size: 13px; color: #5c6a77; line-height: 1.6;
+          border-top: 1px solid #dfe7ee; padding-top: 14px; margin-top: 18px; }
+  code { background: #eef4f9; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Valorar un piso desde cualquier portal</h1>
+  <p class="sub">Un marcador para tu navegador. Estando en la ficha de un anuncio
+     —idealista, Fotocasa, el que sea— lo pulsas y se abre el valorador con el
+     precio, la superficie y las habitaciones ya puestos.</p>
+
+  <div class="caja">
+    <p><b>Arrastra este botón a tu barra de favoritos:</b></p>
+    <p><a class="arrastra" href="javascript:%28function%20%28%29%20%7B%20var%20DESTINO%20%3D%20%22https%3A%2F%2Fwww.scannerinmobiliario.com%2Fvalorar.html%22%3B%20function%20texto%28%29%20%7B%20return%20%28document.body.innerText%20%7C%7C%20%22%22%29.replace%28%2F%20%2Fg%2C%20%22%20%22%29%3B%20%7D%20function%20deJsonLd%28%29%20%7B%20var%20out%20%3D%20%7B%7D%3B%20var%20bloques%20%3D%20document.querySelectorAll%28%27script%5Btype%3D%22application%2Fld%2Bjson%22%5D%27%29%3B%20for%20%28var%20i%20%3D%200%3B%20i%20%3C%20bloques.length%3B%20i%2B%2B%29%20%7B%20var%20j%3B%20try%20%7B%20j%20%3D%20JSON.parse%28bloques%5Bi%5D.textContent%29%3B%20%7D%20catch%20%28e%29%20%7B%20continue%3B%20%7D%20%28function%20busca%28n%2C%20prof%29%20%7B%20if%20%28%21n%20%7C%7C%20typeof%20n%20%21%3D%3D%20%22object%22%20%7C%7C%20prof%20%3E%206%29%20return%3B%20if%20%28Array.isArray%28n%29%29%20%7B%20n.forEach%28function%20%28x%29%20%7B%20busca%28x%2C%20prof%20%2B%201%29%3B%20%7D%29%3B%20return%3B%20%7D%20var%20t%20%3D%20%5B%5D.concat%28n%5B%22%40type%22%5D%20%7C%7C%20%5B%5D%29.join%28%22%20%22%29%3B%20if%20%28%2FOffer%2F.test%28t%29%20%26%26%20n.price%20%26%26%20%21out.precio%29%20out.precio%20%3D%20n.price%3B%20if%20%28%2FPostalAddress%2F.test%28t%29%29%20%7B%20out.localidad%20%3D%20out.localidad%20%7C%7C%20n.addressLocality%20%7C%7C%20%22%22%3B%20out.direccion%20%3D%20out.direccion%20%7C%7C%20n.streetAddress%20%7C%7C%20%22%22%3B%20%7D%20if%20%28n.floorSize%20%26%26%20%21out.m2%29%20%7B%20out.m2%20%3D%20%28typeof%20n.floorSize%20%3D%3D%3D%20%22object%22%29%20%3F%20n.floorSize.value%20%3A%20n.floorSize%3B%20%7D%20if%20%28%28n.numberOfRooms%20%7C%7C%20n.numberOfBedrooms%29%20%26%26%20%21out.hab%29%20%7B%20var%20h%20%3D%20n.numberOfRooms%20%7C%7C%20n.numberOfBedrooms%3B%20out.hab%20%3D%20%28typeof%20h%20%3D%3D%3D%20%22object%22%29%20%3F%20h.value%20%3A%20h%3B%20%7D%20for%20%28var%20k%20in%20n%29%20if%20%28n.hasOwnProperty%28k%29%29%20busca%28n%5Bk%5D%2C%20prof%20%2B%201%29%3B%20%7D%29%28j%2C%200%29%3B%20%7D%20return%20out%3B%20%7D%20function%20num%28v%29%20%7B%20if%20%28v%20%3D%3D%3D%20undefined%20%7C%7C%20v%20%3D%3D%3D%20null%29%20return%20null%3B%20var%20n%20%3D%20parseFloat%28String%28v%29.replace%28%2F%5C.%2Fg%2C%20%22%22%29.replace%28%22%2C%22%2C%20%22.%22%29%29%3B%20return%20isFinite%28n%29%20%3F%20n%20%3A%20null%3B%20%7D%20var%20d%20%3D%20deJsonLd%28%29%3B%20var%20t%20%3D%20texto%28%29%3B%20if%20%28%21d.precio%29%20%7B%20var%20imp%20%3D%20%28t.match%28%2F%28%5Cd%7B1%2C3%7D%28%3F%3A%5C.%5Cd%7B3%7D%29%2B%7C%5Cd%7B5%2C%7D%29%5Cs%2A%E2%82%AC%2Fg%29%20%7C%7C%20%5B%5D%29%20.map%28function%20%28x%29%20%7B%20return%20parseInt%28x.replace%28%2F%5B%5E%5Cd%5D%2Fg%2C%20%22%22%29%2C%2010%29%3B%20%7D%29%20.filter%28function%20%28n%29%20%7B%20return%20n%20%3E%3D%205000%20%26%26%20n%20%3C%2050000000%3B%20%7D%29%3B%20if%20%28imp.length%29%20d.precio%20%3D%20Math.max.apply%28null%2C%20imp%29%3B%20%7D%20if%20%28%21d.m2%29%20%7B%20var%20m%20%3D%20t.match%28%2F%28%5Cd%7B2%2C4%7D%29%5Cs%2Am%28%3F%3A%C2%B2%7C2%29%5Cs%2A%28%3F%3Aconstruidos%3F%7C%C3%BAtiles%3F%29%3F%2Fi%29%3B%20if%20%28m%29%20d.m2%20%3D%20m%5B1%5D%3B%20%7D%20if%20%28%21d.hab%29%20%7B%20var%20h%20%3D%20t.match%28%2F%28%5Cd%7B1%2C2%7D%29%5Cs%2A%28%3F%3Ahab%7Cdormitorio%29%2Fi%29%3B%20if%20%28h%29%20d.hab%20%3D%20h%5B1%5D%3B%20%7D%20if%20%28%21d.localidad%29%20%7B%20var%20tit%20%3D%20document.title.split%28%22%7C%22%29%5B0%5D.split%28%22%E2%80%94%22%29%5B0%5D.split%28%22%20-%20%22%29%5B0%5D.trim%28%29%3B%20if%20%28tit.indexOf%28%22%2C%22%29%20%21%3D%3D%20-1%29%20%7B%20d.localidad%20%3D%20tit.split%28%22%2C%22%29.pop%28%29.trim%28%29%3B%20%7D%20else%20%7B%20var%20mm%20%3D%20tit.match%28%2F%08en%5Cs%2B%28%5B%5E%2C%C2%B7%5D%7B3%2C40%7D%29%5Cs%2A%24%2Fi%29%3B%20if%20%28mm%29%20d.localidad%20%3D%20mm%5B1%5D.trim%28%29%3B%20%7D%20%7D%20var%20precio%20%3D%20num%28d.precio%29%2C%20m2%20%3D%20num%28d.m2%29%2C%20hab%20%3D%20num%28d.hab%29%3B%20if%20%28%21precio%20%26%26%20%21m2%29%20%7B%20alert%28%22No%20he%20encontrado%20precio%20ni%20superficie%20en%20esta%20p%C3%A1gina.%5Cn%5Cn%22%20%2B%20%22%C2%BFEst%C3%A1s%20en%20la%20ficha%20de%20un%20anuncio%3F%20Si%20lo%20est%C3%A1s%20y%20aun%20as%C3%AD%20falla%2C%20%22%20%2B%20%22copia%20el%20anuncio%20y%20p%C3%A9galo%20en%20el%20valorador.%22%29%3B%20return%3B%20%7D%20var%20p%20%3D%20%5B%5D%3B%20if%20%28precio%29%20p.push%28%22precio%3D%22%20%2B%20precio%29%3B%20if%20%28m2%29%20p.push%28%22m2%3D%22%20%2B%20Math.round%28m2%29%29%3B%20if%20%28hab%29%20p.push%28%22hab%3D%22%20%2B%20Math.round%28hab%29%29%3B%20if%20%28d.localidad%29%20p.push%28%22muni%3D%22%20%2B%20encodeURIComponent%28d.localidad%29%29%3B%20if%20%28d.direccion%29%20p.push%28%22dir%3D%22%20%2B%20encodeURIComponent%28d.direccion%29%29%3B%20p.push%28%22de%3D%22%20%2B%20encodeURIComponent%28location.hostname.replace%28%2F%5Ewww%5C.%2F%2C%20%22%22%29%29%29%3B%20p.push%28%22url%3D%22%20%2B%20encodeURIComponent%28location.href.split%28%22%3F%22%29%5B0%5D%29%29%3B%20window.open%28DESTINO%20%2B%20%22%23%22%20%2B%20p.join%28%22%26%22%29%2C%20%22_blank%22%29%3B%20%7D%29%28%29%3B">Valorar con el Scanner</a></p>
+    <p class="sub" style="margin:14px 0 0;font-size:13px">Si no ves la barra de
+       favoritos, púlsala con <code>Ctrl</code>+<code>Mayús</code>+<code>B</code>.</p>
+  </div>
+
+  <div class="caja">
+    <p><b>Cómo se usa</b></p>
+    <ol>
+      <li>Abre el anuncio que quieras valorar, en el portal que sea.</li>
+      <li>Pulsa <b>Valorar con el Scanner</b> en tu barra de favoritos.</li>
+      <li>Se abre el valorador con los datos del anuncio ya cargados.</li>
+      <li>Comprueba el municipio y, si tienes la referencia catastral, añádela
+          para afinar con la superficie oficial.</li>
+    </ol>
+  </div>
+
+  <div class="caja">
+    <p><b>Por qué esto funciona donde un servidor no</b></p>
+    <p class="sub" style="margin:0">Los portales grandes bloquean a los servidores
+       que les piden fichas: filtran las IP de centros de datos y devuelven un
+       captcha. El marcador no le pide nada a nadie — <b>lee la página que ya
+       tienes abierta</b>, con tu navegador y tu sesión. No hay descarga
+       automatizada ni nada que esquivar: es copiar y pegar, pero de un clic.</p>
+    <p class="nota">Los datos viajan en la parte de la dirección que va tras la
+       almohadilla, que <b>no se envía a ningún servidor</b>: se quedan en tu
+       navegador. Nada de lo que leas se guarda ni se comparte.<br><br>
+       Su límite: tienes que estar tú delante, anuncio por anuncio. No sirve para
+       procesar cientos de golpe.</p>
+  </div>
+
+</div>
+</body>
+</html>
