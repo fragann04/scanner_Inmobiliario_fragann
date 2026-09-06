@@ -363,7 +363,15 @@
       // El informe deja constancia de que el valor tasado NO es el precio de
       // escritura, y de donde se consulta ese otro dato. Quien lo lea sabe
       // exactamente que tiene delante y que le falta por mirar.
-      "<h2>Contraste pendiente: precio de escritura</h2>" +
+      ((escEur && parseFloat(escEur.value) > 0)
+        ? "<h2>Contraste: precio de escritura</h2>" +
+          "<p class='hoja-base'>Dato consultado por quien emite este informe en " +
+          (escFte ? escFte.value : "la fuente oficial") + ".</p>" +
+          "<div class='hoja-esc'>" + escRes.innerHTML + "</div>"
+        : "") +
+      ((escEur && parseFloat(escEur.value) > 0) ? "" :
+      "<h2>Contraste pendiente: precio de escritura</h2>") +
+      ((escEur && parseFloat(escEur.value) > 0) ? "" :
       "<p class='pie'>Esta valoración parte del <b>valor tasado</b> oficial " +
       "(tasaciones hipotecarias). El precio <b>realmente escriturado</b> lo " +
       "publican en abierto el Portal Estadístico del Notariado " +
@@ -375,7 +383,7 @@
         var cp = document.getElementById("v-cp");
         var t = cp ? cp.textContent.replace(/^Para buscarlo allí:\s*/, "") : "";
         return t ? " (" + t + ")" : "";
-      })() + ".</p>" +
+      })() + ".</p>") +
       "<p class='pie aviso-legal'>Valoración orientativa calculada a partir de " +
       "fuentes públicas (Catastro, valor tasado del Ministerio de Transportes y " +
       "Movilidad Sostenible, y precios de oferta recogidos por el Scanner). " +
@@ -384,6 +392,49 @@
 
     window.print();
   }
+
+  /* ── Precio de escritura, consultado a mano ─────────────────────────────
+   *
+   * El dato lo consulta la persona en el portal del Notariado o en el
+   * Catastro y lo escribe aqui. Esa diferencia importa: lo que sus
+   * condiciones prohiben es INCORPORAR sus datos a una base consultable por
+   * terceros, no que alguien mire una cifra publica y la use en su propio
+   * trabajo. Aqui el dato no se descarga, no se guarda en ningun servidor y
+   * no se comparte: vive en esta pagina mientras dure la consulta.
+   *
+   * A cambio, el informe deja de ser "una estimacion" y pasa a contrastar la
+   * valoracion contra lo que se paga de verdad en la zona.
+   */
+  var escEur = document.getElementById("esc-eur");
+  var escFte = document.getElementById("esc-fuente");
+  var escRes = document.getElementById("esc-res");
+
+  function pintarEscritura() {
+    if (!escRes) return;
+    var eur = parseFloat(escEur && escEur.value);
+    var m2 = parseFloat(document.getElementById("v-m2").value);
+    if (!eur || eur <= 0) { escRes.innerHTML = ""; return; }
+
+    var html = "<b>" + eur.toLocaleString("es-ES") + " €/m²</b> según " +
+               (escFte ? escFte.value : "la consulta");
+    if (m2 > 0) {
+      var total = Math.round(eur * m2);
+      html += "<br>Para " + m2 + " m²: <b>" + total.toLocaleString("es-ES") + " €</b>";
+      // Comparado con el precio medio que ha calculado la pagina.
+      var med = parseFloat((txt("v-med") || "").replace(/[^\d]/g, ""));
+      if (med > 0) {
+        var dif = Math.round((total / med - 1) * 100);
+        html += "<br>Frente a la valoración de esta página: <span class='" +
+                (dif >= 0 ? "dif-pos" : "dif-neg") + "'>" +
+                (dif > 0 ? "+" : "") + dif + " %</span>";
+      }
+    }
+    escRes.innerHTML = html;
+  }
+  [escEur, escFte].forEach(function (e) {
+    if (e) { e.addEventListener("input", pintarEscritura);
+             e.addEventListener("change", pintarEscritura); }
+  });
 
   var bPdf = document.getElementById("v-pdf");
   if (bPdf) bPdf.addEventListener("click", informe);

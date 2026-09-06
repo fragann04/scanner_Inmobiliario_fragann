@@ -122,6 +122,19 @@
           <a href="https://www.sedecatastro.gob.es/" target="_blank"
              rel="noopener noreferrer">Catastro · valor de referencia</a>
         </div>
+
+        <div class="esc-manual">
+          <label for="esc-eur">Anota aquí lo que hayas consultado (€/m²)</label>
+          <div class="cat-fila">
+            <input id="esc-eur" type="number" min="100" max="20000" step="1"
+                   inputmode="numeric" placeholder="p. ej. 2350">
+            <select id="esc-fuente">
+              <option value="Notariado (precio de escritura)">Notariado</option>
+              <option value="Catastro (valor de referencia)">Catastro</option>
+            </select>
+          </div>
+          <div id="esc-res" class="esc-res"></div>
+        </div>
       </div>
 
       <div class="emisor">
