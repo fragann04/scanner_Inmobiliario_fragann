@@ -10,6 +10,13 @@
 (function () {
   "use strict";
 
+  // ── PEGA AQUÍ TU TOKEN DE CLOUDFLARE WEB ANALYTICS ────────────────────────
+  // Es lo único que hace falta para contar TODAS las visitas (no solo las
+  // altas) y ver de dónde llega cada una. Es gratis, no usa cookies y no
+  // identifica a nadie. Cómo conseguirlo: GUIA-VISIBILIDAD.md, apartado 2.
+  // Mientras esté vacío, no se carga nada de fuera y la web sigue igual.
+  var TOKEN_ANALITICA = "";
+
   var CLAVE = "reo_origen";
 
   // ── Cómo se traduce el sitio de procedencia a un nombre legible ────────────
@@ -143,11 +150,36 @@
     });
   }
 
+  // ── Contador de visitas (Cloudflare Web Analytics) ────────────────────────
+  // Cuenta cada visita y de qué sitio llega, sin cookies y sin guardar nada
+  // que identifique a la persona. Solo se activa si hay token puesto arriba.
+  function cargarContador() {
+    if (!TOKEN_ANALITICA) return false;
+    var s = document.createElement("script");
+    s.defer = true;
+    s.src = "https://static.cloudflareinsights.com/beacon.min.js";
+    s.setAttribute("data-cf-beacon", JSON.stringify({ token: TOKEN_ANALITICA }));
+    (document.head || document.documentElement).appendChild(s);
+    return true;
+  }
+
+  // El aviso legal del contador solo se muestra cuando el contador existe:
+  // así las páginas de cookies y privacidad nunca dicen algo que no se cumple.
+  function sincronizarAvisoLegal(activo) {
+    ["aviso-analitica", "aviso-analitica-privacidad"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.hidden = !activo;
+    });
+  }
+
+  var contadorActivo = cargarContador();
+
   var dato = registrar();
 
   // Consulta desde la consola del navegador: REO_MEDICION.resumen()
   window.REO_MEDICION = {
     datos: dato,
+    contador: contadorActivo ? "activo" : "sin token (no se cuentan las visitas)",
     resumen: function () {
       if (!dato) return "Sin datos de origen en este navegador.";
       return "Llegaste por: " + dato.origen + " (" + dato.detalle + ")" +
@@ -158,9 +190,14 @@
     }
   };
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", function () { marcarFormulario(dato); });
-  } else {
+  function alCargar() {
     marcarFormulario(dato);
+    sincronizarAvisoLegal(contadorActivo);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", alCargar);
+  } else {
+    alCargar();
   }
 })();

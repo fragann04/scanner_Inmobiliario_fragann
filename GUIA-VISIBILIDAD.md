@@ -1,8 +1,9 @@
 # Cómo ver quién encuentra Scanner Inmobiliario y quién se suscribe
 
-Guía práctica en dos partes: **cómo te encuentran** (buscadores) y **de dónde
-viene cada suscriptor** (altas). Todo lo que aparece marcado como «ya hecho»
-está en el repositorio; lo demás son pasos de 10 minutos que solo puedes dar tú,
+Guía práctica en tres partes: **cómo te encuentran** (buscadores), **cuántas
+visitas tienes y de dónde llegan** (todas, se registren o no) y **de dónde viene
+cada suscriptor** (altas). Todo lo que aparece marcado como «ya hecho» está en
+el repositorio; lo demás son pasos de 5 o 10 minutos que solo puedes dar tú,
 porque hacen falta tus cuentas.
 
 ---
@@ -71,7 +72,61 @@ En **Páginas** → qué páginas están indexadas y cuáles no, con el motivo.
 
 ---
 
-## 2. De dónde viene cada persona que se suscribe
+## 2. Cuántas visitas tienes y de dónde llega cada una
+
+Esto responde a «no sé por dónde vienen los usuarios que encuentran mi página».
+El apartado 3 mide solo a quien **se da de alta**; este mide a **todo el que
+entra**, se registre o no.
+
+Lo hace **Cloudflare Web Analytics**: gratis y sin límite de visitas, **sin
+cookies** y sin huella digital del navegador, así que no hace falta banner de
+consentimiento (la razón por la que no te propongo Google Analytics, que sí lo
+exigiría y obligaría a rehacer la parte legal).
+
+### Lo que tienes que hacer tú (una vez, 5 minutos)
+
+1. Crea una cuenta gratis en <https://dash.cloudflare.com/sign-up> (no hace
+   falta mover el dominio a Cloudflare ni tocar nada del DNS).
+2. En el menú lateral: **Analytics & Logs → Web Analytics → Add a site**.
+3. Escribe `www.scannerinmobiliario.com`.
+4. Te dará un fragmento con un **token** (una cadena larga de letras y números).
+   Copia solo el token, no el fragmento entero.
+5. Abre `medicion.js`, línea 8 aproximadamente, y pégalo entre las comillas:
+
+   ```js
+   var TOKEN_ANALITICA = "pega-aqui-tu-token";
+   ```
+
+6. Sube el cambio. Ya está: no hay que tocar ninguna página más.
+
+### Qué verás en el panel de Cloudflare
+
+- **Visitas y páginas vistas**, por día.
+- **Referrers**: de qué web llega cada visita — esto es exactamente lo que
+  buscabas.
+- **Países**, **navegadores**, **sistemas operativos**, móvil o escritorio.
+- **Qué páginas** son las más vistas.
+
+### Detalles que conviene saber
+
+- **Mientras el token esté vacío no se carga nada de fuera** y la web funciona
+  igual que ahora: no cuenta visitas, pero tampoco añade ninguna dependencia.
+- **El texto legal se activa solo.** Las páginas de cookies y privacidad llevan
+  un párrafo y una fila de proveedor ocultos que aparecen únicamente cuando el
+  token está puesto. Así nunca declaran algo que no se esté cumpliendo, ni al
+  revés. No tienes que editar nada a mano.
+- **Se mide en las 11 páginas fijas** del sitio (portada, explorar, acceso,
+  gracias, valorar, precios, ampliar, marcador y los tres textos legales).
+- **Los `explorador-<provincia>.html` no se miden todavía**: los regenera tu
+  proceso automático cada día, así que cualquier línea que yo añada ahí se
+  perdería en la siguiente actualización. Para incluirlos hay que añadir
+  `<script src="medicion.js"></script>` a la plantilla del generador. Dime
+  dónde está y lo dejo hecho.
+- Comprobar que funciona: abre la web, F12 → **Consola** y escribe
+  `REO_MEDICION.contador`. Responde `activo` o `sin token (no se cuentan las
+  visitas)`.
+
+## 3. De dónde viene cada persona que se suscribe
 
 ### Lo que ya está hecho
 
@@ -122,14 +177,16 @@ incógnito y repite.
 
 ---
 
-## 3. Límites que conviene tener claros
+## 4. Límites que conviene tener claros
 
-- **No hay recuento de visitas totales.** El sitio es estático (GitHub Pages):
-  sin servidor propio no se puede contar visitantes sin meter un servicio
-  externo. Search Console te dará las que vienen de buscadores, y los correos de
-  alta las que se convierten en suscriptor. Entre medias (alguien que entra y no
-  se registra) queda a ciegas salvo que un día añadas una analítica tipo
-  Plausible o Google Analytics — eso ya obligaría a un aviso de cookies.
+- **El recuento de visitas empieza el día que pegues el token** del apartado 2.
+  El sitio es estático (GitHub Pages): sin servidor propio no hay registro de
+  visitas anteriores que recuperar, ni con Cloudflare ni con nada. Lo de antes
+  no se puede reconstruir.
+- **Ninguna medición es retroactiva, en general.** Search Console empieza a
+  acumular el día que verificas; el origen de las altas, el día que se publique
+  este cambio. De los suscriptores que ya tienes no se puede saber por dónde
+  llegaron.
 - **El listado de suscriptores es tu bandeja de correo.** Las altas se crean en
   el navegador del usuario y te llegan por email vía formsubmit.co; no hay base
   de datos que consultar. Crea un filtro en Gmail con el asunto «Nueva
