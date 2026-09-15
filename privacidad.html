@@ -69,6 +69,10 @@
   <li><b>Nombre</b> (para dirigirnos a ti).</li>
   <li><b>Correo electrónico</b> (es tu usuario de acceso y la vía de aviso).</li>
   <li><b>Provincia de referencia</b> (para orientar el servicio).</li>
+  <li><b>Origen de la visita</b> (desde qué sitio llegaste —un buscador, WhatsApp, un
+      enlace—, la página de entrada y si usas móvil u ordenador). Se recoge solo al
+      registrarte, para saber cómo nos encuentran. No se usa para perfilarte ni se
+      comparte con terceros.</li>
   <li><b>Clave de acceso</b>: no se guarda tu clave, sino un <b>resumen criptográfico
       (hash)</b> de la misma.</li>
 </ul>
@@ -98,6 +102,9 @@
   <tr><td>FormSubmit</td><td>Envío del formulario de alta al correo del responsable</td></tr>
   <tr><td>Google (Gmail)</td><td>Recepción y envío de los correos del servicio</td></tr>
   <tr><td>GitHub (GitHub Pages)</td><td>Alojamiento del sitio web</td></tr>
+  <tr id="aviso-analitica-privacidad" hidden><td>Cloudflare Web Analytics</td>
+      <td>Recuento de visitas y de la web desde la que llegan, sin cookies y sin
+          datos que permitan identificarte</td></tr>
 </table>
 <p>Algunos de estos proveedores están ubicados fuera del Espacio Económico Europeo. Dichas
    transferencias se amparan en las Cláusulas Contractuales Tipo aprobadas por la Comisión
@@ -145,5 +152,6 @@
 </div></footer>
 <script>window.REO_ASISTENTE = { contexto: "generico" };</script>
 <script src="asistente.js" defer></script>
+<script src="medicion.js"></script>
 </body>
 </html>

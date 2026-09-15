@@ -1,0 +1,23 @@
+# Scanner Inmobiliario — instrucciones para los buscadores
+# Se permite indexar las páginas públicas y se bloquea todo lo privado
+# (cuentas, acceso, páginas internas y los exploradores, que piden clave).
+
+User-agent: *
+Allow: /$
+Allow: /index.html
+Allow: /explorar.html
+Allow: /aviso-legal.html
+Allow: /privacidad.html
+Allow: /cookies.html
+
+Disallow: /cuentas/
+Disallow: /acceso.html
+Disallow: /gracias.html
+Disallow: /ampliar.html
+Disallow: /generar-enlace.html
+Disallow: /marcador.html
+Disallow: /valorar.html
+Disallow: /precios.html
+Disallow: /explorador-
+
+Sitemap: https://www.scannerinmobiliario.com/sitemap.xml
