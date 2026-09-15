@@ -7,7 +7,7 @@ porque hacen falta tus cuentas.
 
 ---
 
-## 1. Cómo te encuentran en Google
+## 1. Cómo te encuentran en los buscadores
 
 ### Lo que ya está hecho
 
@@ -32,6 +32,29 @@ porque hacen falta tus cuentas.
    comentario `<!--` y `-->`. Sube el cambio.
 5. Pulsa «Verificar» en Google.
 6. En Search Console, menú **Sitemaps**, escribe `sitemap.xml` y envía.
+
+### Aviso automático de rastreo (ya hecho, sin cuentas ni contraseñas)
+
+Un buscador solo actualiza lo que sabe de tu web cuando vuelve a pasar por ella.
+**IndexNow** invierte eso: en cuanto cambia una página pública, le avisamos
+nosotros de que vuelva a leerla. Lo admiten Bing, Yandex, Seznam y Naver
+(Google no lo usa: para Google mandan el sitemap y Search Console).
+
+Ya está conectado y no requiere ninguna cuenta:
+
+| Pieza | Para qué |
+|---|---|
+| `72bb9ac1ae059ef2ad4de5d999088920.txt` | La clave. Vive en la raíz del sitio; el buscador la lee para comprobar que el aviso es tuyo. **No la borres ni la renombres.** |
+| `.github/indexnow.py` | Arma el aviso con las direcciones del `sitemap.xml` y lo envía. |
+| `.github/workflows/indexnow.yml` | Lo lanza solo, en GitHub, cada vez que cambia una página pública. |
+
+Salta únicamente cuando cambian la portada, *explorar*, el sitemap o los
+legales. Las actualizaciones diarias de datos tocan los exploradores por
+provincia, que no se indexan, así que no generan avisos inútiles.
+
+Para lanzarlo a mano: en GitHub, pestaña **Actions** → «Avisar a los buscadores
+(IndexNow)» → botón **Run workflow**. Para ver qué enviaría sin enviar nada,
+desde el repositorio: `python3 .github/indexnow.py --prueba`.
 
 ### Qué verás a partir de entonces
 
