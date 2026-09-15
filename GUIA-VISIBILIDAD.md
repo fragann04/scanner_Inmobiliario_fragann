@@ -8,6 +8,36 @@ porque hacen falta tus cuentas.
 
 ---
 
+## 0. Antes de nada: esto se pierde si no lo bajas a tu ordenador
+
+El repositorio de GitHub **no es el original**: tu proceso «Actualizacion
+automatica de datos» sube encima lo que tienes en el ordenador. Mirando los
+últimos seis envíos automáticos:
+
+| Archivo | Lo sobrescribe el envío |
+|---|---|
+| `explorar.html` | **Los 6 de 6** — cada día |
+| `config.js`, `index.html`, `acceso.html`, `valorar.html`, `precios.html`, `ampliar.html`, `marcador.html`, `gracias.html` | 1 o 2 de 6 — en los envíos grandes |
+| `aviso-legal.html`, `privacidad.html`, `cookies.html` | 0 de 6 |
+| Archivos nuevos (`medicion.js`, `robots.txt`, `sitemap.xml`, la clave IndexNow, esta guía) | 0 de 6 — tu envío no los conoce, así que no los toca |
+
+Traducido: **si fusionas esto en GitHub pero no lo bajas a tu carpeta local, el
+próximo envío automático borrará las líneas añadidas a `explorar.html` (mañana
+mismo) y, más adelante, las del resto de páginas.** Los archivos nuevos
+sobrevivirían, pero sin las líneas que los llaman no servirían de nada.
+
+Después de fusionar, en tu carpeta del proyecto:
+
+```
+git pull
+```
+
+Con eso tu copia local pasa a incluir los cambios y los envíos siguientes ya los
+conservan. No hay atajo técnico que evite este paso: mientras el original viva
+en tu ordenador, lo que mande es tu ordenador.
+
+---
+
 ## 1. Cómo te encuentran en los buscadores
 
 ### Lo que ya está hecho
@@ -115,13 +145,14 @@ exigiría y obligaría a rehacer la parte legal).
   un párrafo y una fila de proveedor ocultos que aparecen únicamente cuando el
   token está puesto. Así nunca declaran algo que no se esté cumpliendo, ni al
   revés. No tienes que editar nada a mano.
-- **Se mide en las 11 páginas fijas** del sitio (portada, explorar, acceso,
-  gracias, valorar, precios, ampliar, marcador y los tres textos legales).
-- **Los `explorador-<provincia>.html` no se miden todavía**: los regenera tu
-  proceso automático cada día, así que cualquier línea que yo añada ahí se
-  perdería en la siguiente actualización. Para incluirlos hay que añadir
-  `<script src="medicion.js"></script>` a la plantilla del generador. Dime
-  dónde está y lo dejo hecho.
+- **Se mide en todo el sitio**: las 11 páginas fijas (portada, explorar, acceso,
+  gracias, valorar, precios, ampliar, marcador y los tres textos legales) **y
+  los 52 exploradores por provincia**.
+- Los exploradores se cubren sin tocarlos: ya cargaban `config.js`, así que es
+  `config.js` quien llama a `medicion.js`. Una línea en un archivo en vez de 52
+  líneas en páginas que se regeneran cada día. Si una página trae además su
+  propia etiqueta, `medicion.js` detecta que ya se ejecutó y no cuenta la visita
+  dos veces (probado).
 - Comprobar que funciona: abre la web, F12 → **Consola** y escribe
   `REO_MEDICION.contador`. Responde `activo` o `sin token (no se cuentan las
   visitas)`.

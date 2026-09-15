@@ -10,6 +10,11 @@
 (function () {
   "use strict";
 
+  // Este archivo puede llegar por dos vías (la etiqueta de la página y el
+  // cargador de config.js). Si ya se ejecutó, no se repite: contar dos veces
+  // la misma visita falsearía el dato.
+  if (window.REO_MEDICION) return;
+
   // ── PEGA AQUÍ TU TOKEN DE CLOUDFLARE WEB ANALYTICS ────────────────────────
   // Es lo único que hace falta para contar TODAS las visitas (no solo las
   // altas) y ver de dónde llega cada una. Es gratis, no usa cookies y no

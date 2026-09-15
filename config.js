@@ -69,3 +69,15 @@ window.REO_CONFIG = {
     { slug: "zaragoza", nombre: "Zaragoza" }
   ]
 };
+
+// ─── Medición de visitas ───────────────────────────────
+// Los 52 exploradores por provincia cargan este archivo, así que cargar
+// medicion.js desde aquí los mide todos sin tocar 52 páginas que, además,
+// se regeneran cada día (cualquier línea añadida en ellas se perdería).
+// Si la página ya trae su propia etiqueta, medicion.js detecta que ya se
+// ejecutó y no cuenta la visita dos veces.
+(function () {
+  var s = document.createElement("script");
+  s.src = "medicion.js";
+  (document.head || document.documentElement).appendChild(s);
+})();
