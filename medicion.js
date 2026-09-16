@@ -20,7 +20,7 @@
   // altas) y ver de dónde llega cada una. Es gratis, no usa cookies y no
   // identifica a nadie. Cómo conseguirlo: GUIA-VISIBILIDAD.md, apartado 2.
   // Mientras esté vacío, no se carga nada de fuera y la web sigue igual.
-  var TOKEN_ANALITICA = "";
+  var TOKEN_ANALITICA = "582e3825072a4cd084945a9bcf9966b0";
 
   var CLAVE = "reo_origen";
 
