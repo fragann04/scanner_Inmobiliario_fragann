@@ -1,0 +1,30 @@
+# Avisa a los buscadores cuando cambia alguna página pública.
+#
+# Solo salta si cambia la portada, el explorador público, el sitemap o los
+# legales: las actualizaciones diarias de datos tocan los exploradores por
+# provincia, que no se indexan, así que no generan avisos inútiles.
+name: Avisar a los buscadores (IndexNow)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - index.html
+      - explorar.html
+      - sitemap.xml
+      - robots.txt
+      - aviso-legal.html
+      - privacidad.html
+      - cookies.html
+  workflow_dispatch:      # botón «Run workflow» para lanzarlo a mano
+
+permissions:
+  contents: read
+
+jobs:
+  avisar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enviar las páginas públicas a IndexNow
+        run: python3 .github/indexnow.py
