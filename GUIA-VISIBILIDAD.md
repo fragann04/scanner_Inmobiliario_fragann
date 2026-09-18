@@ -8,33 +8,55 @@ porque hacen falta tus cuentas.
 
 ---
 
-## 0. Antes de nada: esto se pierde si no lo bajas a tu ordenador
+## 0. El envío automático borra cosas (y ya lo hizo)
 
 El repositorio de GitHub **no es el original**: tu proceso «Actualizacion
-automatica de datos» sube encima lo que tienes en el ordenador. Mirando los
-últimos seis envíos automáticos:
+automatica de datos» sube encima lo que tienes en el ordenador. Así que
+cualquier línea añadida aquí desaparece en el siguiente envío si tu carpeta
+local no la tiene.
 
-| Archivo | Lo sobrescribe el envío |
-|---|---|
-| `explorar.html` | **Los 6 de 6** — cada día |
-| `config.js`, `index.html`, `acceso.html`, `valorar.html`, `precios.html`, `ampliar.html`, `marcador.html`, `gracias.html` | 1 o 2 de 6 — en los envíos grandes |
-| `aviso-legal.html`, `privacidad.html`, `cookies.html` | 0 de 6 |
-| Archivos nuevos (`medicion.js`, `robots.txt`, `sitemap.xml`, la clave IndexNow, esta guía) | 0 de 6 — tu envío no los conoce, así que no los toca |
+**No es una advertencia teórica: pasó el 18/09/2026.** El envío de ese día
+sobrescribió `explorar.html`, `acceso.html` y `marcador.html`, y con ellos se
+llevó la línea que carga `medicion.js`. Esas tres páginas dejaron de contar
+visitas sin avisar a nadie.
 
-Traducido: **si fusionas esto en GitHub pero no lo bajas a tu carpeta local, el
-próximo envío automático borrará las líneas añadidas a `explorar.html` (mañana
-mismo) y, más adelante, las del resto de páginas.** Los archivos nuevos
-sobrevivirían, pero sin las líneas que los llaman no servirían de nada.
+### El arreglo: un guardián automático
 
-Después de fusionar, en tu carpeta del proyecto:
+Ahora hay un trabajo (`.github/workflows/guardian.yml`) que se ejecuta
+**después de cada envío a `main`** y repone lo que falte:
+
+- la etiqueta `<script src="medicion.js"></script>` en las páginas públicas
+  que la hayan perdido,
+- la verificación de Google Search Console en la portada,
+- el cargador de `medicion.js` dentro de `config.js` (el que mide los 52
+  exploradores por provincia).
+
+Si no falta nada, no hace nada. Si falta algo, lo repone y deja un commit
+llamado *«Reponer la medicion de visitas borrada por la ultima subida»*. En la
+práctica: **la medición ya no depende de que te acuerdes de nada.** Como mucho
+se pierden los minutos que tarda el trabajo en ejecutarse.
+
+Puedes verlo en GitHub → pestaña **Actions** → *Guardián de la medición*.
+
+### Aun así, conviene bajar los cambios
+
+El guardián cubre la medición, no el resto. Si ves un commit del guardián cada
+día, significa que tu carpeta local sigue desactualizada y lo está borrando
+todas las veces. Para cortarlo de raíz, en tu carpeta del proyecto:
 
 ```
 git pull
 ```
 
-Con eso tu copia local pasa a incluir los cambios y los envíos siguientes ya los
-conservan. No hay atajo técnico que evite este paso: mientras el original viva
-en tu ordenador, lo que mande es tu ordenador.
+Con eso tu copia local pasa a incluir los cambios y los envíos siguientes ya
+los conservan, sin que el guardián tenga que intervenir.
+
+| Archivo | Lo sobrescribe el envío |
+|---|---|
+| `explorar.html` | Prácticamente cada día |
+| `config.js`, `index.html`, `acceso.html`, `valorar.html`, `precios.html`, `ampliar.html`, `marcador.html`, `gracias.html` | En los envíos grandes |
+| `aviso-legal.html`, `privacidad.html`, `cookies.html` | Nunca hasta ahora |
+| Archivos nuevos (`medicion.js`, `robots.txt`, `sitemap.xml`, la clave IndexNow, esta guía) | Nunca — tu envío no los conoce, así que no los toca |
 
 ---
 
