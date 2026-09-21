@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Scanner">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Scanner REO — Explorador interactivo · 18/09/2026</title>
+<title>Scanner REO — Explorador interactivo · 21/09/2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -154,9 +154,30 @@
   }
 
   /* ── Comparador de inmuebles ───────────────────────────────────────────── */
-  th.sel, td.sel { width: 32px; text-align: center; padding-left: 10px; }
+  th.sel, td.sel { width: 46px; text-align: center; padding-left: 10px; }
   td.sel input { width: 17px; height: 17px; cursor: pointer; accent-color: #5b84a6; }
   tr.comparando td { background: #eaf1f7; }
+
+  /* ── Favoritos ─────────────────────────────────────────────────────────── */
+  .estrella { border: none; background: none; cursor: pointer; padding: 2px 3px;
+      font-size: 17px; line-height: 1; color: #c3d0dc; font-family: inherit; }
+  .estrella:hover { color: #d8a838; }
+  .estrella.on { color: #d8a838; }
+  tr.favorita td { background: #fdf8ed; }
+  tr.favorita.comparando td { background: #f4f2ea; }
+  #fav-ver { padding: 6px 12px; border: 1px solid var(--border-strong);
+      background: var(--surface); color: var(--text-1); border-radius: 4px;
+      cursor: pointer; font-size: 12px; font-family: inherit; }
+  #fav-ver:hover { background: var(--surface-2); }
+  #fav-ver.on { background: #f6ecd4; border-color: #d8a838; font-weight: bold; }
+  /* En la vista de guardados los filtros no pintan nada: se atenuan para que
+     se vea que no mandan, pero el boton de favoritos sigue vivo. */
+  #filtros.apagado .campo { opacity: .45; }
+  #filtros.apagado .campo:has(#fav-ver) { opacity: 1; }
+  #fav-aviso { margin: 10px 20px -4px; padding: 9px 14px; border-radius: 6px;
+      background: #fdf8ed; border: 1px solid #ecdcb8; font-size: 13px;
+      color: #6b5a34; display: none; }
+  #fav-aviso.on { display: block; }
 
   #barra-comp { position: fixed; left: 50%; transform: translateX(-50%);
       bottom: 18px; z-index: 60; display: none; align-items: center; gap: 12px;
@@ -288,7 +309,7 @@
 
 <header>
   <h1>Scanner REO — Explorador interactivo · Álava</h1>
-  <div class="sub">Álava · Informe del 18/09/2026 · usa los filtros y haz clic en las cabeceras para ordenar</div>
+  <div class="sub">Álava · Informe del 21/09/2026 · usa los filtros y haz clic en las cabeceras para ordenar</div>
 </header>
 
 <button id="toggle-filtros">☰ Mostrar filtros</button>
@@ -314,6 +335,8 @@
       </div>
     </details>
   </div>
+  <div class="campo"><label title="Quién vende. Fondo / servicer son las carteras de banco y fondo (Aliseda, Solvia, Altamira, Hipoges, Sareb, Servihabitat, BuildingCenter).">Vendedor <span class="info-i" title="Fondo / servicer = cartera de banco o fondo vendida por su gestora. Cesión de remate = el fondo ganó la subasta y te cede su posición. Subasta = BOE. Portal / agencia = mercado normal.">ⓘ</span></label><div class="checks" id="f-vendedor"></div></div>
+  <div class="campo"><label title="Quién está dentro del piso, según lo que publica la fuente.">Situación <span class="info-i" title="Libre = se entrega vacío. Alquilado = hay inquilino con contrato, la renta ya corre. Ocupado = sin título, sin posesión o con pleito abierto. Sin dato = la fuente no lo dice.">ⓘ</span></label><div class="checks" id="f-estado"></div></div>
   <div class="campo"><label>Fuente</label><div class="checks" id="f-fuente"></div></div>
   <div class="campo"><label title="Muestra solo inmuebles cuyo precio sea IGUAL O MENOR que este. Vacío = sin límite.">Precio máx € <span class="info-i" title="Muestra solo inmuebles con precio igual o menor. Vacío = sin límite.">ⓘ</span></label><input type="number" id="f-precio" step="10000" min="0" placeholder="sin límite"></div>
   <div class="campo"><label title="Dinero de tu bolsillo (entrada + impuestos + notaría + reforma). Muestra los que necesiten ESE capital o menos.">Capital entrada máx € <span class="info-i" title="Dinero de tu bolsillo (entrada + impuestos + notaría + reforma). Muestra los que necesiten ese capital o menos. Vacío = sin límite.">ⓘ</span></label><input type="number" id="f-capital" step="5000" min="0" placeholder="sin límite"></div>
@@ -331,6 +354,7 @@
   <div class="campo"><label>Dirección contiene</label><input type="text" id="f-txt" placeholder="calle, zona…"></div>
   <div class="campo"><label>&nbsp;</label><button id="aplicar">🔎 Aplicar filtros</button></div>
   <div class="campo"><label>&nbsp;</label><button id="limpiar">Limpiar filtros</button></div>
+  <div class="campo"><label title="Los inmuebles que hayas guardado con la estrella, de todas las provincias.">Guardados <span class="info-i" title="Marca la estrella de un inmueble para guardarlo. Se quedan en este navegador, asociados a tu email de acceso, y no se borran cuando el escaneo nocturno actualiza el listado.">ⓘ</span></label><button id="fav-ver">☆ Mis favoritos (<span id="fav-n">0</span>)</button></div>
 </div>
 
 <noscript>
@@ -343,6 +367,7 @@
 </noscript>
 
 <div id="resumen">Mostrando <b>46</b> de 46 inmuebles · <b>0</b> con cash-on-cash ≥ 10% ★</div>
+<div id="fav-aviso"></div>
 
 <details id="comocalc">
   <summary>Cómo se calculan estos números (pasa el ratón por cada columna para el detalle)</summary>
@@ -367,10 +392,9 @@
 
 <table>
   <thead><tr id="cabecera"><th>Localidad / Dirección</th><th>Fuente</th><th class="num">Precio</th><th class="num">Capital entrada</th><th class="num">m²</th><th class="num">Hab</th><th class="num">Rent. bruta</th><th class="num">Rent. neta</th><th class="num">Cash-on-cash</th><th class="num">Cashflow/año</th><th class="num">Dto. tasación</th><th>Info</th></tr></thead>
-  <tbody id="cuerpo"><tr><td data-label="Localidad / Dirección"><b>Vitoria-gasteiz</b><br><span class='dir'>calle CORRERIA 0</span></td><td data-label="Fuente"><span class='tag' style='background:#e5dcef'>ALISEDA</span><br><a href='https://www.alisedainmobiliaria.com/inmueble/45759250' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">51.200 €</td><td data-label="Capital entrada" class="num"><b>29.592 €</b></td><td data-label="m²" class="num">68</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">9,4%</td><td data-label="Rent. neta" class="num">4,0%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-0,2%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-47 €</span></td><td data-label="Dto. tasación" class="num">20,0%</td><td data-label="Info"><span class='dir'>OKUPADO</span></td></tr>
+  <tbody id="cuerpo"><tr><td data-label="Localidad / Dirección"><b>Vitoria-gasteiz</b><br><span class='dir'>calle CORRERIA 0</span></td><td data-label="Fuente"><span class='tag' style='background:#e5dcef'>ALISEDA</span><br><a href='https://www.alisedainmobiliaria.com/inmueble/45759250' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">51.200 €</td><td data-label="Capital entrada" class="num"><b>29.592 €</b></td><td data-label="m²" class="num">68</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">9,4%</td><td data-label="Rent. neta" class="num">4,0%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-0,2%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-47 €</span></td><td data-label="Dto. tasación" class="num">20,0%</td><td data-label="Info"><span class='tag' style='background:#f2d9d5' title='OKUPADO'>Ocupado</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Salas</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d8e6f3'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/casa_rustica-salas_centro_urbano-65020823012_106400/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">57.000 €</td><td data-label="Capital entrada" class="num"><b>31.245 €</b></td><td data-label="m²" class="num">180</td><td data-label="Hab" class="num">4</td><td data-label="Rent. bruta" class="num">8,4%</td><td data-label="Rent. neta" class="num">3,6%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-1,3%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-399 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Salas</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d8e6f3'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/chalet-salas_centro_urbano-67593748759_106100/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">59.000 €</td><td data-label="Capital entrada" class="num"><b>31.815 €</b></td><td data-label="m²" class="num">263</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">8,1%</td><td data-label="Rent. neta" class="num">3,5%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-1,6%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-520 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
-<tr><td data-label="Localidad / Dirección"><b>Salas</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d8e6f3'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/casa-salas-64188435812_100600/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">59.000 €</td><td data-label="Capital entrada" class="num"><b>31.815 €</b></td><td data-label="m²" class="num">87</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">8,1%</td><td data-label="Rent. neta" class="num">3,5%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-1,6%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-520 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Salas</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d8e6f3'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/casa_rustica-salas_centro_urbano-65047574084_106400/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">60.000 €</td><td data-label="Capital entrada" class="num"><b>32.100 €</b></td><td data-label="m²" class="num">125</td><td data-label="Hab" class="num">4</td><td data-label="Rent. bruta" class="num">8,0%</td><td data-label="Rent. neta" class="num">3,5%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-1,8%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-581 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Iruna de Oca</b><br><span class='dir'>ZABALLA HACIENDA ECHEVARRIETA, 1, Iruña De Oca</span></td><td data-label="Fuente"><span class='tag' style='background:#d4e8e1'>ALTAMIRA</span><br><a href='https://www.altamirainmuebles.com/venta-de-piso/alava/iruna-de-oca/segunda-mano/9186_0595_PE0001/372885/1' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">65.450 €</td><td data-label="Capital entrada" class="num"><b>33.653 €</b></td><td data-label="m²" class="num">78</td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">7,3%</td><td data-label="Rent. neta" class="num">3,2%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-2,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-911 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Vitoria Gasteiz</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#ebe5cd'>BUILDINGCENTER</span><br><a href='https://www.buildingcenter.es/es/venta/viviendas/alava/cuadrilla-de-vitoria-gasteizko/vitoria-gasteiz/60761615' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">66.500 €</td><td data-label="Capital entrada" class="num"><b>33.952 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">7,2%</td><td data-label="Rent. neta" class="num">3,1%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-2,9%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-975 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
@@ -378,6 +402,7 @@
 <tr><td data-label="Localidad / Dirección"><b>Oyon Oion</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#ebe5cd'>BUILDINGCENTER</span><br><a href='https://www.buildingcenter.es/es/venta/viviendas/alava/cuadrilla-de-laguardia-rioja-alavesa/oyon-oion/89030400' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">675.000 €</td><td data-label="Capital entrada" class="num"><b>207.375 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num"><span class='nd'>—</span></td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">4,1%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,4%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-6.981 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Álava</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d8e6f3'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/casa_rustica-salas_centro_urbano-65870654032_106100/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">485.995 €</td><td data-label="Capital entrada" class="num"><b>153.509 €</b></td><td data-label="m²" class="num">486</td><td data-label="Hab" class="num">1</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">4,0%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,5%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-5.379 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Salas</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d8e6f3'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/chalet-salas_centro_urbano-67563696708_106100/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">399.000 €</td><td data-label="Capital entrada" class="num"><b>128.715 €</b></td><td data-label="m²" class="num">360</td><td data-label="Hab" class="num">5</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,9%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,6%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-4.642 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Salas</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d8e6f3'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/chalet-salas_centro_urbano-67549672505_105000/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">399.000 €</td><td data-label="Capital entrada" class="num"><b>128.715 €</b></td><td data-label="m²" class="num">211</td><td data-label="Hab" class="num">5</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,9%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,6%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-4.642 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Salas</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d8e6f3'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/chalet-salas_centro_urbano-65838165038_106500/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">390.000 €</td><td data-label="Capital entrada" class="num"><b>126.150 €</b></td><td data-label="m²" class="num">150</td><td data-label="Hab" class="num">5</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,9%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,6%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-4.566 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Salas</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d8e6f3'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/piso-salas_centro_urbano-65081441137_106100/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">72.000 €</td><td data-label="Capital entrada" class="num"><b>35.520 €</b></td><td data-label="m²" class="num">123</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">6,7%</td><td data-label="Rent. neta" class="num">2,9%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.309 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Vitoria-gasteiz</b><br><span class='dir'>Piso reformado , actual y moderno con ascensor</span></td><td data-label="Fuente"><span class='tag' style='background:#e4ecd4'>DONPISO</span><br><a href='https://www.donpiso.com/pisos-y-casas/302980_piso-en-venta-vitoria-gasteiz' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">320.000 €</td><td data-label="Capital entrada" class="num"><b>106.200 €</b></td><td data-label="m²" class="num">90</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,8%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.972 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
@@ -388,7 +413,7 @@
 <tr><td data-label="Localidad / Dirección"><b>Vitoria-gasteiz</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d6ebe3'>Hipoges</span><br><a href='https://realestate.hipoges.com/es/detail/TWRE-00537' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">245.000 €</td><td data-label="Capital entrada" class="num"><b>84.825 €</b></td><td data-label="m²" class="num">94</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,7%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,9%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.337 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Vitoria-gasteiz</b><br><span class='dir'>Ubicado en un barrio consolidado rodeado de servicios</span></td><td data-label="Fuente"><span class='tag' style='background:#e4ecd4'>DONPISO</span><br><a href='https://www.donpiso.com/pisos-y-casas/304877_piso-en-venta-vitoria-gasteiz' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">230.000 €</td><td data-label="Capital entrada" class="num"><b>80.550 €</b></td><td data-label="m²" class="num">90</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,6%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,0%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.210 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Artziniega</b><br><span class='dir'>Urbanizacion El Palacio 3. 3D Artziniega</span></td><td data-label="Fuente"><span class='tag' style='background:#e4ecd4'>DONPISO</span><br><a href='https://www.donpiso.com/pisos-y-casas/287816_piso-en-venta-artziniega' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">228.000 €</td><td data-label="Capital entrada" class="num"><b>79.980 €</b></td><td data-label="m²" class="num">82</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,6%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,0%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.193 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
-<tr><td data-label="Localidad / Dirección"><b>Vitoria-gasteiz</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d6ebe3'>Hipoges</span><br><a href='https://realestate.hipoges.com/es/detail/FRRE-00227' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">74.500 €</td><td data-label="Capital entrada" class="num"><b>36.232 €</b></td><td data-label="m²" class="num">48</td><td data-label="Hab" class="num">1</td><td data-label="Rent. bruta" class="num">6,4%</td><td data-label="Rent. neta" class="num">2,8%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,0%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.460 €</span></td><td data-label="Dto. tasación" class="num">8,0%</td><td data-label="Info"><span class='dir'>Sin posesión</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Vitoria-gasteiz</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d6ebe3'>Hipoges</span><br><a href='https://realestate.hipoges.com/es/detail/FRRE-00227' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">74.500 €</td><td data-label="Capital entrada" class="num"><b>36.232 €</b></td><td data-label="m²" class="num">48</td><td data-label="Hab" class="num">1</td><td data-label="Rent. bruta" class="num">6,4%</td><td data-label="Rent. neta" class="num">2,8%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,0%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-1.460 €</span></td><td data-label="Dto. tasación" class="num">8,0%</td><td data-label="Info"><span class='tag' style='background:#f2d9d5' title='Sin posesión'>Ocupado</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Salvatierra</b><br><span class='dir'>Calle Zapatari</span></td><td data-label="Fuente"><span class='tag' style='background:#d6ebe3'>Hipoges</span><br><a href='https://realestate.hipoges.com/es/detail/RETI-03447' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">217.000 €</td><td data-label="Capital entrada" class="num"><b>76.845 €</b></td><td data-label="m²" class="num">73</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,6%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,0%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.099 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Salas</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d8e6f3'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/chalet-salas_centro_urbano-67572449105_106100/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">216.300 €</td><td data-label="Capital entrada" class="num"><b>76.646 €</b></td><td data-label="m²" class="num">188</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,6%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,0%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.093 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Salas</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d8e6f3'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/piso-salas_centro_urbano-65005604299_100600/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">198.000 €</td><td data-label="Capital entrada" class="num"><b>71.430 €</b></td><td data-label="m²" class="num">146</td><td data-label="Hab" class="num">4</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,5%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,1%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.938 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
@@ -470,7 +495,8 @@
 </div>
 
 <script>
-const DATA = [{"localidad": "Vitoria-gasteiz", "direccion": "calle CORRERIA 0", "origen": "ALISEDA", "tipo_subasta": "REO", "url": "https://www.alisedainmobiliaria.com/inmueble/45759250", "precio": 51200, "capital": 29592.0, "m2": 68, "hab": 3, "rb": 9.4, "rn": 4.0, "coc": -0.2, "cf": -46.62, "dto": 20.0, "tensionada": false, "cargas": 0, "posesion": "OKUPADO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/casa_rustica-salas_centro_urbano-65020823012_106400/", "precio": 57000.0, "capital": 31245.0, "m2": 180.0, "hab": 4, "rb": 8.4, "rn": 3.6, "coc": -1.3, "cf": -398.54, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-67593748759_106100/", "precio": 59000.0, "capital": 31815.0, "m2": 263.0, "hab": 3, "rb": 8.1, "rn": 3.5, "coc": -1.6, "cf": -519.89, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/casa-salas-64188435812_100600/", "precio": 59000.0, "capital": 31815.0, "m2": 87.0, "hab": 3, "rb": 8.1, "rn": 3.5, "coc": -1.6, "cf": -519.89, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/casa_rustica-salas_centro_urbano-65047574084_106400/", "precio": 60000.0, "capital": 32100.0, "m2": 125.0, "hab": 4, "rb": 8.0, "rn": 3.5, "coc": -1.8, "cf": -580.57, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Iruna de Oca", "direccion": "ZABALLA HACIENDA ECHEVARRIETA, 1, Iruña De Oca", "origen": "ALTAMIRA", "tipo_subasta": "CESION_REMATE", "url": "https://www.altamirainmuebles.com/venta-de-piso/alava/iruna-de-oca/segunda-mano/9186_0595_PE0001/372885/1", "precio": 65450.0, "capital": 33653.25, "m2": 78.08, "hab": null, "rb": 7.3, "rn": 3.2, "coc": -2.7, "cf": -911.25, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Vitoria Gasteiz", "direccion": null, "origen": "BUILDINGCENTER", "tipo_subasta": "REO", "url": "https://www.buildingcenter.es/es/venta/viviendas/alava/cuadrilla-de-vitoria-gasteizko/vitoria-gasteiz/60761615", "precio": 66500.0, "capital": 33952.5, "m2": null, "hab": null, "rb": 7.2, "rn": 3.1, "coc": -2.9, "cf": -974.96, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-67571727962_106100/", "precio": 69000.0, "capital": 34665.0, "m2": 210.0, "hab": 3, "rb": 7.0, "rn": 3.0, "coc": -3.2, "cf": -1126.65, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Oyon Oion", "direccion": null, "origen": "BUILDINGCENTER", "tipo_subasta": "REO", "url": "https://www.buildingcenter.es/es/venta/viviendas/alava/cuadrilla-de-laguardia-rioja-alavesa/oyon-oion/89030400", "precio": 675000.0, "capital": 207375.0, "m2": null, "hab": null, "rb": 5.8, "rn": 4.1, "coc": -3.4, "cf": -6981.39, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Álava", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/casa_rustica-salas_centro_urbano-65870654032_106100/", "precio": 485995.0, "capital": 153508.57, "m2": 486.0, "hab": 1, "rb": 5.8, "rn": 4.0, "coc": -3.5, "cf": -5379.36, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-67563696708_106100/", "precio": 399000.0, "capital": 128715.0, "m2": 360.0, "hab": 5, "rb": 5.8, "rn": 3.9, "coc": -3.6, "cf": -4641.98, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-65838165038_106500/", "precio": 390000.0, "capital": 126150.0, "m2": 150.0, "hab": 5, "rb": 5.8, "rn": 3.9, "coc": -3.6, "cf": -4565.69, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-salas_centro_urbano-65081441137_106100/", "precio": 72000.0, "capital": 35520.0, "m2": 123.0, "hab": 2, "rb": 6.7, "rn": 2.9, "coc": -3.7, "cf": -1308.68, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Vitoria-gasteiz", "direccion": "Piso reformado , actual y moderno con ascensor", "origen": "DONPISO", "tipo_subasta": "MERCADO", "url": "https://www.donpiso.com/pisos-y-casas/302980_piso-en-venta-vitoria-gasteiz", "precio": 320000.0, "capital": 106200.0, "m2": 90.0, "hab": 3, "rb": 5.8, "rn": 3.8, "coc": -3.7, "cf": -3972.36, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-67555801232_106100/", "precio": 259000.0, "capital": 88815.0, "m2": 351.0, "hab": 4, "rb": 5.8, "rn": 3.7, "coc": -3.9, "cf": -3455.32, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-65836075144_106100/", "precio": 260000.0, "capital": 89100.0, "m2": 88.0, "hab": 3, "rb": 5.8, "rn": 3.7, "coc": -3.9, "cf": -3463.79, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Vitoria Gasteiz", "direccion": null, "origen": "BUILDINGCENTER", "tipo_subasta": "REO", "url": "https://www.buildingcenter.es/es/venta/viviendas/alava/cuadrilla-de-vitoria-gasteizko/vitoria-gasteiz/60203968", "precio": 255000.0, "capital": 87675.0, "m2": 110.0, "hab": null, "rb": 5.8, "rn": 3.7, "coc": -3.9, "cf": -3421.41, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/casa-salas_centro_urbano-64186786794_100600/", "precio": 250000.0, "capital": 86250.0, "m2": 250.0, "hab": 5, "rb": 5.8, "rn": 3.7, "coc": -3.9, "cf": -3379.03, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Vitoria-gasteiz", "direccion": null, "origen": "HIPOGES", "tipo_subasta": "REO", "url": "https://realestate.hipoges.com/es/detail/TWRE-00537", "precio": 245000, "capital": 84825.0, "m2": 94.0, "hab": 3, "rb": 5.8, "rn": 3.7, "coc": -3.9, "cf": -3336.65, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Vitoria-gasteiz", "direccion": "Ubicado en un barrio consolidado rodeado de servicios", "origen": "DONPISO", "tipo_subasta": "MERCADO", "url": "https://www.donpiso.com/pisos-y-casas/304877_piso-en-venta-vitoria-gasteiz", "precio": 230000.0, "capital": 80550.0, "m2": 90.0, "hab": 3, "rb": 5.8, "rn": 3.6, "coc": -4.0, "cf": -3209.51, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Artziniega", "direccion": "Urbanizacion El Palacio 3. 3D Artziniega", "origen": "DONPISO", "tipo_subasta": "MERCADO", "url": "https://www.donpiso.com/pisos-y-casas/287816_piso-en-venta-artziniega", "precio": 228000.0, "capital": 79980.0, "m2": 82.0, "hab": 3, "rb": 5.8, "rn": 3.6, "coc": -4.0, "cf": -3192.56, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Vitoria-gasteiz", "direccion": null, "origen": "HIPOGES", "tipo_subasta": "REO", "url": "https://realestate.hipoges.com/es/detail/FRRE-00227", "precio": 74500, "capital": 36232.5, "m2": 48.0, "hab": 1, "rb": 6.4, "rn": 2.8, "coc": -4.0, "cf": -1460.37, "dto": 8.0, "tensionada": false, "cargas": 0, "posesion": "Sin posesión", "cierre": null}, {"localidad": "Salvatierra", "direccion": "Calle Zapatari", "origen": "HIPOGES", "tipo_subasta": "REO", "url": "https://realestate.hipoges.com/es/detail/RETI-03447", "precio": 217000, "capital": 76845.0, "m2": 73.0, "hab": 3, "rb": 5.8, "rn": 3.6, "coc": -4.0, "cf": -3099.32, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-67572449105_106100/", "precio": 216300.0, "capital": 76645.5, "m2": 188.0, "hab": 3, "rb": 5.8, "rn": 3.6, "coc": -4.0, "cf": -3093.39, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-salas_centro_urbano-65005604299_100600/", "precio": 198000.0, "capital": 71430.0, "m2": 146.0, "hab": 4, "rb": 5.8, "rn": 3.5, "coc": -4.1, "cf": -2938.27, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Álava", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-67575668557_106100/", "precio": 189000.0, "capital": 68865.0, "m2": 432.0, "hab": 1, "rb": 5.8, "rn": 3.5, "coc": -4.2, "cf": -2861.99, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-salas_centro_urbano-65097579143_109800/", "precio": 180000.0, "capital": 66300.0, "m2": 90.0, "hab": 2, "rb": 5.8, "rn": 3.4, "coc": -4.2, "cf": -2785.7, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Valdegovía", "direccion": "gaubea / Casa de piedra dentro del pueblo", "origen": "DONPISO", "tipo_subasta": "MERCADO", "url": "https://www.donpiso.com/pisos-y-casas/290982_casa pareada-en-venta-valdegovia-gaubea", "precio": 150000.0, "capital": 57750.0, "m2": 150.0, "hab": 3, "rb": 5.8, "rn": 3.3, "coc": -4.4, "cf": -2531.42, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/casa_rustica-salas_centro_urbano-64195129122_106500/", "precio": 135000.0, "capital": 53475.0, "m2": 100.0, "hab": 2, "rb": 5.8, "rn": 3.2, "coc": -4.5, "cf": -2404.28, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-67566155472_106100/", "precio": 130000.0, "capital": 52050.0, "m2": 133.0, "hab": 5, "rb": 5.8, "rn": 3.1, "coc": -4.5, "cf": -2361.9, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-65071396323_106100/", "precio": 110000.0, "capital": 46350.0, "m2": 80.0, "hab": 2, "rb": 5.8, "rn": 2.9, "coc": -4.7, "cf": -2192.37, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-65905729677_106100/", "precio": 80000.0, "capital": 37800.0, "m2": 54.0, "hab": 3, "rb": 6.0, "rn": 2.6, "coc": -4.8, "cf": -1794.09, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Labastida Bastida", "direccion": null, "origen": "BUILDINGCENTER", "tipo_subasta": "REO", "url": "https://www.buildingcenter.es/es/venta/viviendas/alava/cuadrilla-de-laguardia-rioja-alavesa/labastida-bastida/89032789", "precio": 80000.0, "capital": 37800.0, "m2": 182.0, "hab": null, "rb": 6.0, "rn": 2.6, "coc": -4.8, "cf": -1794.09, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Álava", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/casa_rustica-salas_centro_urbano-65049562222_106400/", "precio": 100000.0, "capital": 43500.0, "m2": 266.0, "hab": 1, "rb": 5.8, "rn": 2.8, "coc": -4.9, "cf": -2107.61, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-61753357425_106500/", "precio": 100000.0, "capital": 43500.0, "m2": 180.0, "hab": 3, "rb": 5.8, "rn": 2.8, "coc": -4.9, "cf": -2107.61, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/casa_adosada-moratina-60002149685_100500/", "precio": 98000.0, "capital": 42930.0, "m2": 304.0, "hab": 14, "rb": 5.8, "rn": 2.8, "coc": -4.9, "cf": -2090.66, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-salas_centro_urbano-65933025903_106100/", "precio": 93000.0, "capital": 41505.0, "m2": 103.0, "hab": 3, "rb": 5.8, "rn": 2.7, "coc": -4.9, "cf": -2048.28, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/casa-acevedo-67542536969_100500/", "precio": 89900.0, "capital": 40621.5, "m2": null, "hab": 5, "rb": 5.8, "rn": 2.6, "coc": -5.0, "cf": -2022.0, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/casa-salas_cornellana-65847833957_109800/", "precio": 90000.0, "capital": 40650.0, "m2": 85.0, "hab": 5, "rb": 5.8, "rn": 2.6, "coc": -5.0, "cf": -2022.85, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Álava", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-61699266351_106500/", "precio": 90000.0, "capital": 40650.0, "m2": 300.0, "hab": null, "rb": 5.8, "rn": 2.6, "coc": -5.0, "cf": -2022.85, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-salas_centro_urbano-65874174978_109800/", "precio": 89000.0, "capital": 40365.0, "m2": 125.0, "hab": 4, "rb": 5.8, "rn": 2.6, "coc": -5.0, "cf": -2014.38, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-67556549982_106100/", "precio": 85000.0, "capital": 39225.0, "m2": 90.0, "hab": 4, "rb": 5.8, "rn": 2.6, "coc": -5.1, "cf": -1980.47, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Vitoria Gasteiz", "direccion": null, "origen": "BUILDINGCENTER", "tipo_subasta": "REO", "url": "https://www.buildingcenter.es/es/venta/viviendas/alava/cuadrilla-de-vitoria-gasteizko/vitoria-gasteiz/10032315", "precio": 30000.0, "capital": 23550.0, "m2": null, "hab": null, "rb": 5.8, "rn": 0.3, "coc": -6.4, "cf": -1514.28, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Oyon Oion", "direccion": null, "origen": "BUILDINGCENTER", "tipo_subasta": "REO", "url": "https://www.buildingcenter.es/es/venta/viviendas/alava/cuadrilla-de-laguardia-rioja-alavesa/oyon-oion/60434762", "precio": 15900.0, "capital": 19531.5, "m2": null, "hab": null, "rb": 5.8, "rn": -1.6, "coc": -7.1, "cf": -1394.77, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Álava", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/casa-el_pevidal_salas-63381163325_100500/", "precio": 13630.0, "capital": 18884.55, "m2": 160.0, "hab": 2, "rb": 5.8, "rn": -2.1, "coc": -7.3, "cf": -1375.53, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Vitoria Gasteiz", "direccion": null, "origen": "BUILDINGCENTER", "tipo_subasta": "REO", "url": "https://www.buildingcenter.es/es/venta/viviendas/alava/cuadrilla-de-vitoria-gasteizko/vitoria-gasteiz/60435470", "precio": 6500.0, "capital": 16852.5, "m2": null, "hab": null, "rb": 5.8, "rn": -4.3, "coc": -7.8, "cf": -1315.09, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}];
+const DATA = [{"localidad": "Vitoria-gasteiz", "direccion": "calle CORRERIA 0", "origen": "ALISEDA", "tipo_subasta": "REO", "url": "https://www.alisedainmobiliaria.com/inmueble/45759250", "precio": 51200, "capital": 29592.0, "m2": 68, "hab": 3, "rb": 9.4, "rn": 4.0, "coc": -0.2, "cf": -46.62, "dto": 20.0, "tensionada": false, "cargas": 0, "posesion": "OKUPADO", "estado": "OCUPADO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/casa_rustica-salas_centro_urbano-65020823012_106400/", "precio": 57000.0, "capital": 31245.0, "m2": 180.0, "hab": 4, "rb": 8.4, "rn": 3.6, "coc": -1.3, "cf": -398.54, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-67593748759_106100/", "precio": 59000.0, "capital": 31815.0, "m2": 263.0, "hab": 3, "rb": 8.1, "rn": 3.5, "coc": -1.6, "cf": -519.89, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/casa_rustica-salas_centro_urbano-65047574084_106400/", "precio": 60000.0, "capital": 32100.0, "m2": 125.0, "hab": 4, "rb": 8.0, "rn": 3.5, "coc": -1.8, "cf": -580.57, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Iruna de Oca", "direccion": "ZABALLA HACIENDA ECHEVARRIETA, 1, Iruña De Oca", "origen": "ALTAMIRA", "tipo_subasta": "CESION_REMATE", "url": "https://www.altamirainmuebles.com/venta-de-piso/alava/iruna-de-oca/segunda-mano/9186_0595_PE0001/372885/1", "precio": 65450.0, "capital": 33653.25, "m2": 78.08, "hab": null, "rb": 7.3, "rn": 3.2, "coc": -2.7, "cf": -911.25, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Vitoria Gasteiz", "direccion": null, "origen": "BUILDINGCENTER", "tipo_subasta": "REO", "url": "https://www.buildingcenter.es/es/venta/viviendas/alava/cuadrilla-de-vitoria-gasteizko/vitoria-gasteiz/60761615", "precio": 66500.0, "capital": 33952.5, "m2": null, "hab": null, "rb": 7.2, "rn": 3.1, "coc": -2.9, "cf": -974.96, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-67571727962_106100/", "precio": 69000.0, "capital": 34665.0, "m2": 210.0, "hab": 3, "rb": 7.0, "rn": 3.0, "coc": -3.2, "cf": -1126.65, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Oyon Oion", "direccion": null, "origen": "BUILDINGCENTER", "tipo_subasta": "REO", "url": "https://www.buildingcenter.es/es/venta/viviendas/alava/cuadrilla-de-laguardia-rioja-alavesa/oyon-oion/89030400", "precio": 675000.0, "capital": 207375.0, "m2": null, "hab": null, "rb": 5.8, "rn": 4.1, "coc": -3.4, "cf": -6981.39, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Álava", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/casa_rustica-salas_centro_urbano-65870654032_106100/", "precio": 485995.0, "capital": 153508.57, "m2": 486.0, "hab": 1, "rb": 5.8, "rn": 4.0, "coc": -3.5, "cf": -5379.36, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-67563696708_106100/", "precio": 399000.0, "capital": 128715.0, "m2": 360.0, "hab": 5, "rb": 5.8, "rn": 3.9, "coc": -3.6, "cf": -4641.98, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-67549672505_105000/", "precio": 399000.0, "capital": 128715.0, "m2": 211.0, "hab": 5, "rb": 5.8, "rn": 3.9, "coc": -3.6, "cf": -4641.98, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-65838165038_106500/", "precio": 390000.0, "capital": 126150.0, "m2": 150.0, "hab": 5, "rb": 5.8, "rn": 3.9, "coc": -3.6, "cf": -4565.69, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-salas_centro_urbano-65081441137_106100/", "precio": 72000.0, "capital": 35520.0, "m2": 123.0, "hab": 2, "rb": 6.7, "rn": 2.9, "coc": -3.7, "cf": -1308.68, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Vitoria-gasteiz", "direccion": "Piso reformado , actual y moderno con ascensor", "origen": "DONPISO", "tipo_subasta": "MERCADO", "url": "https://www.donpiso.com/pisos-y-casas/302980_piso-en-venta-vitoria-gasteiz", "precio": 320000.0, "capital": 106200.0, "m2": 90.0, "hab": 3, "rb": 5.8, "rn": 3.8, "coc": -3.7, "cf": -3972.36, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-67555801232_106100/", "precio": 259000.0, "capital": 88815.0, "m2": 351.0, "hab": 4, "rb": 5.8, "rn": 3.7, "coc": -3.9, "cf": -3455.32, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-65836075144_106100/", "precio": 260000.0, "capital": 89100.0, "m2": 88.0, "hab": 3, "rb": 5.8, "rn": 3.7, "coc": -3.9, "cf": -3463.79, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Vitoria Gasteiz", "direccion": null, "origen": "BUILDINGCENTER", "tipo_subasta": "REO", "url": "https://www.buildingcenter.es/es/venta/viviendas/alava/cuadrilla-de-vitoria-gasteizko/vitoria-gasteiz/60203968", "precio": 255000.0, "capital": 87675.0, "m2": 110.0, "hab": null, "rb": 5.8, "rn": 3.7, "coc": -3.9, "cf": -3421.41, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/casa-salas_centro_urbano-64186786794_100600/", "precio": 250000.0, "capital": 86250.0, "m2": 250.0, "hab": 5, "rb": 5.8, "rn": 3.7, "coc": -3.9, "cf": -3379.03, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Vitoria-gasteiz", "direccion": null, "origen": "HIPOGES", "tipo_subasta": "REO", "url": "https://realestate.hipoges.com/es/detail/TWRE-00537", "precio": 245000, "capital": 84825.0, "m2": 94.0, "hab": 3, "rb": 5.8, "rn": 3.7, "coc": -3.9, "cf": -3336.65, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Vitoria-gasteiz", "direccion": "Ubicado en un barrio consolidado rodeado de servicios", "origen": "DONPISO", "tipo_subasta": "MERCADO", "url": "https://www.donpiso.com/pisos-y-casas/304877_piso-en-venta-vitoria-gasteiz", "precio": 230000.0, "capital": 80550.0, "m2": 90.0, "hab": 3, "rb": 5.8, "rn": 3.6, "coc": -4.0, "cf": -3209.51, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Artziniega", "direccion": "Urbanizacion El Palacio 3. 3D Artziniega", "origen": "DONPISO", "tipo_subasta": "MERCADO", "url": "https://www.donpiso.com/pisos-y-casas/287816_piso-en-venta-artziniega", "precio": 228000.0, "capital": 79980.0, "m2": 82.0, "hab": 3, "rb": 5.8, "rn": 3.6, "coc": -4.0, "cf": -3192.56, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Vitoria-gasteiz", "direccion": null, "origen": "HIPOGES", "tipo_subasta": "REO", "url": "https://realestate.hipoges.com/es/detail/FRRE-00227", "precio": 74500, "capital": 36232.5, "m2": 48.0, "hab": 1, "rb": 6.4, "rn": 2.8, "coc": -4.0, "cf": -1460.37, "dto": 8.0, "tensionada": false, "cargas": 0, "posesion": "Sin posesión", "estado": "OCUPADO", "cierre": null}, {"localidad": "Salvatierra", "direccion": "Calle Zapatari", "origen": "HIPOGES", "tipo_subasta": "REO", "url": "https://realestate.hipoges.com/es/detail/RETI-03447", "precio": 217000, "capital": 76845.0, "m2": 73.0, "hab": 3, "rb": 5.8, "rn": 3.6, "coc": -4.0, "cf": -3099.32, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-67572449105_106100/", "precio": 216300.0, "capital": 76645.5, "m2": 188.0, "hab": 3, "rb": 5.8, "rn": 3.6, "coc": -4.0, "cf": -3093.39, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-salas_centro_urbano-65005604299_100600/", "precio": 198000.0, "capital": 71430.0, "m2": 146.0, "hab": 4, "rb": 5.8, "rn": 3.5, "coc": -4.1, "cf": -2938.27, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Álava", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-67575668557_106100/", "precio": 189000.0, "capital": 68865.0, "m2": 432.0, "hab": 1, "rb": 5.8, "rn": 3.5, "coc": -4.2, "cf": -2861.99, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-salas_centro_urbano-65097579143_109800/", "precio": 180000.0, "capital": 66300.0, "m2": 90.0, "hab": 2, "rb": 5.8, "rn": 3.4, "coc": -4.2, "cf": -2785.7, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Valdegovía", "direccion": "gaubea / Casa de piedra dentro del pueblo", "origen": "DONPISO", "tipo_subasta": "MERCADO", "url": "https://www.donpiso.com/pisos-y-casas/290982_casa pareada-en-venta-valdegovia-gaubea", "precio": 150000.0, "capital": 57750.0, "m2": 150.0, "hab": 3, "rb": 5.8, "rn": 3.3, "coc": -4.4, "cf": -2531.42, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/casa_rustica-salas_centro_urbano-64195129122_106500/", "precio": 135000.0, "capital": 53475.0, "m2": 100.0, "hab": 2, "rb": 5.8, "rn": 3.2, "coc": -4.5, "cf": -2404.28, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-67566155472_106100/", "precio": 130000.0, "capital": 52050.0, "m2": 133.0, "hab": 5, "rb": 5.8, "rn": 3.1, "coc": -4.5, "cf": -2361.9, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-65071396323_106100/", "precio": 110000.0, "capital": 46350.0, "m2": 80.0, "hab": 2, "rb": 5.8, "rn": 2.9, "coc": -4.7, "cf": -2192.37, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-65905729677_106100/", "precio": 80000.0, "capital": 37800.0, "m2": 54.0, "hab": 3, "rb": 6.0, "rn": 2.6, "coc": -4.8, "cf": -1794.09, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Labastida Bastida", "direccion": null, "origen": "BUILDINGCENTER", "tipo_subasta": "REO", "url": "https://www.buildingcenter.es/es/venta/viviendas/alava/cuadrilla-de-laguardia-rioja-alavesa/labastida-bastida/89032789", "precio": 80000.0, "capital": 37800.0, "m2": 182.0, "hab": null, "rb": 6.0, "rn": 2.6, "coc": -4.8, "cf": -1794.09, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Álava", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/casa_rustica-salas_centro_urbano-65049562222_106400/", "precio": 100000.0, "capital": 43500.0, "m2": 266.0, "hab": 1, "rb": 5.8, "rn": 2.8, "coc": -4.9, "cf": -2107.61, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-61753357425_106500/", "precio": 100000.0, "capital": 43500.0, "m2": 180.0, "hab": 3, "rb": 5.8, "rn": 2.8, "coc": -4.9, "cf": -2107.61, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/casa_adosada-moratina-60002149685_100500/", "precio": 98000.0, "capital": 42930.0, "m2": 304.0, "hab": 14, "rb": 5.8, "rn": 2.8, "coc": -4.9, "cf": -2090.66, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-salas_centro_urbano-65933025903_106100/", "precio": 93000.0, "capital": 41505.0, "m2": 103.0, "hab": 3, "rb": 5.8, "rn": 2.7, "coc": -4.9, "cf": -2048.28, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/casa-acevedo-67542536969_100500/", "precio": 89900.0, "capital": 40621.5, "m2": null, "hab": 5, "rb": 5.8, "rn": 2.6, "coc": -5.0, "cf": -2022.0, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/casa-salas_cornellana-65847833957_109800/", "precio": 90000.0, "capital": 40650.0, "m2": 85.0, "hab": 5, "rb": 5.8, "rn": 2.6, "coc": -5.0, "cf": -2022.85, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Álava", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-61699266351_106500/", "precio": 90000.0, "capital": 40650.0, "m2": 300.0, "hab": null, "rb": 5.8, "rn": 2.6, "coc": -5.0, "cf": -2022.85, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-salas_centro_urbano-65874174978_109800/", "precio": 89000.0, "capital": 40365.0, "m2": 125.0, "hab": 4, "rb": 5.8, "rn": 2.6, "coc": -5.0, "cf": -2014.38, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Salas", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-salas_centro_urbano-67556549982_106100/", "precio": 85000.0, "capital": 39225.0, "m2": 90.0, "hab": 4, "rb": 5.8, "rn": 2.6, "coc": -5.1, "cf": -1980.47, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Vitoria Gasteiz", "direccion": null, "origen": "BUILDINGCENTER", "tipo_subasta": "REO", "url": "https://www.buildingcenter.es/es/venta/viviendas/alava/cuadrilla-de-vitoria-gasteizko/vitoria-gasteiz/10032315", "precio": 30000.0, "capital": 23550.0, "m2": null, "hab": null, "rb": 5.8, "rn": 0.3, "coc": -6.4, "cf": -1514.28, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Oyon Oion", "direccion": null, "origen": "BUILDINGCENTER", "tipo_subasta": "REO", "url": "https://www.buildingcenter.es/es/venta/viviendas/alava/cuadrilla-de-laguardia-rioja-alavesa/oyon-oion/60434762", "precio": 15900.0, "capital": 19531.5, "m2": null, "hab": null, "rb": 5.8, "rn": -1.6, "coc": -7.1, "cf": -1394.77, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Álava", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/casa-el_pevidal_salas-63381163325_100500/", "precio": 13630.0, "capital": 18884.55, "m2": 160.0, "hab": 2, "rb": 5.8, "rn": -2.1, "coc": -7.3, "cf": -1375.53, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Vitoria Gasteiz", "direccion": null, "origen": "BUILDINGCENTER", "tipo_subasta": "REO", "url": "https://www.buildingcenter.es/es/venta/viviendas/alava/cuadrilla-de-vitoria-gasteizko/vitoria-gasteiz/60435470", "precio": 6500.0, "capital": 16852.5, "m2": null, "hab": null, "rb": 5.8, "rn": -4.3, "coc": -7.8, "cf": -1315.09, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}];
+const ZONA = "Álava";
 
 const COLORES_FUENTE = {
   "SOLVIA": "#f2e3d2", "ALISEDA": "#e5dcef", "ALTAMIRA": "#d4e8e1",
@@ -484,10 +510,45 @@ const NOMBRE_FUENTE = {
   "SAREB": "Sareb (vía Hipoges)", "HIPOGES": "Hipoges",
 };
 
+// ── Vendedor ────────────────────────────────────────────────────────────────
+// Se deduce de tipo_subasta, que ya pone cada scraper, en vez de una lista de
+// nombres de fuente. Así una fuente nueva entra sola en el grupo que le toca:
+// con una lista de nombres pasaría lo de donpiso — la fuente nueva no está en
+// la lista, cae en el cajón de sastre y nadie se entera hasta ver la web.
+// Un inmueble puede estar en más de un grupo: la cesión de remate de Altamira
+// ES cartera de fondo, solo que se compra por la vía de la subasta que el
+// fondo ya ganó. Va en FONDO (si no, marcar "Fondo / servicer" dejaría fuera
+// a Altamira entera) y además en CESION, para poder aislarla o quitarla.
+const GRUPOS_VENDEDOR = r =>
+  r.tipo_subasta === "REO" ? ["FONDO"] :
+  r.tipo_subasta === "CESION_REMATE" ? ["FONDO", "CESION"] :
+  r.tipo_subasta === "MERCADO" ? ["MERCADO"] : ["SUBASTA"];
+const ORDEN_VENDEDOR = ["FONDO", "CESION", "SUBASTA", "MERCADO"];
+const NOMBRE_VENDEDOR = {
+  FONDO: "Fondo / servicer", CESION: "Cesión de remate",
+  SUBASTA: "Subasta", MERCADO: "Portal / agencia",
+};
+
+// ── Situación posesoria ─────────────────────────────────────────────────────
+// El estado lo calcula el normalizer (estado_posesion); aquí solo se pinta.
+const ORDEN_ESTADO = ["LIBRE", "ALQUILADO", "OCUPADO", "SIN_DATO"];
+const NOMBRE_ESTADO = {
+  LIBRE: "Libre", ALQUILADO: "Alquilado", OCUPADO: "Ocupado",
+  SIN_DATO: "Sin dato",
+};
+const COLOR_ESTADO = {
+  LIBRE: "#d9e8d5", ALQUILADO: "#f2e8cf", OCUPADO: "#f2d9d5",
+  SIN_DATO: "#e8ecef",
+};
+
 const COLS = [
   { id: "localidad", label: "Localidad / Dirección", num: false,
     val: r => r.localidad || "",
-    html: r => `<b>${esc(r.localidad)}</b><br><span class="dir">${esc(r.direccion || "—")}</span>` },
+    html: r => `<b>${esc(r.localidad)}</b><br><span class="dir">${esc(r.direccion || "—")}</span>` +
+      (r._prov && r._prov !== ZONA
+        ? `<br><span class="tag" style="background:#e4ecd4">${esc(r._prov)}</span>` : "") +
+      (typeof favYaNoEsta === "function" && r._guardado && favYaNoEsta(r)
+        ? `<br><span class="tag" style="background:#f2d9d5" title="Lo guardaste el ${esc((r._guardado || "").slice(0, 10))} y ya no aparece en el listado de hoy: lo habran vendido o retirado.">ya no está en el listado</span>` : "") },
   { id: "origen", label: "Fuente", num: false, val: r => r.origen,
     html: r => {
       const c = COLORES_FUENTE[r.origen] || "#e3e7ea";
@@ -529,13 +590,17 @@ const COLS = [
       let out = [];
       if (r.tensionada) out.push("<span class='tag' style='background:#e7dcf0'>Tensionada</span>");
       if (r.cargas > 0) out.push(`<span class='tag' style='background:#f2e3d2'>Cargas ${eur(r.cargas)}</span>`);
-      if (r.posesion) out.push(`<span class='dir'>${esc(r.posesion)}</span>`);
+      if (r.estado && r.estado !== "SIN_DATO")
+        out.push(`<span class='tag' style='background:${COLOR_ESTADO[r.estado]}'` +
+                 `${r.posesion ? ` title="${esc(r.posesion)}"` : ""}>` +
+                 `${NOMBRE_ESTADO[r.estado]}</span>`);
       if (r.cierre) out.push(`<span class='dir'>cierra ${esc(r.cierre)}</span>`);
       return out.join("<br>") || "<span class='nd'>—</span>"; } },
 ];
 
 let orden = { col: "coc", desc: true };
 let muniOn = new Set(), fuenteOn = new Set();
+let vendedorOn = new Set(), estadoOn = new Set();
 
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 const fmt = (v, d) => v.toLocaleString("es-ES", { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -544,7 +609,7 @@ const pct = v => fmt(v, 1) + "%";
 
 const _chipSyncs = [];  // para re-pintar chips al restaurar parámetros guardados
 
-function chips(contId, valores, activo) {
+function chips(contId, valores, activo, nombres) {
   // Comportamiento: los chips empiezan SIN marcar (= sin filtro, se ve todo).
   // Marcas los que te interesan y el filtro se queda solo con esos.
   // Desmarcar todos vuelve a "se ve todo". Mucho más intuitivo que el viejo
@@ -557,7 +622,7 @@ function chips(contId, valores, activo) {
   valores.forEach(v => {
     const el = document.createElement("span");
     el.className = "chip";
-    el.textContent = NOMBRE_FUENTE[v] || v;
+    el.textContent = (nombres || NOMBRE_FUENTE)[v] || v;
     el.title = "Márcalo para filtrar · sin ninguno marcado se ven todos";
     els.set(v, el);
     el.onclick = () => {
@@ -575,7 +640,7 @@ function chips(contId, valores, activo) {
 // controles son un "borrador" y la búsqueda se formaliza al aplicar.
 let aplicados = {
   pMax: Infinity, cMax: Infinity, cocMin: -Infinity, m2Min: 0, hab: "",
-  txt: "", muni: null, fuente: null,
+  txt: "", muni: null, fuente: null, vendedor: null, estado: null,
 };
 
 function aplicar() {
@@ -589,6 +654,8 @@ function aplicar() {
     txt: gv("f-txt").trim().toLowerCase(),
     muni: muniOn.size ? new Set(muniOn) : null,      // vacío = sin filtro
     fuente: fuenteOn.size ? new Set(fuenteOn) : null, // vacío = sin filtro
+    vendedor: vendedorOn.size ? new Set(vendedorOn) : null,
+    estado: estadoOn.size ? new Set(estadoOn) : null,
   };
   const btn = document.getElementById("aplicar");
   if (btn) { btn.classList.remove("pendiente"); btn.textContent = "🔎 Aplicar filtros"; }
@@ -601,9 +668,15 @@ function marcarPendiente() {
 }
 
 function filtrar() {
+  // Los favoritos van a su aire: son de todas las provincias y algunos ya ni
+  // estan en el listado, asi que cruzarlos con los filtros de precio o
+  // municipio solo serviria para esconder lo que has guardado a mano.
+  if (soloFav) return favoritos.slice();
   const a = aplicados;
   return DATA.filter(r =>
     (!a.muni || a.muni.has(r.localidad)) && (!a.fuente || a.fuente.has(r.origen)) &&
+    (!a.vendedor || GRUPOS_VENDEDOR(r).some(g => a.vendedor.has(g))) &&
+    (!a.estado || a.estado.has(r.estado || "SIN_DATO")) &&
     r.precio <= a.pMax && r.capital <= a.cMax && r.coc >= a.cocMin &&
     (a.m2Min === 0 || (r.m2 || 0) >= a.m2Min) &&
     (!a.hab || (a.hab === "4+" ? (r.hab || 0) >= 4
@@ -615,14 +688,15 @@ function filtrar() {
 // ── Parámetros de búsqueda persistentes ─────────────────────────────────────
 // Cada usuario define SUS parámetros una vez; se guardan en su navegador y
 // cada acceso muestra su búsqueda ya aplicada (sin depender del email diario).
-const CLAVE_FILTROS = (() => {
-  let quien = "local";
+const QUIEN = (() => {
   try {
     const s = JSON.parse(sessionStorage.getItem("reo_session") || "null");
-    if (s && s.e) quien = s.e;
+    if (s && s.e) return s.e;
   } catch (e) {}
-  return "reo_filtros:" + quien + ":" + (document.title.match(/Explorador/) ? location.pathname : "");
+  return "local";
 })();
+const CLAVE_FILTROS = "reo_filtros:" + QUIEN + ":" +
+  (document.title.match(/Explorador/) ? location.pathname : "");
 
 const _CAMPOS = ["f-precio", "f-capital", "f-coc", "f-m2", "f-hab", "f-txt"];
 
@@ -631,7 +705,8 @@ function guardarFiltros() {
     localStorage.setItem(CLAVE_FILTROS, JSON.stringify({
       v: 2,   // esquema: chips sin marcar por defecto (vacío = todos)
       campos: Object.fromEntries(_CAMPOS.map(id => [id, document.getElementById(id).value])),
-      muni: [...muniOn], fuente: [...fuenteOn], orden,
+      muni: [...muniOn], fuente: [...fuenteOn],
+      vendedor: [...vendedorOn], estado: [...estadoOn], orden,
     }));
   } catch (e) {}
 }
@@ -666,6 +741,14 @@ function restaurarFiltros() {
       if (validas.length && validas.length < todasF)
         validas.forEach(v => fuenteOn.add(v));
     }
+    // Vendedor y situación son chips nuevos: no arrastran esquema viejo, así
+    // que basta con quedarse con los valores que existan en esta provincia.
+    [["vendedor", vendedorOn, ORDEN_VENDEDOR], ["estado", estadoOn, ORDEN_ESTADO]]
+      .forEach(([clave, activo, validos]) => {
+        if (!Array.isArray(f[clave])) return;
+        activo.clear();
+        f[clave].filter(v => validos.includes(v)).forEach(v => activo.add(v));
+      });
     if (f.orden && f.orden.col) orden = f.orden;
     _chipSyncs.forEach(s => s());
     return true;
@@ -710,6 +793,25 @@ function pintar() {
   ).join("");
 
   document.getElementById("vacio").style.display = rows.length ? "none" : "block";
+  if (typeof refrescarFav === "function") refrescarFav();
+  if (soloFav) {
+    const fuera = rows.filter(favYaNoEsta).length;
+    avisoFav(rows.length
+      ? "Estás viendo tus <b>" + rows.length + "</b> favoritos, de todas las " +
+        "provincias. Los filtros de arriba no se aplican aquí." +
+        (fuera ? " <b>" + fuera + (fuera === 1 ? "</b> ya no está" : "</b> ya no están") +
+                 " en el listado de " + esc(ZONA) +
+                 (fuera === 1 ? ": lo habrán vendido o retirado."
+                              : ": los habrán vendido o retirado.") : "")
+      : "Todavía no has guardado ningún inmueble. Pulsa la ☆ de cualquier fila " +
+        "para tenerlo aquí, mires la provincia que mires.");
+    document.getElementById("vacio").style.display = "none";
+    document.getElementById("resumen").innerHTML =
+      `<b>${rows.length}</b> inmuebles guardados · ` +
+      `<span style="color:#7c8b98">se quedan en este navegador, asociados a tu acceso</span>`;
+    return;
+  }
+  avisoFav("");
   const destacados = rows.filter(r => r.coc >= 10).length;
   const aviso = rows.length > TOPE
     ? ` · <span style="color:#b5544b">en pantalla los ${TOPE} de mejor rentabilidad — afina los filtros para acotar</span>`
@@ -723,6 +825,12 @@ function pintar() {
 // init
 chips("f-muni", [...new Set(DATA.map(r => r.localidad))].sort(), muniOn);
 chips("f-fuente", [...new Set(DATA.map(r => r.origen))].sort(), fuenteOn);
+// Vendedor y situación van en orden fijo (no alfabético) y solo se pintan los
+// grupos que existan en esta provincia.
+chips("f-vendedor", ORDEN_VENDEDOR.filter(g => DATA.some(r => GRUPOS_VENDEDOR(r).includes(g))),
+      vendedorOn, NOMBRE_VENDEDOR);
+chips("f-estado", ORDEN_ESTADO.filter(e => DATA.some(r => (r.estado || "SIN_DATO") === e)),
+      estadoOn, NOMBRE_ESTADO);
 // Los controles NO aplican al instante: al cambiar, marcan "pendiente".
 // Se formaliza al pulsar "Aplicar filtros" o con Enter.
 ["f-precio", "f-capital", "f-coc", "f-m2", "f-hab", "f-txt"].forEach(id => {
@@ -732,6 +840,18 @@ chips("f-fuente", [...new Set(DATA.map(r => r.origen))].sort(), fuenteOn);
   el.addEventListener("keydown", e => { if (e.key === "Enter") aplicar(); });
 });
 document.getElementById("aplicar").addEventListener("click", aplicar);
+
+// ── Favoritos: el boton que cambia entre el listado y lo guardado ──────────
+function avisoFav(html) {
+  const el = document.getElementById("fav-aviso");
+  el.innerHTML = html || "";
+  el.classList.toggle("on", !!html);
+}
+document.getElementById("fav-ver").onclick = () => {
+  soloFav = !soloFav;
+  document.getElementById("filtros").classList.toggle("apagado", soloFav);
+  pintar();
+};
 
 // desplegable de municipios: resumen dinámico, buscador y cierre al clicar fuera
 function actualizarMuniSummary() {
@@ -772,11 +892,87 @@ document.getElementById("limpiar").onclick = () => {
   // la referencia original y una reasignación los desconecta del filtro.
   muniOn.clear();
   fuenteOn.clear();
+  vendedorOn.clear();
+  estadoOn.clear();
   _chipSyncs.forEach(s => s());
   if (typeof actualizarMuniSummary === "function") actualizarMuniSummary();
   try { localStorage.removeItem(CLAVE_FILTROS); } catch (e) {}
+  // "Limpiar filtros" no toca los favoritos: son tuyos, no un filtro. Solo
+  // sale de la vista de guardados para que se vea que ha hecho algo.
+  soloFav = false;
+  document.getElementById("filtros").classList.remove("apagado");
   aplicar();   // limpiar sí re-renderiza al momento
 };
+
+/* ── Favoritos ────────────────────────────────────────────────────────────────
+   La estrella de cada fila guarda el inmueble en el navegador de quien mira,
+   bajo su email de acceso. NO lleva pathname en la clave: los favoritos son
+   los mismos en las 52 provincias, y la vista "Mis favoritos" los enseña todos
+   juntos aunque estes mirando otra.
+
+   Se guarda el REGISTRO ENTERO, no una referencia, por lo mismo que el
+   comparador: el escaneo nocturno regenera esta pagina de cero cada dos dias y
+   un inmueble puede desaparecer del listado (vendido, retirado). Con una
+   referencia, el favorito se quedaria en nada sin avisar; con la copia, sigue
+   ahi y se marca que ya no esta a la venta.
+
+   localStorage puede fallar (modo privado, cookies bloqueadas): todo va con
+   try/catch y, si no se puede guardar, se avisa en vez de fingir que si. */
+const FAV_CLAVE = "reo_favoritos:" + QUIEN;
+const claveFav = r => r.url || [r.origen, r.localidad, r.direccion || "",
+                                r.precio, r.m2 || ""].join("|");
+
+let favoritos = [];
+try {
+  const guardado = JSON.parse(localStorage.getItem(FAV_CLAVE) || "null");
+  if (guardado && Array.isArray(guardado.items)) favoritos = guardado.items;
+} catch (e) {}
+
+function guardarFav() {
+  try {
+    localStorage.setItem(FAV_CLAVE, JSON.stringify({ v: 1, items: favoritos }));
+    return true;
+  } catch (e) { return false; }
+}
+const esFav = r => favoritos.some(x => claveFav(x) === claveFav(r));
+
+function marcarFav(r, on) {
+  if (on) {
+    if (esFav(r)) return true;
+    // _prov y _guardado son cosecha propia: la provincia para poder enseñar de
+    // donde salio cada favorito, y la fecha para ordenarlos por antiguedad.
+    favoritos.push(Object.assign({}, r, { _prov: r._prov || ZONA,
+                                          _guardado: new Date().toISOString() }));
+  } else {
+    favoritos = favoritos.filter(x => claveFav(x) !== claveFav(r));
+  }
+  const ok = guardarFav();
+  refrescarFav();
+  return ok;
+}
+
+// Claves de lo que hay HOY en esta provincia, para saber si un favorito de
+// aqui ya no esta en el listado.
+const _CLAVES_HOY = new Set(DATA.map(claveFav));
+const favYaNoEsta = r => r._prov === ZONA && !_CLAVES_HOY.has(claveFav(r));
+
+let soloFav = false;
+
+function refrescarFav() {
+  document.getElementById("fav-n").textContent = favoritos.length;
+  const btn = document.getElementById("fav-ver");
+  btn.classList.toggle("on", soloFav);
+  btn.innerHTML = (soloFav ? "★" : "☆") + " Mis favoritos (<span id='fav-n'>" +
+                  favoritos.length + "</span>)";
+  document.querySelectorAll(".estrella").forEach(b => {
+    const on = favoritos.some(x => claveFav(x) === b.dataset.k);
+    b.classList.toggle("on", on);
+    b.textContent = on ? "★" : "☆";
+    b.title = on ? "Quitar de favoritos" : "Guardar en favoritos";
+    const fila = b.closest("tr");
+    if (fila) fila.classList.toggle("favorita", on);
+  });
+}
 
 /* ── Comparador de inmuebles ──────────────────────────────────────────────────
    Se marcan hasta 4 filas y se enfrentan lado a lado, con un simulador de
@@ -813,12 +1009,37 @@ function marcarComp(r, on) {
 }
 
 function celdaSel(r) {
-  return '<td class="sel" data-label="Comparar"><input type="checkbox" class="chk-comp"' +
+  const fav = esFav(r);
+  return '<td class="sel" data-label="Guardar / comparar">' +
+         '<button class="estrella' + (fav ? " on" : "") + '" data-k="' + esc(claveFav(r)) +
+         '" title="' + (fav ? "Quitar de favoritos" : "Guardar en favoritos") +
+         '" aria-label="Guardar en favoritos">' + (fav ? "★" : "☆") + '</button>' +
+         '<br><input type="checkbox" class="chk-comp"' +
          ' data-k="' + esc(claveComp(r)) + '"' + (enComp(r) ? " checked" : "") +
          ' aria-label="Marcar para comparar"></td>';
 }
 
 function engancharSel() {
+  document.querySelectorAll(".estrella").forEach(btn => {
+    const fila = btn.closest("tr");
+    fila.classList.toggle("favorita", btn.classList.contains("on"));
+    btn.onclick = () => {
+      // El registro puede no estar en DATA: en la vista de favoritos hay
+      // inmuebles de otras provincias y otros que ya no se venden aqui.
+      const k = btn.dataset.k;
+      const r = DATA.find(x => claveFav(x) === k) ||
+                favoritos.find(x => claveFav(x) === k);
+      if (!r) return;
+      const quitando = btn.classList.contains("on");
+      if (!marcarFav(r, !quitando)) {
+        avisoFav("No se han podido guardar los favoritos en este navegador. " +
+                 "Suele pasar en ventana privada o con el almacenamiento bloqueado.");
+        return;
+      }
+      // En la vista de favoritos, quitar uno lo saca de la tabla al momento.
+      if (soloFav && quitando) pintar();
+    };
+  });
   document.querySelectorAll(".chk-comp").forEach(chk => {
     const fila = chk.closest("tr");
     fila.classList.toggle("comparando", chk.checked);
@@ -943,7 +1164,12 @@ const FILAS_COMP = [
     txt: r => r.cargas > 0 ? eur(r.cargas) : "sin cargas conocidas" },
   { et: "Zona tensionada", tema: "tensionada",
     txt: r => r.tensionada ? "S&iacute; &mdash; renta limitada" : "No" },
-  { et: "Posesi&oacute;n", txt: r => r.posesion ? esc(r.posesion) : "&mdash;" },
+  { et: "Situaci&oacute;n", txt: r => {
+      const e = r.estado || "SIN_DATO";
+      if (e === "SIN_DATO") return r.posesion ? esc(r.posesion) : "&mdash;";
+      return `<span class="tag" style="background:${COLOR_ESTADO[e]}"` +
+             `${r.posesion ? ` title="${esc(r.posesion)}"` : ""}>` +
+             `${NOMBRE_ESTADO[e]}</span>`; } },
   { et: "Cierre",          txt: r => r.cierre ? esc(r.cierre) : "&mdash;" },
   { et: "Ficha oficial", tema: "comprar",
     txt: r => r.url ? '<a href="' + esc(r.url) + '" target="_blank" rel="noopener">ver anuncio &#8599;</a>' : "&mdash;" },
@@ -1077,6 +1303,7 @@ function comparadorDesdeEnlace() {
 const _pintarSinComp = pintar;
 pintar = function () { _pintarSinComp(); engancharSel(); };
 barraComp();
+refrescarFav();      // cuenta de guardados en el botón desde el primer momento
 
 restaurarFiltros();  // parámetros guardados del usuario cargados en los controles
 aplicar();           // ...y aplicados desde el primer segundo

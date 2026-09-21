@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Scanner">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Scanner REO — Explorador interactivo · 18/09/2026</title>
+<title>Scanner REO — Explorador interactivo · 21/09/2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -154,9 +154,30 @@
   }
 
   /* ── Comparador de inmuebles ───────────────────────────────────────────── */
-  th.sel, td.sel { width: 32px; text-align: center; padding-left: 10px; }
+  th.sel, td.sel { width: 46px; text-align: center; padding-left: 10px; }
   td.sel input { width: 17px; height: 17px; cursor: pointer; accent-color: #5b84a6; }
   tr.comparando td { background: #eaf1f7; }
+
+  /* ── Favoritos ─────────────────────────────────────────────────────────── */
+  .estrella { border: none; background: none; cursor: pointer; padding: 2px 3px;
+      font-size: 17px; line-height: 1; color: #c3d0dc; font-family: inherit; }
+  .estrella:hover { color: #d8a838; }
+  .estrella.on { color: #d8a838; }
+  tr.favorita td { background: #fdf8ed; }
+  tr.favorita.comparando td { background: #f4f2ea; }
+  #fav-ver { padding: 6px 12px; border: 1px solid var(--border-strong);
+      background: var(--surface); color: var(--text-1); border-radius: 4px;
+      cursor: pointer; font-size: 12px; font-family: inherit; }
+  #fav-ver:hover { background: var(--surface-2); }
+  #fav-ver.on { background: #f6ecd4; border-color: #d8a838; font-weight: bold; }
+  /* En la vista de guardados los filtros no pintan nada: se atenuan para que
+     se vea que no mandan, pero el boton de favoritos sigue vivo. */
+  #filtros.apagado .campo { opacity: .45; }
+  #filtros.apagado .campo:has(#fav-ver) { opacity: 1; }
+  #fav-aviso { margin: 10px 20px -4px; padding: 9px 14px; border-radius: 6px;
+      background: #fdf8ed; border: 1px solid #ecdcb8; font-size: 13px;
+      color: #6b5a34; display: none; }
+  #fav-aviso.on { display: block; }
 
   #barra-comp { position: fixed; left: 50%; transform: translateX(-50%);
       bottom: 18px; z-index: 60; display: none; align-items: center; gap: 12px;
@@ -288,7 +309,7 @@
 
 <header>
   <h1>Scanner REO — Explorador interactivo · Ceuta</h1>
-  <div class="sub">Ceuta · Informe del 18/09/2026 · usa los filtros y haz clic en las cabeceras para ordenar</div>
+  <div class="sub">Ceuta · Informe del 21/09/2026 · usa los filtros y haz clic en las cabeceras para ordenar</div>
 </header>
 
 <button id="toggle-filtros">☰ Mostrar filtros</button>
@@ -314,6 +335,8 @@
       </div>
     </details>
   </div>
+  <div class="campo"><label title="Quién vende. Fondo / servicer son las carteras de banco y fondo (Aliseda, Solvia, Altamira, Hipoges, Sareb, Servihabitat, BuildingCenter).">Vendedor <span class="info-i" title="Fondo / servicer = cartera de banco o fondo vendida por su gestora. Cesión de remate = el fondo ganó la subasta y te cede su posición. Subasta = BOE. Portal / agencia = mercado normal.">ⓘ</span></label><div class="checks" id="f-vendedor"></div></div>
+  <div class="campo"><label title="Quién está dentro del piso, según lo que publica la fuente.">Situación <span class="info-i" title="Libre = se entrega vacío. Alquilado = hay inquilino con contrato, la renta ya corre. Ocupado = sin título, sin posesión o con pleito abierto. Sin dato = la fuente no lo dice.">ⓘ</span></label><div class="checks" id="f-estado"></div></div>
   <div class="campo"><label>Fuente</label><div class="checks" id="f-fuente"></div></div>
   <div class="campo"><label title="Muestra solo inmuebles cuyo precio sea IGUAL O MENOR que este. Vacío = sin límite.">Precio máx € <span class="info-i" title="Muestra solo inmuebles con precio igual o menor. Vacío = sin límite.">ⓘ</span></label><input type="number" id="f-precio" step="10000" min="0" placeholder="sin límite"></div>
   <div class="campo"><label title="Dinero de tu bolsillo (entrada + impuestos + notaría + reforma). Muestra los que necesiten ESE capital o menos.">Capital entrada máx € <span class="info-i" title="Dinero de tu bolsillo (entrada + impuestos + notaría + reforma). Muestra los que necesiten ese capital o menos. Vacío = sin límite.">ⓘ</span></label><input type="number" id="f-capital" step="5000" min="0" placeholder="sin límite"></div>
@@ -331,6 +354,7 @@
   <div class="campo"><label>Dirección contiene</label><input type="text" id="f-txt" placeholder="calle, zona…"></div>
   <div class="campo"><label>&nbsp;</label><button id="aplicar">🔎 Aplicar filtros</button></div>
   <div class="campo"><label>&nbsp;</label><button id="limpiar">Limpiar filtros</button></div>
+  <div class="campo"><label title="Los inmuebles que hayas guardado con la estrella, de todas las provincias.">Guardados <span class="info-i" title="Marca la estrella de un inmueble para guardarlo. Se quedan en este navegador, asociados a tu email de acceso, y no se borran cuando el escaneo nocturno actualiza el listado.">ⓘ</span></label><button id="fav-ver">☆ Mis favoritos (<span id="fav-n">0</span>)</button></div>
 </div>
 
 <noscript>
@@ -343,6 +367,7 @@
 </noscript>
 
 <div id="resumen">Mostrando <b>51</b> de 51 inmuebles · <b>0</b> con cash-on-cash ≥ 10% ★</div>
+<div id="fav-aviso"></div>
 
 <details id="comocalc">
   <summary>Cómo se calculan estos números (pasa el ratón por cada columna para el detalle)</summary>
@@ -367,7 +392,7 @@
 
 <table>
   <thead><tr id="cabecera"><th>Localidad / Dirección</th><th>Fuente</th><th class="num">Precio</th><th class="num">Capital entrada</th><th class="num">m²</th><th class="num">Hab</th><th class="num">Rent. bruta</th><th class="num">Rent. neta</th><th class="num">Cash-on-cash</th><th class="num">Cashflow/año</th><th class="num">Dto. tasación</th><th>Info</th></tr></thead>
-  <tbody id="cuerpo"><tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>calle PANAMA 1º, PUERTA 3 BDA. SAN JOSE 0</span></td><td data-label="Fuente"><span class='tag' style='background:#e5dcef'>ALISEDA</span><br><a href='https://www.alisedainmobiliaria.com/inmueble/52422785' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">54.550 €</td><td data-label="Capital entrada" class="num"><b>30.001 €</b></td><td data-label="m²" class="num">70</td><td data-label="Hab" class="num">1</td><td data-label="Rent. bruta" class="num">14,5%</td><td data-label="Rent. neta" class="num">7,6%</td><td data-label="Cash-on-cash" class="num"><span class='pos'>8,6%</span></td><td data-label="Cashflow/año" class="num"><span class='pos'>+2.574 €</span></td><td data-label="Dto. tasación" class="num">25,0%</td><td data-label="Info"><span class='dir'>POSESION PENDIENTE</span></td></tr>
+  <tbody id="cuerpo"><tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>calle PANAMA 1º, PUERTA 3 BDA. SAN JOSE 0</span></td><td data-label="Fuente"><span class='tag' style='background:#e5dcef'>ALISEDA</span><br><a href='https://www.alisedainmobiliaria.com/inmueble/52422785' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">54.550 €</td><td data-label="Capital entrada" class="num"><b>30.001 €</b></td><td data-label="m²" class="num">70</td><td data-label="Hab" class="num">1</td><td data-label="Rent. bruta" class="num">14,5%</td><td data-label="Rent. neta" class="num">7,6%</td><td data-label="Cash-on-cash" class="num"><span class='pos'>8,6%</span></td><td data-label="Cashflow/año" class="num"><span class='pos'>+2.574 €</span></td><td data-label="Dto. tasación" class="num">25,0%</td><td data-label="Info"><span class='tag' style='background:#f2d9d5' title='POSESION PENDIENTE'>Ocupado</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d8e6f3'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/piso-ceuta_centro_urbano-37593982838_107000/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">54.550 €</td><td data-label="Capital entrada" class="num"><b>30.001 €</b></td><td data-label="m²" class="num">70</td><td data-label="Hab" class="num">1</td><td data-label="Rent. bruta" class="num">14,5%</td><td data-label="Rent. neta" class="num">7,6%</td><td data-label="Cash-on-cash" class="num"><span class='pos'>8,6%</span></td><td data-label="Cashflow/año" class="num"><span class='pos'>+2.574 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d8e6f3'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/chalet-ceuta_centro_urbano-65087844105_106100/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">465.000 €</td><td data-label="Capital entrada" class="num"><b>142.875 €</b></td><td data-label="m²" class="num">389</td><td data-label="Hab" class="num">5</td><td data-label="Rent. bruta" class="num">9,5%</td><td data-label="Rent. neta" class="num">7,0%</td><td data-label="Cash-on-cash" class="num"><span class='pos'>7,2%</span></td><td data-label="Cashflow/año" class="num"><span class='pos'>+10.227 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>C/ Capitán Claudio Vázquez</span></td><td data-label="Fuente"><span class='tag' style='background:#f2e3d2'>SOLVIA</span><br><a href='https://www.solvia.es/es/propiedades/comprar/piso-ceuta-3-dormitorios-152864-190017' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">109.000 €</td><td data-label="Capital entrada" class="num"><b>44.975 €</b></td><td data-label="m²" class="num">99</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">10,3%</td><td data-label="Rent. neta" class="num">6,3%</td><td data-label="Cash-on-cash" class="num"><span class='pos'>5,0%</span></td><td data-label="Cashflow/año" class="num"><span class='pos'>+2.268 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
@@ -383,19 +408,18 @@
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/trastero-ascensor-amueblado/178461821/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">560.000 €</td><td data-label="Capital entrada" class="num"><b>169.000 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">4,1%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,5%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-6.007 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-ascensor-amueblado-internet/188028238/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">460.000 €</td><td data-label="Capital entrada" class="num"><b>141.500 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">4,0%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,6%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-5.159 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta/amueblado/189482048/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">420.000 €</td><td data-label="Capital entrada" class="num"><b>130.500 €</b></td><td data-label="m²" class="num">12</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">4,0%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-4.820 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
-<tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta/parking-terraza-ascensor/188057036/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">380.000 €</td><td data-label="Capital entrada" class="num"><b>119.500 €</b></td><td data-label="m²" class="num">3</td><td data-label="Hab" class="num">4</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,9%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,8%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-4.481 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/ascensor-patio/184189860/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">338.000 €</td><td data-label="Capital entrada" class="num"><b>107.950 €</b></td><td data-label="m²" class="num">10</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,9%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,8%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-4.125 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-calefaccion-terraza-ascensor-amueblado-television-internet/190770684/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">330.000 €</td><td data-label="Capital entrada" class="num"><b>105.750 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,9%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,8%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-4.057 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-parking-jardin-ascensor-patio-piscina/177112514/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">310.000 €</td><td data-label="Capital entrada" class="num"><b>100.250 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num">5</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,8%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,9%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.888 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta/ascensor-patio/189677693/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">300.000 €</td><td data-label="Capital entrada" class="num"><b>97.500 €</b></td><td data-label="m²" class="num">3</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,8%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,9%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.803 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-parking-trastero-ascensor-patio-amueblado-television-internet/186654460/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">300.000 €</td><td data-label="Capital entrada" class="num"><b>97.500 €</b></td><td data-label="m²" class="num">3</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,8%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-3,9%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.803 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
-<tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/ascensor-amueblado/190674733/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">260.000 €</td><td data-label="Capital entrada" class="num"><b>86.500 €</b></td><td data-label="m²" class="num">5</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,7%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,0%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.464 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-amueblado/188064112/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">225.000 €</td><td data-label="Capital entrada" class="num"><b>76.875 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,6%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,1%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.167 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/ascensor-amueblado-internet/162133430/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">215.000 €</td><td data-label="Capital entrada" class="num"><b>74.125 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num">1</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,6%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,2%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.082 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-parking-trastero-ascensor-patio-amueblado/190539449/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">210.000 €</td><td data-label="Capital entrada" class="num"><b>72.750 €</b></td><td data-label="m²" class="num">12</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,6%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,2%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.040 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/ascensor-amueblado/190878465/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">195.000 €</td><td data-label="Capital entrada" class="num"><b>68.625 €</b></td><td data-label="m²" class="num">3</td><td data-label="Hab" class="num">1</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,5%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,2%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.913 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/trastero-amueblado/190706134/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">180.000 €</td><td data-label="Capital entrada" class="num"><b>64.500 €</b></td><td data-label="m²" class="num">1</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,5%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,3%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.786 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/muelle/188217500/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">155.000 €</td><td data-label="Capital entrada" class="num"><b>57.625 €</b></td><td data-label="m²" class="num">1</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,3%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,5%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.574 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
-<tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-trastero/190715787/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">122.000 €</td><td data-label="Capital entrada" class="num"><b>48.550 €</b></td><td data-label="m²" class="num">12</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">3,1%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.294 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/patio/190569188/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">325.000 €</td><td data-label="Capital entrada" class="num"><b>104.375 €</b></td><td data-label="m²" class="num">156</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">5,4%</td><td data-label="Rent. neta" class="num">3,6%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,9%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-5.058 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/patio/162447163/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">105.000 €</td><td data-label="Capital entrada" class="num"><b>43.875 €</b></td><td data-label="m²" class="num"><span class='nd'>—</span></td><td data-label="Hab" class="num">1</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">2,9%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-4,9%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.150 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/no-amueblado/190742155/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">100.000 €</td><td data-label="Capital entrada" class="num"><b>42.500 €</b></td><td data-label="m²" class="num">10</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">5,8%</td><td data-label="Rent. neta" class="num">2,8%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-5,0%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-2.108 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta/ascensor-amueblado/190573001/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">160.000 €</td><td data-label="Capital entrada" class="num"><b>59.000 €</b></td><td data-label="m²" class="num">76</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">5,4%</td><td data-label="Rent. neta" class="num">3,0%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-5,4%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-3.212 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
@@ -405,6 +429,7 @@
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d8e6f3'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/piso-ceuta_centro_urbano51002-66749749043_109800/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">360.000 €</td><td data-label="Capital entrada" class="num"><b>114.000 €</b></td><td data-label="m²" class="num">152</td><td data-label="Hab" class="num">4</td><td data-label="Rent. bruta" class="num">4,8%</td><td data-label="Rent. neta" class="num">3,1%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-6,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-7.590 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d8e6f3'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/piso-ceuta_centro_urbano51002-67544874326_109800/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">230.000 €</td><td data-label="Capital entrada" class="num"><b>78.250 €</b></td><td data-label="m²" class="num">97</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">4,8%</td><td data-label="Rent. neta" class="num">2,9%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-6,8%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-5.316 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#d8e6f3'>PISOS.COM</span><br><a href='https://www.pisos.com/comprar/piso-ceuta_centro_urbano51002-67568834195_109800/' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">225.000 €</td><td data-label="Capital entrada" class="num"><b>76.875 €</b></td><td data-label="m²" class="num">94</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">4,7%</td><td data-label="Rent. neta" class="num">2,8%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-6,9%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-5.318 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
+<tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta/parking-terraza-ascensor/188057036/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">380.000 €</td><td data-label="Capital entrada" class="num"><b>119.500 €</b></td><td data-label="m²" class="num">157</td><td data-label="Hab" class="num">4</td><td data-label="Rent. bruta" class="num">4,7%</td><td data-label="Rent. neta" class="num">3,0%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-6,9%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-8.294 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/amueblado/190758663/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">140.000 €</td><td data-label="Capital entrada" class="num"><b>53.500 €</b></td><td data-label="m²" class="num">50</td><td data-label="Hab" class="num">2</td><td data-label="Rent. bruta" class="num">4,0%</td><td data-label="Rent. neta" class="num">1,9%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-8,7%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-4.652 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/hacho-san-amaro/179642177/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">310.000 €</td><td data-label="Capital entrada" class="num"><b>100.250 €</b></td><td data-label="m²" class="num">108</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">4,0%</td><td data-label="Rent. neta" class="num">2,4%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-9,0%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-9.047 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
 <tr><td data-label="Localidad / Dirección"><b>Ceuta</b><br><span class='dir'>—</span></td><td data-label="Fuente"><span class='tag' style='background:#f5ddd0'>FOTOCASA</span><br><a href='https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-trastero-ascensor/190785732/d' target='_blank'>ver anuncio ↗</a></td><td data-label="Precio" class="num">345.000 €</td><td data-label="Capital entrada" class="num"><b>109.875 €</b></td><td data-label="m²" class="num">101</td><td data-label="Hab" class="num">3</td><td data-label="Rent. bruta" class="num">3,3%</td><td data-label="Rent. neta" class="num">1,9%</td><td data-label="Cash-on-cash" class="num"><span class='neg'>-10,8%</span></td><td data-label="Cashflow/año" class="num"><span class='neg'>-11.885 €</span></td><td data-label="Dto. tasación" class="num"><span class='nd'>~ N/D</span></td><td data-label="Info"><span class='nd'>—</span></td></tr>
@@ -475,7 +500,8 @@
 </div>
 
 <script>
-const DATA = [{"localidad": "Ceuta", "direccion": "calle PANAMA 1º, PUERTA 3 BDA. SAN JOSE 0", "origen": "ALISEDA", "tipo_subasta": "REO", "url": "https://www.alisedainmobiliaria.com/inmueble/52422785", "precio": 54550, "capital": 30001.25, "m2": 70, "hab": 1, "rb": 14.5, "rn": 7.6, "coc": 8.6, "cf": 2574.32, "dto": 25.0, "tensionada": false, "cargas": 0, "posesion": "POSESION PENDIENTE", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano-37593982838_107000/", "precio": 54550.0, "capital": 30001.25, "m2": 70.0, "hab": 1, "rb": 14.5, "rn": 7.6, "coc": 8.6, "cf": 2574.32, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-ceuta_centro_urbano-65087844105_106100/", "precio": 465000.0, "capital": 142875.0, "m2": 389.0, "hab": 5, "rb": 9.5, "rn": 7.0, "coc": 7.2, "cf": 10226.94, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": "C/ Capitán Claudio Vázquez", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-ceuta-3-dormitorios-152864-190017", "precio": 109000.0, "capital": 44975.0, "m2": 99.37, "hab": 3, "rb": 10.3, "rn": 6.3, "coc": 5.0, "cf": 2268.0, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-ceuta_centro_urbano-67559148144_105000/", "precio": 485000.0, "capital": 148375.0, "m2": 361.0, "hab": 3, "rb": 8.4, "rn": 6.2, "coc": 4.2, "cf": 6155.74, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano-67537644561_105000/", "precio": 195000.0, "capital": 68625.0, "m2": 136.0, "hab": null, "rb": 7.9, "rn": 5.2, "coc": 1.1, "cf": 788.31, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano-67534703516_105000/", "precio": 94850.0, "capital": 41083.75, "m2": 71.0, "hab": 2, "rb": 8.5, "rn": 4.7, "coc": 0.6, "cf": 231.13, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano51001-63415251263_100700/", "precio": 197197.0, "capital": 69229.17, "m2": 129.0, "hab": 3, "rb": 7.4, "rn": 4.8, "coc": -0.1, "cf": -59.41, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "E.d. la Colina", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano51004-57594080790_100700/", "precio": 483298.0, "capital": 147906.95, "m2": 284.0, "hab": 4, "rb": 6.7, "rn": 4.7, "coc": -1.1, "cf": -1599.61, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano-65046677663_100500/", "precio": 485000.0, "capital": 148375.0, "m2": 284.0, "hab": 2, "rb": 6.6, "rn": 4.7, "coc": -1.1, "cf": -1702.88, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": "C/ Ejercito Español", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-ceuta-3-dormitorios-157285-194668", "precio": 161100.0, "capital": 59302.5, "m2": 97.27, "hab": 3, "rb": 6.9, "rn": 4.2, "coc": -1.9, "cf": -1107.55, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano51002-67508918510_109800/", "precio": 100000.0, "capital": 42500.0, "m2": 60.0, "hab": 2, "rb": 6.8, "rn": 3.6, "coc": -2.8, "cf": -1204.01, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-ceuta_centro_urbano-65087613227_106100/", "precio": 996000.0, "capital": 288900.0, "m2": 0.0, "hab": 3, "rb": 5.8, "rn": 4.2, "coc": -3.4, "cf": -9702.23, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/trastero-ascensor-amueblado/178461821/d", "precio": 560000.0, "capital": 169000.0, "m2": null, "hab": 3, "rb": 5.8, "rn": 4.1, "coc": -3.5, "cf": -6006.63, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-ascensor-amueblado-internet/188028238/d", "precio": 460000.0, "capital": 141500.0, "m2": null, "hab": 3, "rb": 5.8, "rn": 4.0, "coc": -3.6, "cf": -5159.02, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta/amueblado/189482048/d", "precio": 420000.0, "capital": 130500.0, "m2": 12.0, "hab": 3, "rb": 5.8, "rn": 4.0, "coc": -3.7, "cf": -4819.98, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta/parking-terraza-ascensor/188057036/d", "precio": 380000.0, "capital": 119500.0, "m2": 3.0, "hab": 4, "rb": 5.8, "rn": 3.9, "coc": -3.8, "cf": -4480.93, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/ascensor-patio/184189860/d", "precio": 338000.0, "capital": 107950.0, "m2": 10.0, "hab": 3, "rb": 5.8, "rn": 3.9, "coc": -3.8, "cf": -4124.93, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-calefaccion-terraza-ascensor-amueblado-television-internet/190770684/d", "precio": 330000.0, "capital": 105750.0, "m2": null, "hab": 2, "rb": 5.8, "rn": 3.9, "coc": -3.8, "cf": -4057.12, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-parking-jardin-ascensor-patio-piscina/177112514/d", "precio": 310000.0, "capital": 100250.0, "m2": null, "hab": 5, "rb": 5.8, "rn": 3.8, "coc": -3.9, "cf": -3887.6, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta/ascensor-patio/189677693/d", "precio": 300000.0, "capital": 97500.0, "m2": 3.0, "hab": 2, "rb": 5.8, "rn": 3.8, "coc": -3.9, "cf": -3802.84, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-parking-trastero-ascensor-patio-amueblado-television-internet/186654460/d", "precio": 300000.0, "capital": 97500.0, "m2": 3.0, "hab": 2, "rb": 5.8, "rn": 3.8, "coc": -3.9, "cf": -3802.84, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/ascensor-amueblado/190674733/d", "precio": 260000.0, "capital": 86500.0, "m2": 5.0, "hab": 2, "rb": 5.8, "rn": 3.7, "coc": -4.0, "cf": -3463.79, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-amueblado/188064112/d", "precio": 225000.0, "capital": 76875.0, "m2": null, "hab": 3, "rb": 5.8, "rn": 3.6, "coc": -4.1, "cf": -3167.13, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/ascensor-amueblado-internet/162133430/d", "precio": 215000.0, "capital": 74125.0, "m2": null, "hab": 1, "rb": 5.8, "rn": 3.6, "coc": -4.2, "cf": -3082.37, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-parking-trastero-ascensor-patio-amueblado/190539449/d", "precio": 210000.0, "capital": 72750.0, "m2": 12.0, "hab": 3, "rb": 5.8, "rn": 3.6, "coc": -4.2, "cf": -3039.99, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/trastero-amueblado/190706134/d", "precio": 180000.0, "capital": 64500.0, "m2": 1.0, "hab": 3, "rb": 5.8, "rn": 3.5, "coc": -4.3, "cf": -2785.7, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/muelle/188217500/d", "precio": 155000.0, "capital": 57625.0, "m2": 1.0, "hab": 3, "rb": 5.8, "rn": 3.3, "coc": -4.5, "cf": -2573.8, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-trastero/190715787/d", "precio": 122000.0, "capital": 48550.0, "m2": 12.0, "hab": 2, "rb": 5.8, "rn": 3.1, "coc": -4.7, "cf": -2294.09, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/patio/162447163/d", "precio": 105000.0, "capital": 43875.0, "m2": null, "hab": 1, "rb": 5.8, "rn": 2.9, "coc": -4.9, "cf": -2149.99, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/no-amueblado/190742155/d", "precio": 100000.0, "capital": 42500.0, "m2": 10.0, "hab": 2, "rb": 5.8, "rn": 2.8, "coc": -5.0, "cf": -2107.61, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta/ascensor-amueblado/190573001/d", "precio": 160000.0, "capital": 59000.0, "m2": 76.0, "hab": 2, "rb": 5.4, "rn": 3.0, "coc": -5.4, "cf": -3211.62, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "BUILDINGCENTER", "tipo_subasta": "REO", "url": "https://www.buildingcenter.es/es/venta/viviendas/ceuta/ceuta/ceuta/89029850", "precio": 269000.0, "capital": 88975.0, "m2": 120.0, "hab": null, "rb": 5.1, "rn": 3.2, "coc": -6.0, "cf": -5334.68, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano51002-67514971234_109800/", "precio": 225000.0, "capital": 76875.0, "m2": 98.0, "hab": 3, "rb": 4.9, "rn": 3.0, "coc": -6.4, "cf": -4910.25, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano51002-66752096069_109800/", "precio": 360000.0, "capital": 114000.0, "m2": 152.0, "hab": 4, "rb": 4.8, "rn": 3.1, "coc": -6.7, "cf": -7590.29, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano51002-66749749043_109800/", "precio": 360000.0, "capital": 114000.0, "m2": 152.0, "hab": 4, "rb": 4.8, "rn": 3.1, "coc": -6.7, "cf": -7590.29, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano51002-67544874326_109800/", "precio": 230000.0, "capital": 78250.0, "m2": 97.0, "hab": 3, "rb": 4.8, "rn": 2.9, "coc": -6.8, "cf": -5315.69, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano51002-67568834195_109800/", "precio": 225000.0, "capital": 76875.0, "m2": 94.0, "hab": 3, "rb": 4.7, "rn": 2.8, "coc": -6.9, "cf": -5318.49, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/amueblado/190758663/d", "precio": 140000.0, "capital": 53500.0, "m2": 50.0, "hab": 2, "rb": 4.0, "rn": 1.9, "coc": -8.7, "cf": -4651.66, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/hacho-san-amaro/179642177/d", "precio": 310000.0, "capital": 100250.0, "m2": 108.0, "hab": 3, "rb": 4.0, "rn": 2.4, "coc": -9.0, "cf": -9047.12, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-trastero-ascensor/190785732/d", "precio": 345000.0, "capital": 109875.0, "m2": 101.0, "hab": 3, "rb": 3.3, "rn": 1.9, "coc": -10.8, "cf": -11885.21, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta/ascensor-patio-no-amueblado/190041239/d", "precio": 250000.0, "capital": 83750.0, "m2": 68.0, "hab": 2, "rb": 3.1, "rn": 1.6, "coc": -11.3, "cf": -9488.95, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/amueblado/190672441/d", "precio": 350000.0, "capital": 111250.0, "m2": 96.0, "hab": 3, "rb": 3.1, "rn": 1.7, "coc": -11.4, "cf": -12698.89, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano-65083543616_106100/", "precio": 385000.0, "capital": 120875.0, "m2": 100.0, "hab": 3, "rb": 2.9, "rn": 1.6, "coc": -11.9, "cf": -14414.31, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano-65056545479_106100/", "precio": 300000.0, "capital": 97500.0, "m2": 70.0, "hab": 2, "rb": 2.6, "rn": 1.3, "coc": -12.6, "cf": -12318.64, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado/190538892/d", "precio": 165000.0, "capital": 60375.0, "m2": 23.0, "hab": 2, "rb": 1.6, "rn": 0.1, "coc": -14.8, "cf": -8924.18, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-trastero-ascensor-patio-amueblado/189949496/d", "precio": 270000.0, "capital": 89250.0, "m2": 39.0, "hab": 3, "rb": 1.6, "rn": 0.4, "coc": -15.3, "cf": -13662.22, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/parking-ascensor/179580982/d", "precio": 190000.0, "capital": 67250.0, "m2": 22.0, "hab": 3, "rb": 1.3, "rn": 0.0, "coc": -15.7, "cf": -10543.15, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/parking-ascensor-no-amueblado/190736054/d", "precio": 240000.0, "capital": 81000.0, "m2": 18.0, "hab": 3, "rb": 0.9, "rn": -0.2, "coc": -17.3, "cf": -13985.19, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta/jardin-terraza-amueblado/187958871/d", "precio": 465000.0, "capital": 142875.0, "m2": 35.0, "hab": 5, "rb": 0.9, "rn": 0, "coc": -18.1, "cf": -25902.3, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta/parking-jardin-trastero-patio-piscina-amueblado/185019870/d", "precio": 996000.0, "capital": 288900.0, "m2": 67.0, "hab": 3, "rb": 0.8, "rn": 0.1, "coc": -19.0, "cf": -54855.41, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "cierre": null}];
+const DATA = [{"localidad": "Ceuta", "direccion": "calle PANAMA 1º, PUERTA 3 BDA. SAN JOSE 0", "origen": "ALISEDA", "tipo_subasta": "REO", "url": "https://www.alisedainmobiliaria.com/inmueble/52422785", "precio": 54550, "capital": 30001.25, "m2": 70, "hab": 1, "rb": 14.5, "rn": 7.6, "coc": 8.6, "cf": 2574.32, "dto": 25.0, "tensionada": false, "cargas": 0, "posesion": "POSESION PENDIENTE", "estado": "OCUPADO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano-37593982838_107000/", "precio": 54550.0, "capital": 30001.25, "m2": 70.0, "hab": 1, "rb": 14.5, "rn": 7.6, "coc": 8.6, "cf": 2574.32, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-ceuta_centro_urbano-65087844105_106100/", "precio": 465000.0, "capital": 142875.0, "m2": 389.0, "hab": 5, "rb": 9.5, "rn": 7.0, "coc": 7.2, "cf": 10226.94, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": "C/ Capitán Claudio Vázquez", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-ceuta-3-dormitorios-152864-190017", "precio": 109000.0, "capital": 44975.0, "m2": 99.37, "hab": 3, "rb": 10.3, "rn": 6.3, "coc": 5.0, "cf": 2268.0, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-ceuta_centro_urbano-67559148144_105000/", "precio": 485000.0, "capital": 148375.0, "m2": 361.0, "hab": 3, "rb": 8.4, "rn": 6.2, "coc": 4.2, "cf": 6155.74, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano-67537644561_105000/", "precio": 195000.0, "capital": 68625.0, "m2": 136.0, "hab": null, "rb": 7.9, "rn": 5.2, "coc": 1.1, "cf": 788.31, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano-67534703516_105000/", "precio": 94850.0, "capital": 41083.75, "m2": 71.0, "hab": 2, "rb": 8.5, "rn": 4.7, "coc": 0.6, "cf": 231.13, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano51001-63415251263_100700/", "precio": 197197.0, "capital": 69229.17, "m2": 129.0, "hab": 3, "rb": 7.4, "rn": 4.8, "coc": -0.1, "cf": -59.41, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "E.d. la Colina", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano51004-57594080790_100700/", "precio": 483298.0, "capital": 147906.95, "m2": 284.0, "hab": 4, "rb": 6.7, "rn": 4.7, "coc": -1.1, "cf": -1599.61, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano-65046677663_100500/", "precio": 485000.0, "capital": 148375.0, "m2": 284.0, "hab": 2, "rb": 6.6, "rn": 4.7, "coc": -1.1, "cf": -1702.88, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": "C/ Ejercito Español", "origen": "SOLVIA", "tipo_subasta": "REO", "url": "https://www.solvia.es/es/propiedades/comprar/piso-ceuta-3-dormitorios-157285-194668", "precio": 161100.0, "capital": 59302.5, "m2": 97.27, "hab": 3, "rb": 6.9, "rn": 4.2, "coc": -1.9, "cf": -1107.55, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano51002-67508918510_109800/", "precio": 100000.0, "capital": 42500.0, "m2": 60.0, "hab": 2, "rb": 6.8, "rn": 3.6, "coc": -2.8, "cf": -1204.01, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/chalet-ceuta_centro_urbano-65087613227_106100/", "precio": 996000.0, "capital": 288900.0, "m2": 0.0, "hab": 3, "rb": 5.8, "rn": 4.2, "coc": -3.4, "cf": -9702.23, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/trastero-ascensor-amueblado/178461821/d", "precio": 560000.0, "capital": 169000.0, "m2": null, "hab": 3, "rb": 5.8, "rn": 4.1, "coc": -3.5, "cf": -6006.63, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-ascensor-amueblado-internet/188028238/d", "precio": 460000.0, "capital": 141500.0, "m2": null, "hab": 3, "rb": 5.8, "rn": 4.0, "coc": -3.6, "cf": -5159.02, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta/amueblado/189482048/d", "precio": 420000.0, "capital": 130500.0, "m2": 12.0, "hab": 3, "rb": 5.8, "rn": 4.0, "coc": -3.7, "cf": -4819.98, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/ascensor-patio/184189860/d", "precio": 338000.0, "capital": 107950.0, "m2": 10.0, "hab": 3, "rb": 5.8, "rn": 3.9, "coc": -3.8, "cf": -4124.93, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-calefaccion-terraza-ascensor-amueblado-television-internet/190770684/d", "precio": 330000.0, "capital": 105750.0, "m2": null, "hab": 2, "rb": 5.8, "rn": 3.9, "coc": -3.8, "cf": -4057.12, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-parking-jardin-ascensor-patio-piscina/177112514/d", "precio": 310000.0, "capital": 100250.0, "m2": null, "hab": 5, "rb": 5.8, "rn": 3.8, "coc": -3.9, "cf": -3887.6, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta/ascensor-patio/189677693/d", "precio": 300000.0, "capital": 97500.0, "m2": 3.0, "hab": 2, "rb": 5.8, "rn": 3.8, "coc": -3.9, "cf": -3802.84, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-parking-trastero-ascensor-patio-amueblado-television-internet/186654460/d", "precio": 300000.0, "capital": 97500.0, "m2": 3.0, "hab": 2, "rb": 5.8, "rn": 3.8, "coc": -3.9, "cf": -3802.84, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-amueblado/188064112/d", "precio": 225000.0, "capital": 76875.0, "m2": null, "hab": 3, "rb": 5.8, "rn": 3.6, "coc": -4.1, "cf": -3167.13, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/ascensor-amueblado-internet/162133430/d", "precio": 215000.0, "capital": 74125.0, "m2": null, "hab": 1, "rb": 5.8, "rn": 3.6, "coc": -4.2, "cf": -3082.37, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-parking-trastero-ascensor-patio-amueblado/190539449/d", "precio": 210000.0, "capital": 72750.0, "m2": 12.0, "hab": 3, "rb": 5.8, "rn": 3.6, "coc": -4.2, "cf": -3039.99, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/ascensor-amueblado/190878465/d", "precio": 195000.0, "capital": 68625.0, "m2": 3.0, "hab": 1, "rb": 5.8, "rn": 3.5, "coc": -4.2, "cf": -2912.85, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/trastero-amueblado/190706134/d", "precio": 180000.0, "capital": 64500.0, "m2": 1.0, "hab": 3, "rb": 5.8, "rn": 3.5, "coc": -4.3, "cf": -2785.7, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/muelle/188217500/d", "precio": 155000.0, "capital": 57625.0, "m2": 1.0, "hab": 3, "rb": 5.8, "rn": 3.3, "coc": -4.5, "cf": -2573.8, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/patio/190569188/d", "precio": 325000.0, "capital": 104375.0, "m2": 156.0, "hab": 2, "rb": 5.4, "rn": 3.6, "coc": -4.9, "cf": -5058.38, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/patio/162447163/d", "precio": 105000.0, "capital": 43875.0, "m2": null, "hab": 1, "rb": 5.8, "rn": 2.9, "coc": -4.9, "cf": -2149.99, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/no-amueblado/190742155/d", "precio": 100000.0, "capital": 42500.0, "m2": 10.0, "hab": 2, "rb": 5.8, "rn": 2.8, "coc": -5.0, "cf": -2107.61, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta/ascensor-amueblado/190573001/d", "precio": 160000.0, "capital": 59000.0, "m2": 76.0, "hab": 2, "rb": 5.4, "rn": 3.0, "coc": -5.4, "cf": -3211.62, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "BUILDINGCENTER", "tipo_subasta": "REO", "url": "https://www.buildingcenter.es/es/venta/viviendas/ceuta/ceuta/ceuta/89029850", "precio": 269000.0, "capital": 88975.0, "m2": 120.0, "hab": null, "rb": 5.1, "rn": 3.2, "coc": -6.0, "cf": -5334.68, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano51002-67514971234_109800/", "precio": 225000.0, "capital": 76875.0, "m2": 98.0, "hab": 3, "rb": 4.9, "rn": 3.0, "coc": -6.4, "cf": -4910.25, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano51002-66752096069_109800/", "precio": 360000.0, "capital": 114000.0, "m2": 152.0, "hab": 4, "rb": 4.8, "rn": 3.1, "coc": -6.7, "cf": -7590.29, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano51002-66749749043_109800/", "precio": 360000.0, "capital": 114000.0, "m2": 152.0, "hab": 4, "rb": 4.8, "rn": 3.1, "coc": -6.7, "cf": -7590.29, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano51002-67544874326_109800/", "precio": 230000.0, "capital": 78250.0, "m2": 97.0, "hab": 3, "rb": 4.8, "rn": 2.9, "coc": -6.8, "cf": -5315.69, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano51002-67568834195_109800/", "precio": 225000.0, "capital": 76875.0, "m2": 94.0, "hab": 3, "rb": 4.7, "rn": 2.8, "coc": -6.9, "cf": -5318.49, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta/parking-terraza-ascensor/188057036/d", "precio": 380000.0, "capital": 119500.0, "m2": 157.0, "hab": 4, "rb": 4.7, "rn": 3.0, "coc": -6.9, "cf": -8293.51, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/amueblado/190758663/d", "precio": 140000.0, "capital": 53500.0, "m2": 50.0, "hab": 2, "rb": 4.0, "rn": 1.9, "coc": -8.7, "cf": -4651.66, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/hacho-san-amaro/179642177/d", "precio": 310000.0, "capital": 100250.0, "m2": 108.0, "hab": 3, "rb": 4.0, "rn": 2.4, "coc": -9.0, "cf": -9047.12, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-trastero-ascensor/190785732/d", "precio": 345000.0, "capital": 109875.0, "m2": 101.0, "hab": 3, "rb": 3.3, "rn": 1.9, "coc": -10.8, "cf": -11885.21, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta/ascensor-patio-no-amueblado/190041239/d", "precio": 250000.0, "capital": 83750.0, "m2": 68.0, "hab": 2, "rb": 3.1, "rn": 1.6, "coc": -11.3, "cf": -9488.95, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/amueblado/190672441/d", "precio": 350000.0, "capital": 111250.0, "m2": 96.0, "hab": 3, "rb": 3.1, "rn": 1.7, "coc": -11.4, "cf": -12698.89, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano-65083543616_106100/", "precio": 385000.0, "capital": 120875.0, "m2": 100.0, "hab": 3, "rb": 2.9, "rn": 1.6, "coc": -11.9, "cf": -14414.31, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "PISOS.COM", "tipo_subasta": "MERCADO", "url": "https://www.pisos.com/comprar/piso-ceuta_centro_urbano-65056545479_106100/", "precio": 300000.0, "capital": 97500.0, "m2": 70.0, "hab": 2, "rb": 2.6, "rn": 1.3, "coc": -12.6, "cf": -12318.64, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado/190538892/d", "precio": 165000.0, "capital": 60375.0, "m2": 23.0, "hab": 2, "rb": 1.6, "rn": 0.1, "coc": -14.8, "cf": -8924.18, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/aire-acondicionado-trastero-ascensor-patio-amueblado/189949496/d", "precio": 270000.0, "capital": 89250.0, "m2": 39.0, "hab": 3, "rb": 1.6, "rn": 0.4, "coc": -15.3, "cf": -13662.22, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/parking-ascensor/179580982/d", "precio": 190000.0, "capital": 67250.0, "m2": 22.0, "hab": 3, "rb": 1.3, "rn": 0.0, "coc": -15.7, "cf": -10543.15, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta-capital/parking-ascensor-no-amueblado/190736054/d", "precio": 240000.0, "capital": 81000.0, "m2": 18.0, "hab": 3, "rb": 0.9, "rn": -0.2, "coc": -17.3, "cf": -13985.19, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta/jardin-terraza-amueblado/187958871/d", "precio": 465000.0, "capital": 142875.0, "m2": 35.0, "hab": 5, "rb": 0.9, "rn": 0, "coc": -18.1, "cf": -25902.3, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}, {"localidad": "Ceuta", "direccion": null, "origen": "FOTOCASA", "tipo_subasta": "MERCADO", "url": "https://www.fotocasa.es/es/comprar/vivienda/ceuta/parking-jardin-trastero-patio-piscina-amueblado/185019870/d", "precio": 996000.0, "capital": 288900.0, "m2": 67.0, "hab": 3, "rb": 0.8, "rn": 0.1, "coc": -19.0, "cf": -54855.41, "dto": null, "tensionada": false, "cargas": 0, "posesion": null, "estado": "SIN_DATO", "cierre": null}];
+const ZONA = "Ceuta";
 
 const COLORES_FUENTE = {
   "SOLVIA": "#f2e3d2", "ALISEDA": "#e5dcef", "ALTAMIRA": "#d4e8e1",
@@ -489,10 +515,45 @@ const NOMBRE_FUENTE = {
   "SAREB": "Sareb (vía Hipoges)", "HIPOGES": "Hipoges",
 };
 
+// ── Vendedor ────────────────────────────────────────────────────────────────
+// Se deduce de tipo_subasta, que ya pone cada scraper, en vez de una lista de
+// nombres de fuente. Así una fuente nueva entra sola en el grupo que le toca:
+// con una lista de nombres pasaría lo de donpiso — la fuente nueva no está en
+// la lista, cae en el cajón de sastre y nadie se entera hasta ver la web.
+// Un inmueble puede estar en más de un grupo: la cesión de remate de Altamira
+// ES cartera de fondo, solo que se compra por la vía de la subasta que el
+// fondo ya ganó. Va en FONDO (si no, marcar "Fondo / servicer" dejaría fuera
+// a Altamira entera) y además en CESION, para poder aislarla o quitarla.
+const GRUPOS_VENDEDOR = r =>
+  r.tipo_subasta === "REO" ? ["FONDO"] :
+  r.tipo_subasta === "CESION_REMATE" ? ["FONDO", "CESION"] :
+  r.tipo_subasta === "MERCADO" ? ["MERCADO"] : ["SUBASTA"];
+const ORDEN_VENDEDOR = ["FONDO", "CESION", "SUBASTA", "MERCADO"];
+const NOMBRE_VENDEDOR = {
+  FONDO: "Fondo / servicer", CESION: "Cesión de remate",
+  SUBASTA: "Subasta", MERCADO: "Portal / agencia",
+};
+
+// ── Situación posesoria ─────────────────────────────────────────────────────
+// El estado lo calcula el normalizer (estado_posesion); aquí solo se pinta.
+const ORDEN_ESTADO = ["LIBRE", "ALQUILADO", "OCUPADO", "SIN_DATO"];
+const NOMBRE_ESTADO = {
+  LIBRE: "Libre", ALQUILADO: "Alquilado", OCUPADO: "Ocupado",
+  SIN_DATO: "Sin dato",
+};
+const COLOR_ESTADO = {
+  LIBRE: "#d9e8d5", ALQUILADO: "#f2e8cf", OCUPADO: "#f2d9d5",
+  SIN_DATO: "#e8ecef",
+};
+
 const COLS = [
   { id: "localidad", label: "Localidad / Dirección", num: false,
     val: r => r.localidad || "",
-    html: r => `<b>${esc(r.localidad)}</b><br><span class="dir">${esc(r.direccion || "—")}</span>` },
+    html: r => `<b>${esc(r.localidad)}</b><br><span class="dir">${esc(r.direccion || "—")}</span>` +
+      (r._prov && r._prov !== ZONA
+        ? `<br><span class="tag" style="background:#e4ecd4">${esc(r._prov)}</span>` : "") +
+      (typeof favYaNoEsta === "function" && r._guardado && favYaNoEsta(r)
+        ? `<br><span class="tag" style="background:#f2d9d5" title="Lo guardaste el ${esc((r._guardado || "").slice(0, 10))} y ya no aparece en el listado de hoy: lo habran vendido o retirado.">ya no está en el listado</span>` : "") },
   { id: "origen", label: "Fuente", num: false, val: r => r.origen,
     html: r => {
       const c = COLORES_FUENTE[r.origen] || "#e3e7ea";
@@ -534,13 +595,17 @@ const COLS = [
       let out = [];
       if (r.tensionada) out.push("<span class='tag' style='background:#e7dcf0'>Tensionada</span>");
       if (r.cargas > 0) out.push(`<span class='tag' style='background:#f2e3d2'>Cargas ${eur(r.cargas)}</span>`);
-      if (r.posesion) out.push(`<span class='dir'>${esc(r.posesion)}</span>`);
+      if (r.estado && r.estado !== "SIN_DATO")
+        out.push(`<span class='tag' style='background:${COLOR_ESTADO[r.estado]}'` +
+                 `${r.posesion ? ` title="${esc(r.posesion)}"` : ""}>` +
+                 `${NOMBRE_ESTADO[r.estado]}</span>`);
       if (r.cierre) out.push(`<span class='dir'>cierra ${esc(r.cierre)}</span>`);
       return out.join("<br>") || "<span class='nd'>—</span>"; } },
 ];
 
 let orden = { col: "coc", desc: true };
 let muniOn = new Set(), fuenteOn = new Set();
+let vendedorOn = new Set(), estadoOn = new Set();
 
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 const fmt = (v, d) => v.toLocaleString("es-ES", { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -549,7 +614,7 @@ const pct = v => fmt(v, 1) + "%";
 
 const _chipSyncs = [];  // para re-pintar chips al restaurar parámetros guardados
 
-function chips(contId, valores, activo) {
+function chips(contId, valores, activo, nombres) {
   // Comportamiento: los chips empiezan SIN marcar (= sin filtro, se ve todo).
   // Marcas los que te interesan y el filtro se queda solo con esos.
   // Desmarcar todos vuelve a "se ve todo". Mucho más intuitivo que el viejo
@@ -562,7 +627,7 @@ function chips(contId, valores, activo) {
   valores.forEach(v => {
     const el = document.createElement("span");
     el.className = "chip";
-    el.textContent = NOMBRE_FUENTE[v] || v;
+    el.textContent = (nombres || NOMBRE_FUENTE)[v] || v;
     el.title = "Márcalo para filtrar · sin ninguno marcado se ven todos";
     els.set(v, el);
     el.onclick = () => {
@@ -580,7 +645,7 @@ function chips(contId, valores, activo) {
 // controles son un "borrador" y la búsqueda se formaliza al aplicar.
 let aplicados = {
   pMax: Infinity, cMax: Infinity, cocMin: -Infinity, m2Min: 0, hab: "",
-  txt: "", muni: null, fuente: null,
+  txt: "", muni: null, fuente: null, vendedor: null, estado: null,
 };
 
 function aplicar() {
@@ -594,6 +659,8 @@ function aplicar() {
     txt: gv("f-txt").trim().toLowerCase(),
     muni: muniOn.size ? new Set(muniOn) : null,      // vacío = sin filtro
     fuente: fuenteOn.size ? new Set(fuenteOn) : null, // vacío = sin filtro
+    vendedor: vendedorOn.size ? new Set(vendedorOn) : null,
+    estado: estadoOn.size ? new Set(estadoOn) : null,
   };
   const btn = document.getElementById("aplicar");
   if (btn) { btn.classList.remove("pendiente"); btn.textContent = "🔎 Aplicar filtros"; }
@@ -606,9 +673,15 @@ function marcarPendiente() {
 }
 
 function filtrar() {
+  // Los favoritos van a su aire: son de todas las provincias y algunos ya ni
+  // estan en el listado, asi que cruzarlos con los filtros de precio o
+  // municipio solo serviria para esconder lo que has guardado a mano.
+  if (soloFav) return favoritos.slice();
   const a = aplicados;
   return DATA.filter(r =>
     (!a.muni || a.muni.has(r.localidad)) && (!a.fuente || a.fuente.has(r.origen)) &&
+    (!a.vendedor || GRUPOS_VENDEDOR(r).some(g => a.vendedor.has(g))) &&
+    (!a.estado || a.estado.has(r.estado || "SIN_DATO")) &&
     r.precio <= a.pMax && r.capital <= a.cMax && r.coc >= a.cocMin &&
     (a.m2Min === 0 || (r.m2 || 0) >= a.m2Min) &&
     (!a.hab || (a.hab === "4+" ? (r.hab || 0) >= 4
@@ -620,14 +693,15 @@ function filtrar() {
 // ── Parámetros de búsqueda persistentes ─────────────────────────────────────
 // Cada usuario define SUS parámetros una vez; se guardan en su navegador y
 // cada acceso muestra su búsqueda ya aplicada (sin depender del email diario).
-const CLAVE_FILTROS = (() => {
-  let quien = "local";
+const QUIEN = (() => {
   try {
     const s = JSON.parse(sessionStorage.getItem("reo_session") || "null");
-    if (s && s.e) quien = s.e;
+    if (s && s.e) return s.e;
   } catch (e) {}
-  return "reo_filtros:" + quien + ":" + (document.title.match(/Explorador/) ? location.pathname : "");
+  return "local";
 })();
+const CLAVE_FILTROS = "reo_filtros:" + QUIEN + ":" +
+  (document.title.match(/Explorador/) ? location.pathname : "");
 
 const _CAMPOS = ["f-precio", "f-capital", "f-coc", "f-m2", "f-hab", "f-txt"];
 
@@ -636,7 +710,8 @@ function guardarFiltros() {
     localStorage.setItem(CLAVE_FILTROS, JSON.stringify({
       v: 2,   // esquema: chips sin marcar por defecto (vacío = todos)
       campos: Object.fromEntries(_CAMPOS.map(id => [id, document.getElementById(id).value])),
-      muni: [...muniOn], fuente: [...fuenteOn], orden,
+      muni: [...muniOn], fuente: [...fuenteOn],
+      vendedor: [...vendedorOn], estado: [...estadoOn], orden,
     }));
   } catch (e) {}
 }
@@ -671,6 +746,14 @@ function restaurarFiltros() {
       if (validas.length && validas.length < todasF)
         validas.forEach(v => fuenteOn.add(v));
     }
+    // Vendedor y situación son chips nuevos: no arrastran esquema viejo, así
+    // que basta con quedarse con los valores que existan en esta provincia.
+    [["vendedor", vendedorOn, ORDEN_VENDEDOR], ["estado", estadoOn, ORDEN_ESTADO]]
+      .forEach(([clave, activo, validos]) => {
+        if (!Array.isArray(f[clave])) return;
+        activo.clear();
+        f[clave].filter(v => validos.includes(v)).forEach(v => activo.add(v));
+      });
     if (f.orden && f.orden.col) orden = f.orden;
     _chipSyncs.forEach(s => s());
     return true;
@@ -715,6 +798,25 @@ function pintar() {
   ).join("");
 
   document.getElementById("vacio").style.display = rows.length ? "none" : "block";
+  if (typeof refrescarFav === "function") refrescarFav();
+  if (soloFav) {
+    const fuera = rows.filter(favYaNoEsta).length;
+    avisoFav(rows.length
+      ? "Estás viendo tus <b>" + rows.length + "</b> favoritos, de todas las " +
+        "provincias. Los filtros de arriba no se aplican aquí." +
+        (fuera ? " <b>" + fuera + (fuera === 1 ? "</b> ya no está" : "</b> ya no están") +
+                 " en el listado de " + esc(ZONA) +
+                 (fuera === 1 ? ": lo habrán vendido o retirado."
+                              : ": los habrán vendido o retirado.") : "")
+      : "Todavía no has guardado ningún inmueble. Pulsa la ☆ de cualquier fila " +
+        "para tenerlo aquí, mires la provincia que mires.");
+    document.getElementById("vacio").style.display = "none";
+    document.getElementById("resumen").innerHTML =
+      `<b>${rows.length}</b> inmuebles guardados · ` +
+      `<span style="color:#7c8b98">se quedan en este navegador, asociados a tu acceso</span>`;
+    return;
+  }
+  avisoFav("");
   const destacados = rows.filter(r => r.coc >= 10).length;
   const aviso = rows.length > TOPE
     ? ` · <span style="color:#b5544b">en pantalla los ${TOPE} de mejor rentabilidad — afina los filtros para acotar</span>`
@@ -728,6 +830,12 @@ function pintar() {
 // init
 chips("f-muni", [...new Set(DATA.map(r => r.localidad))].sort(), muniOn);
 chips("f-fuente", [...new Set(DATA.map(r => r.origen))].sort(), fuenteOn);
+// Vendedor y situación van en orden fijo (no alfabético) y solo se pintan los
+// grupos que existan en esta provincia.
+chips("f-vendedor", ORDEN_VENDEDOR.filter(g => DATA.some(r => GRUPOS_VENDEDOR(r).includes(g))),
+      vendedorOn, NOMBRE_VENDEDOR);
+chips("f-estado", ORDEN_ESTADO.filter(e => DATA.some(r => (r.estado || "SIN_DATO") === e)),
+      estadoOn, NOMBRE_ESTADO);
 // Los controles NO aplican al instante: al cambiar, marcan "pendiente".
 // Se formaliza al pulsar "Aplicar filtros" o con Enter.
 ["f-precio", "f-capital", "f-coc", "f-m2", "f-hab", "f-txt"].forEach(id => {
@@ -737,6 +845,18 @@ chips("f-fuente", [...new Set(DATA.map(r => r.origen))].sort(), fuenteOn);
   el.addEventListener("keydown", e => { if (e.key === "Enter") aplicar(); });
 });
 document.getElementById("aplicar").addEventListener("click", aplicar);
+
+// ── Favoritos: el boton que cambia entre el listado y lo guardado ──────────
+function avisoFav(html) {
+  const el = document.getElementById("fav-aviso");
+  el.innerHTML = html || "";
+  el.classList.toggle("on", !!html);
+}
+document.getElementById("fav-ver").onclick = () => {
+  soloFav = !soloFav;
+  document.getElementById("filtros").classList.toggle("apagado", soloFav);
+  pintar();
+};
 
 // desplegable de municipios: resumen dinámico, buscador y cierre al clicar fuera
 function actualizarMuniSummary() {
@@ -777,11 +897,87 @@ document.getElementById("limpiar").onclick = () => {
   // la referencia original y una reasignación los desconecta del filtro.
   muniOn.clear();
   fuenteOn.clear();
+  vendedorOn.clear();
+  estadoOn.clear();
   _chipSyncs.forEach(s => s());
   if (typeof actualizarMuniSummary === "function") actualizarMuniSummary();
   try { localStorage.removeItem(CLAVE_FILTROS); } catch (e) {}
+  // "Limpiar filtros" no toca los favoritos: son tuyos, no un filtro. Solo
+  // sale de la vista de guardados para que se vea que ha hecho algo.
+  soloFav = false;
+  document.getElementById("filtros").classList.remove("apagado");
   aplicar();   // limpiar sí re-renderiza al momento
 };
+
+/* ── Favoritos ────────────────────────────────────────────────────────────────
+   La estrella de cada fila guarda el inmueble en el navegador de quien mira,
+   bajo su email de acceso. NO lleva pathname en la clave: los favoritos son
+   los mismos en las 52 provincias, y la vista "Mis favoritos" los enseña todos
+   juntos aunque estes mirando otra.
+
+   Se guarda el REGISTRO ENTERO, no una referencia, por lo mismo que el
+   comparador: el escaneo nocturno regenera esta pagina de cero cada dos dias y
+   un inmueble puede desaparecer del listado (vendido, retirado). Con una
+   referencia, el favorito se quedaria en nada sin avisar; con la copia, sigue
+   ahi y se marca que ya no esta a la venta.
+
+   localStorage puede fallar (modo privado, cookies bloqueadas): todo va con
+   try/catch y, si no se puede guardar, se avisa en vez de fingir que si. */
+const FAV_CLAVE = "reo_favoritos:" + QUIEN;
+const claveFav = r => r.url || [r.origen, r.localidad, r.direccion || "",
+                                r.precio, r.m2 || ""].join("|");
+
+let favoritos = [];
+try {
+  const guardado = JSON.parse(localStorage.getItem(FAV_CLAVE) || "null");
+  if (guardado && Array.isArray(guardado.items)) favoritos = guardado.items;
+} catch (e) {}
+
+function guardarFav() {
+  try {
+    localStorage.setItem(FAV_CLAVE, JSON.stringify({ v: 1, items: favoritos }));
+    return true;
+  } catch (e) { return false; }
+}
+const esFav = r => favoritos.some(x => claveFav(x) === claveFav(r));
+
+function marcarFav(r, on) {
+  if (on) {
+    if (esFav(r)) return true;
+    // _prov y _guardado son cosecha propia: la provincia para poder enseñar de
+    // donde salio cada favorito, y la fecha para ordenarlos por antiguedad.
+    favoritos.push(Object.assign({}, r, { _prov: r._prov || ZONA,
+                                          _guardado: new Date().toISOString() }));
+  } else {
+    favoritos = favoritos.filter(x => claveFav(x) !== claveFav(r));
+  }
+  const ok = guardarFav();
+  refrescarFav();
+  return ok;
+}
+
+// Claves de lo que hay HOY en esta provincia, para saber si un favorito de
+// aqui ya no esta en el listado.
+const _CLAVES_HOY = new Set(DATA.map(claveFav));
+const favYaNoEsta = r => r._prov === ZONA && !_CLAVES_HOY.has(claveFav(r));
+
+let soloFav = false;
+
+function refrescarFav() {
+  document.getElementById("fav-n").textContent = favoritos.length;
+  const btn = document.getElementById("fav-ver");
+  btn.classList.toggle("on", soloFav);
+  btn.innerHTML = (soloFav ? "★" : "☆") + " Mis favoritos (<span id='fav-n'>" +
+                  favoritos.length + "</span>)";
+  document.querySelectorAll(".estrella").forEach(b => {
+    const on = favoritos.some(x => claveFav(x) === b.dataset.k);
+    b.classList.toggle("on", on);
+    b.textContent = on ? "★" : "☆";
+    b.title = on ? "Quitar de favoritos" : "Guardar en favoritos";
+    const fila = b.closest("tr");
+    if (fila) fila.classList.toggle("favorita", on);
+  });
+}
 
 /* ── Comparador de inmuebles ──────────────────────────────────────────────────
    Se marcan hasta 4 filas y se enfrentan lado a lado, con un simulador de
@@ -818,12 +1014,37 @@ function marcarComp(r, on) {
 }
 
 function celdaSel(r) {
-  return '<td class="sel" data-label="Comparar"><input type="checkbox" class="chk-comp"' +
+  const fav = esFav(r);
+  return '<td class="sel" data-label="Guardar / comparar">' +
+         '<button class="estrella' + (fav ? " on" : "") + '" data-k="' + esc(claveFav(r)) +
+         '" title="' + (fav ? "Quitar de favoritos" : "Guardar en favoritos") +
+         '" aria-label="Guardar en favoritos">' + (fav ? "★" : "☆") + '</button>' +
+         '<br><input type="checkbox" class="chk-comp"' +
          ' data-k="' + esc(claveComp(r)) + '"' + (enComp(r) ? " checked" : "") +
          ' aria-label="Marcar para comparar"></td>';
 }
 
 function engancharSel() {
+  document.querySelectorAll(".estrella").forEach(btn => {
+    const fila = btn.closest("tr");
+    fila.classList.toggle("favorita", btn.classList.contains("on"));
+    btn.onclick = () => {
+      // El registro puede no estar en DATA: en la vista de favoritos hay
+      // inmuebles de otras provincias y otros que ya no se venden aqui.
+      const k = btn.dataset.k;
+      const r = DATA.find(x => claveFav(x) === k) ||
+                favoritos.find(x => claveFav(x) === k);
+      if (!r) return;
+      const quitando = btn.classList.contains("on");
+      if (!marcarFav(r, !quitando)) {
+        avisoFav("No se han podido guardar los favoritos en este navegador. " +
+                 "Suele pasar en ventana privada o con el almacenamiento bloqueado.");
+        return;
+      }
+      // En la vista de favoritos, quitar uno lo saca de la tabla al momento.
+      if (soloFav && quitando) pintar();
+    };
+  });
   document.querySelectorAll(".chk-comp").forEach(chk => {
     const fila = chk.closest("tr");
     fila.classList.toggle("comparando", chk.checked);
@@ -948,7 +1169,12 @@ const FILAS_COMP = [
     txt: r => r.cargas > 0 ? eur(r.cargas) : "sin cargas conocidas" },
   { et: "Zona tensionada", tema: "tensionada",
     txt: r => r.tensionada ? "S&iacute; &mdash; renta limitada" : "No" },
-  { et: "Posesi&oacute;n", txt: r => r.posesion ? esc(r.posesion) : "&mdash;" },
+  { et: "Situaci&oacute;n", txt: r => {
+      const e = r.estado || "SIN_DATO";
+      if (e === "SIN_DATO") return r.posesion ? esc(r.posesion) : "&mdash;";
+      return `<span class="tag" style="background:${COLOR_ESTADO[e]}"` +
+             `${r.posesion ? ` title="${esc(r.posesion)}"` : ""}>` +
+             `${NOMBRE_ESTADO[e]}</span>`; } },
   { et: "Cierre",          txt: r => r.cierre ? esc(r.cierre) : "&mdash;" },
   { et: "Ficha oficial", tema: "comprar",
     txt: r => r.url ? '<a href="' + esc(r.url) + '" target="_blank" rel="noopener">ver anuncio &#8599;</a>' : "&mdash;" },
@@ -1082,6 +1308,7 @@ function comparadorDesdeEnlace() {
 const _pintarSinComp = pintar;
 pintar = function () { _pintarSinComp(); engancharSel(); };
 barraComp();
+refrescarFav();      // cuenta de guardados en el botón desde el primer momento
 
 restaurarFiltros();  // parámetros guardados del usuario cargados en los controles
 aplicar();           // ...y aplicados desde el primer segundo
