@@ -1,0 +1,44 @@
+# Repone la medición cuando una subida la borra.
+#
+# La web se publica subiendo la carpeta local entera. Si esa carpeta no está
+# al día, la subida sobrescribe las páginas y se lleva por delante la línea
+# que carga medicion.js. Pasó el 18/09/2026: explorar.html, acceso.html y
+# marcador.html dejaron de contar visitas sin que nadie se enterara.
+#
+# Este trabajo se ejecuta después de cada envío a main y vuelve a poner lo
+# que falte. Si no falta nada, no hace ningún commit.
+name: Guardián de la medición
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:      # botón «Run workflow» para lanzarlo a mano
+
+permissions:
+  contents: write         # necesita escribir para reponer lo que falte
+
+# Si llegan dos envíos seguidos, que no se pisen entre ellos.
+concurrency:
+  group: guardian-medicion
+  cancel-in-progress: false
+
+jobs:
+  reponer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Revisar y reponer las piezas de medición
+        run: python3 .github/guardian.py
+
+      - name: Publicar el arreglo si hacía falta
+        run: |
+          if git diff --quiet; then
+            echo "Nada que reponer."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Reponer la medicion de visitas borrada por la ultima subida"
+          git push
