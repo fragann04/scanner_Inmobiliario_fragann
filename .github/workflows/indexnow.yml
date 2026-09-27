@@ -1,8 +1,9 @@
 # Avisa a los buscadores cuando cambia alguna página pública.
 #
-# Solo salta si cambia la portada, el explorador público, el sitemap o los
-# legales: las actualizaciones diarias de datos tocan los exploradores por
-# provincia, que no se indexan, así que no generan avisos inútiles.
+# Solo salta si cambia la portada, el explorador público, las páginas públicas
+# por provincia, el sitemap o los legales: las actualizaciones diarias de datos
+# tocan los exploradores con clave, que no se indexan, así que no generan
+# avisos inútiles.
 name: Avisar a los buscadores (IndexNow)
 
 on:
@@ -11,6 +12,8 @@ on:
     paths:
       - index.html
       - explorar.html
+      - provincias.html
+      - 'provincia-*.html'
       - sitemap.xml
       - robots.txt
       - aviso-legal.html

@@ -29,14 +29,17 @@ Ahora hay un trabajo (`.github/workflows/guardian.yml`) que se ejecuta
   que la hayan perdido,
 - la verificación de Google Search Console en la portada,
 - el cargador de `medicion.js` dentro de `config.js` (el que mide los 52
-  exploradores por provincia).
+  exploradores por provincia),
+- la marca en la portada (título, logotipo y h1) y el enlace a *Provincias*,
+- y regenera las 53 páginas públicas por provincia con los datos del día.
 
 Si no falta nada, no hace nada. Si falta algo, lo repone y deja un commit
-llamado *«Reponer la medicion de visitas borrada por la ultima subida»*. En la
-práctica: **la medición ya no depende de que te acuerdes de nada.** Como mucho
+llamado *«Mantenimiento: medicion, marca y paginas por provincia»*. En la
+práctica: **ni la medición ni el posicionamiento dependen de que te acuerdes
+de nada.** Como mucho
 se pierden los minutos que tarda el trabajo en ejecutarse.
 
-Puedes verlo en GitHub → pestaña **Actions** → *Guardián de la medición*.
+Puedes verlo en GitHub → pestaña **Actions** → *Mantenimiento del sitio*.
 
 ### Aun así, conviene bajar los cambios
 
@@ -121,6 +124,62 @@ En **Páginas** → qué páginas están indexadas y cuáles no, con el motivo.
 > Opcional: lo mismo, gratis, para Bing y ChatGPT-search en
 > <https://www.bing.com/webmasters> (acepta importar la propiedad desde Search
 > Console en dos clics).
+
+---
+
+### Páginas públicas por provincia (ya hecho)
+
+Los 52 exploradores piden clave, así que `robots.txt` los bloquea y Google no
+veía **nada** del inventario: quedaban 5 URLs indexables, y tres eran los
+legales. Sin páginas por provincia no hay forma de aparecer en «pisos de banco
+en Málaga» o «subastas BOE Valencia», que es donde está la búsqueda con
+volumen.
+
+Ahora `.github/provincias.py` genera, a partir de los propios exploradores:
+
+- **`provincia-<provincia>.html`** — una por provincia, 52 en total. Cada una
+  lleva: cuántos inmuebles hay, el más barato, el precio mediano, la
+  rentabilidad bruta mediana, los 12 municipios con más oferta, seis ejemplos
+  repartidos por el rango de precios, de qué fuentes salen, y enlaces a otras
+  provincias.
+- **`provincias.html`** — el índice de las 52, ordenado por volumen.
+- **`sitemap.xml`** — regenerado con 58 URLs (antes 5).
+
+Son un **adelanto**, no el catálogo: el explorador completo sigue detrás del
+registro. No publican la rentabilidad neta, ni el cash-on-cash, ni el cashflow,
+ni el descuento sobre tasación — eso es el producto.
+
+Dos decisiones que conviene conocer:
+
+- **Las rentabilidades brutas por encima del 100 % se descartan** del resumen.
+  Son errores de datos (unas 19 de 4.601 en Barcelona), y como el explorador
+  ordena por cash-on-cash, son justo las que salen primero. Publicarlas en una
+  página indexable parecería spam.
+- **Los ejemplos se reparten por el rango de precios**, no son los más baratos.
+  Con los más baratos salían pisos de 13.000 € cuyo capital de entrada era
+  mayor que el precio (la reforma estimada se come la diferencia), y en un
+  escaparate eso solo desconcierta.
+
+### La marca: por qué GitHub te adelantaba (ya arreglado)
+
+Buscando «Scanner Inmobiliario» aparecía **el repositorio de GitHub por encima
+de la web**. La causa era una incoherencia: el dominio, el `og:site_name` y la
+ficha JSON-LD decían «Scanner Inmobiliario», pero el **título, el logotipo y el
+h1** decían «Scanner REO». Google no tenía la marca donde más pesa.
+
+Cambiado en la portada:
+
+| Dónde | Antes | Ahora |
+|---|---|---|
+| `<title>` | Scanner REO — Pisos de banco y subastas en toda España… | **Scanner Inmobiliario** — Pisos de banco y subastas BOE con rentabilidad calculada |
+| Logotipo | Scanner**REO** | Scanner**Inmobiliario** |
+| `<h1>` | Pisos de banco, cartera Sareb y subastas… | **Scanner Inmobiliario**: pisos de banco, cartera Sareb y subastas… |
+
+Y el repositorio tiene ahora un `README.md` cuya primera línea apunta a la web,
+para que quien acabe allí llegue a donde quería ir.
+
+Si «Scanner REO» era un nombre que querías conservar, se revierte en un minuto:
+dilo y lo dejo como estaba.
 
 ---
 

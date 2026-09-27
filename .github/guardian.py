@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Repone las piezas de medicion que el envio automatico borra.
+"""Repone las piezas de medicion y de marca que el envio automatico borra.
 
 El proyecto se publica subiendo la carpeta local entera. Si esa carpeta no
 esta al dia, cada subida sobrescribe las paginas y se lleva por delante las
 lineas anadidas aqui (ya paso el 18/09/2026 con explorar.html, acceso.html y
 marcador.html). Este guardian se ejecuta despues de cada envio y vuelve a
-poner lo que falte, asi la medicion no depende de que la carpeta local este
-sincronizada.
+poner lo que falte, asi ni la medicion ni el posicionamiento de marca
+dependen de que la carpeta local este sincronizada.
 
 Es idempotente: si no falta nada, no toca ningun archivo.
 """
@@ -100,14 +100,64 @@ def revisar_config(arreglados):
     arreglados.append("config.js: repuesto el cargador de medicion.js")
 
 
+# Las cadenas de la portada que el envio revierte. La web se llama «Scanner Inmobiliario»
+# (es el dominio, el og:site_name y el name de la ficha JSON-LD), pero el
+# titulo, el logotipo y el h1 decian «Scanner REO». Por esa incoherencia el
+# repositorio de GitHub adelantaba a la web en las busquedas de marca.
+PORTADA = [
+    (b"<title>Scanner REO \xe2\x80\x94 Pisos de banco y subastas en toda Espa\xc3\xb1a,"
+     b" con la rentabilidad ya calculada</title>",
+     b"<title>Scanner Inmobiliario \xe2\x80\x94 Pisos de banco y subastas BOE con"
+     b" rentabilidad calculada</title>",
+     "el titulo"),
+    (b'<a class="marca" href="#">Scanner<span>REO</span></a>',
+     b'<a class="marca" href="#">Scanner<span>Inmobiliario</span></a>',
+     "el logotipo"),
+    (b"<h1>Pisos de banco, cartera Sareb y subastas, con la rentabilidad ya"
+     b" calculada</h1>",
+     b"<h1>Scanner Inmobiliario: pisos de banco, cartera Sareb y subastas, con la"
+     b" rentabilidad ya calculada</h1>",
+     "el h1"),
+    (b'    <a class="nav-plano" href="acceso.html"',
+     b'    <a class="nav-plano" href="provincias.html" title="Adelanto p\xc3\xbablico'
+     b' de lo que hay en cada provincia">Provincias</a>\r\n'
+     b'    <a class="nav-plano" href="acceso.html"',
+     "el enlace a provincias"),
+]
+
+
+def revisar_portada(arreglados):
+    """Repone la marca y el enlace a provincias si una subida los revierte."""
+    ruta = RAIZ / "index.html"
+    if not ruta.exists():
+        return
+    datos = ruta.read_bytes()
+    repuestas = []
+    for viejo, nuevo, nombre in PORTADA:
+        if nuevo in datos:
+            continue
+        # El enlace a provincias se reconoce por si mismo: si ya esta, no se
+        # vuelve a insertar aunque la cadena «nueva» no coincida entera.
+        if b'href="provincias.html"' in datos and nombre == "el enlace a provincias":
+            continue
+        if viejo in datos:
+            datos = datos.replace(viejo, nuevo)
+            repuestas.append(nombre)
+    if not repuestas:
+        return
+    ruta.write_bytes(datos)
+    arreglados.append("index.html: repuesto en la portada " + ", ".join(repuestas))
+
+
 def main():
     arreglados = []
     revisar_paginas(arreglados)
     revisar_verificacion_google(arreglados)
     revisar_config(arreglados)
+    revisar_portada(arreglados)
 
     if not arreglados:
-        print("Todo en su sitio: no falta ninguna pieza de medicion.")
+        print("Todo en su sitio: no falta ninguna pieza.")
         return 0
 
     print("Se han repuesto estas piezas:")
