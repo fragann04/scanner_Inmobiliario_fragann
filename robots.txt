@@ -9,6 +9,8 @@ Allow: /explorar.html
 Allow: /aviso-legal.html
 Allow: /privacidad.html
 Allow: /cookies.html
+Allow: /provincias.html
+Allow: /provincia-
 
 Disallow: /cuentas/
 Disallow: /acceso.html
